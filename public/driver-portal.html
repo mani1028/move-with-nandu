@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Driver Partner - Nandu Travels</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Config & Styles -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        slate: { 850: '#151F32', 900: '#0F172A', 950: '#020617' },
+                        brand: { 500: '#3B82F6', 600: '#2563EB', 700: '#1D4ED8' }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.2s ease-out forwards',
+                        'zoom-in': 'zoomIn 0.2s ease-out forwards',
+                        'progress': 'progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite'
+                    },
+                    keyframes: {
+                        slideUp: {
+                            'from': { transform: 'translateY(20px)', opacity: '0' },
+                            'to': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        fadeIn: {
+                            'from': { opacity: '0' },
+                            'to': { opacity: '1' }
+                        },
+                        zoomIn: {
+                            'from': { transform: 'scale(0.95)', opacity: '0' },
+                            'to': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        progress: {
+                            '0%': { transform: 'scaleX(0)' },
+                            '50%': { transform: 'scaleX(0.7)' },
+                            '100%': { transform: 'scaleX(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .dark .glass { background: rgba(15, 23, 42, 0.95); }
+        .loader { width: 20px; height: 20px; border: 3px solid #FFF; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .otp-input { width: 3rem; height: 3.5rem; text-align: center; font-size: 1.5rem; border-radius: 0.75rem; border: 2px solid #e2e8f0; background: #f8fafc; transition: all 0.2s; }
+        .otp-input:focus { border-color: #3B82F6; background: #fff; outline: none; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .dark .otp-input { background: #0f172a; border-color: #1e293b; color: white; }
+        .dark .otp-input:focus { border-color: #3B82F6; background: #1e293b; }
+        
+        /* Custom Animation Delays */
+        .animation-delay-300 { animation-delay: 300ms; }
+        .origin-left { transform-origin: left; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+
+    <!-- No Internet Screen -->
+    <div id="no-internet-screen" class="fixed inset-0 z-[200] bg-white/90 dark:bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+        <div class="relative mb-6">
+            <div class="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-20"></div>
+            <div class="relative bg-red-50 dark:bg-red-900/20 p-6 rounded-full">
+                <i data-lucide="wifi-off" class="w-12 h-12 text-red-500"></i>
+            </div>
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2">No Connection</h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 font-medium max-w-[250px]">
+            It looks like you're offline. Check your mobile data or Wi-Fi.
+        </p>
+        <button onclick="window.location.reload()" class="py-3.5 px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform active:scale-95 flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Try Again
+        </button>
+    </div>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="fixed inset-0 bg-slate-50 dark:bg-slate-950 z-[150] flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="relative w-24 h-24 mb-8">
+            <div class="absolute inset-0 bg-blue-500 rounded-2xl animate-ping opacity-20"></div>
+            <div class="relative z-10 w-full h-full bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
+                <i data-lucide="car-front" class="h-12 w-12 text-white fill-current/20"></i>
+            </div>
+        </div>
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">
+                Travel<span class="text-blue-600">Nandu</span>
+            </h1>
+            <p id="splash-text" class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">
+                Secure Login...
+            </p>
+        </div>
+        <div class="w-48 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden">
+            <div class="h-full bg-blue-600 rounded-full animate-progress origin-left"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 left-4 right-4 z-[110] pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- Modal Containers -->
+    <!-- 3-Dot Options Modal -->
+    <div id="options-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold dark:text-white">Trip Options</h3>
+                <button onclick="document.getElementById('options-modal').classList.add('hidden')" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 transition">
+                    <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <button onclick="reportNoResponse()" class="w-full flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-bold rounded-xl hover:bg-orange-100 transition active:scale-95">
+                    <div class="bg-orange-100 dark:bg-orange-900/40 p-2 rounded-lg"><i data-lucide="phone-off" class="h-5 w-5"></i></div>
+                    Customer Not Responding
+                </button>
+                <button onclick="reportNotInterested()" class="w-full flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-100 transition active:scale-95">
+                    <div class="bg-red-100 dark:bg-red-900/40 p-2 rounded-lg"><i data-lucide="thumbs-down" class="h-5 w-5"></i></div>
+                    Customer Not Interested
+                </button>
+                <button onclick="cancelTripReason()" class="w-full flex items-center gap-3 p-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 transition active:scale-95">
+                    <div class="bg-slate-200 dark:bg-slate-700 p-2 rounded-lg"><i data-lucide="x-circle" class="h-5 w-5"></i></div>
+                    Cancel Trip (Other Reason)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div id="doc-upload-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
+             <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold dark:text-white">Upload Documents</h3>
+                <button onclick="closeDocModal()" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 transition">
+                    <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                 <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition group">
+                      <i data-lucide="id-card" class="h-8 w-8 mx-auto text-slate-400 mb-2 group-hover:text-brand-500 transition-colors"></i>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Driving License</p>
+                      <p class="text-[10px] text-slate-500">Tap to upload (Front/Back)</p>
+                 </div>
+                 <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition group">
+                      <i data-lucide="file-check" class="h-8 w-8 mx-auto text-slate-400 mb-2 group-hover:text-brand-500 transition-colors"></i>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Vehicle Insurance</p>
+                      <p class="text-[10px] text-slate-500">Tap to upload PDF/Image</p>
+                 </div>
+                 <button onclick="showToast('Documents Uploaded!', 'success'); closeDocModal()" class="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg mt-4 active:scale-95 transition">Submit for Verification</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Accept Modal -->
+    <div id="accept-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <i data-lucide="bell-ring" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">New Request</h3>
+                <p class="text-sm text-slate-500 mt-2">Do you want to accept this trip?</p>
+            </div>
+            
+            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Fare</span>
+                    <span class="text-lg font-black text-slate-900 dark:text-white" id="accept-modal-price">₹0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Vehicle</span>
+                    <span class="text-sm font-bold text-slate-900 dark:text-white" id="accept-modal-type">...</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                 <button onclick="document.getElementById('accept-modal').classList.add('hidden')" class="py-3.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition">Reject</button>
+                 <button onclick="confirmAcceptJob()" class="py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30">Allow / Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="otp-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
+            <button onclick="document.getElementById('otp-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:rotate-90 transition-transform">
+                <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="shield-check" class="h-6 w-6"></i>
+                </div>
+                <h3 class="text-lg font-bold dark:text-white">Verify Customer</h3>
+                <p class="text-xs text-slate-500 mt-1">Ask passenger for the 4-digit PIN</p>
+            </div>
+            
+            <div class="flex justify-center gap-3 mb-6" id="otp-inputs">
+                <input type="tel" maxlength="1" class="otp-input font-bold" data-index="0">
+                <input type="tel" maxlength="1" class="otp-input font-bold" data-index="1">
+                <input type="tel" maxlength="1" class="otp-input font-bold" data-index="2">
+                <input type="tel" maxlength="1" class="otp-input font-bold" data-index="3">
+            </div>
+
+            <button onclick="submitOtp()" id="btn-verify-submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 active:scale-95 transition">
+                Verify PIN
+            </button>
+        </div>
+    </div>
+
+    <!-- Start Ride Confirmation Modal -->
+    <div id="start-confirm-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <i data-lucide="play-circle" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">Start Trip?</h3>
+                <p class="text-sm text-slate-500 mt-2">Confirm that passengers are seated and you are ready to move.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                 <button onclick="document.getElementById('start-confirm-modal').classList.add('hidden')" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl">Cancel</button>
+                 <button onclick="confirmStartRide()" class="py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/30">Yes, Start</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Complete Modal -->
+    <div id="complete-all-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="check-circle-2" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">End All Trips?</h3>
+                <p class="text-sm text-slate-500 mt-2">Collect payment and complete all active rides.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                 <button onclick="document.getElementById('complete-all-modal').classList.add('hidden')" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl">Cancel</button>
+                 <button onclick="confirmCompleteAllRides()" class="py-3 bg-slate-900 dark:bg-brand-600 text-white font-bold rounded-xl shadow-lg">Yes, Complete All</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Collection Modal -->
+    <div id="payment-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative flex flex-col max-h-[80vh]">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="indian-rupee" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">Collect Payment</h3>
+                <p class="text-xs text-slate-500 mt-1">Collect cash from passengers to complete ride.</p>
+            </div>
+            
+            <div id="payment-list" class="flex-1 overflow-y-auto space-y-2 mb-4 pr-1"></div>
+
+            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl mb-4 border border-slate-100 dark:border-slate-700">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-500 uppercase">Total Cash</span>
+                    <span class="text-2xl font-black text-slate-900 dark:text-white" id="payment-total">₹0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                 <button onclick="document.getElementById('payment-modal').classList.add('hidden')" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl">Cancel</button>
+                 <button onclick="confirmCompleteRide()" class="py-3 bg-slate-900 dark:bg-green-600 text-white font-bold rounded-xl shadow-lg">Collected & End</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline Confirmation Modal -->
+    <div id="offline-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <i data-lucide="power-off" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">Go Offline?</h3>
+                <p class="text-sm text-slate-500 mt-2" id="offline-msg">You have active trips. Going offline will release them.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                 <button onclick="document.getElementById('offline-modal').classList.add('hidden')" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl">Stay Online</button>
+                 <button onclick="confirmOfflineAction()" class="py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-500/30">Yes, Offline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold dark:text-white">Ride Preferences</h3>
+                <button onclick="closeSettingsModal()" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
+                    <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- AC Toggle -->
+                <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600">
+                            <i data-lucide="snowflake" class="h-5 w-5"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm dark:text-white">AC Vehicle</p>
+                            <p class="text-[10px] text-slate-400">Strict Match Only</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-ac" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-600"></div>
+                    </label>
+                </div>
+
+                <!-- Location/Route -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Current Hub (Start Location)</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-colors">
+                            <input type="radio" name="route_pref" value="Karimnagar" class="w-5 h-5 text-brand-600 focus:ring-brand-500">
+                            <div>
+                                <span class="block font-bold text-sm dark:text-white">Karimnagar</span>
+                                <span class="text-[10px] text-slate-400">Main Hub</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-colors">
+                            <input type="radio" name="route_pref" value="RGI Airport" class="w-5 h-5 text-brand-600 focus:ring-brand-500">
+                            <div>
+                                <span class="block font-bold text-sm dark:text-white">RGI Airport</span>
+                                <span class="text-[10px] text-slate-400">Shamshabad</span>
+                            </div>
+                        </label>
+                         <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-colors">
+                            <input type="radio" name="route_pref" value="JBS" class="w-5 h-5 text-brand-600 focus:ring-brand-500">
+                            <div>
+                                <span class="block font-bold text-sm dark:text-white">JBS</span>
+                                <span class="text-[10px] text-slate-400">Secunderabad</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-colors">
+                            <input type="radio" name="route_pref" value="Hyderabad" class="w-5 h-5 text-brand-600 focus:ring-brand-500">
+                            <div>
+                                <span class="block font-bold text-sm dark:text-white">Hyderabad City</span>
+                                <span class="text-[10px] text-slate-400">General Pickup</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg active:scale-95 transition">
+                    Save Preferences
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Seat Editor Modal -->
+    <div id="seat-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-xs animate-slide-up">
+            <h3 class="text-lg font-bold mb-4 dark:text-white">Manage Seats</h3>
+            
+            <div class="mb-4 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="text-slate-500">Total Capacity</span>
+                    <span class="font-bold dark:text-white" id="seat-mod-cap">4</span>
+                </div>
+                <div class="flex justify-between items-center text-xs mb-1">
+                    <span class="text-brand-600 font-bold">App Bookings (Fixed)</span>
+                    <span class="font-bold text-brand-600" id="seat-mod-app">0</span>
+                </div>
+                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div id="seat-mod-bar" class="bg-slate-400 h-full w-0"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl mb-6">
+                <button onclick="adjustManualSeats(-1)" class="w-10 h-10 bg-white dark:bg-slate-700 rounded-xl shadow font-bold text-xl hover:scale-105 transition">-</button>
+                <div class="text-center">
+                    <span id="manual-seat-count" class="block text-2xl font-black dark:text-white">0</span>
+                    <span class="text-[10px] text-slate-500 uppercase font-bold">Filled Manually</span>
+                </div>
+                <button onclick="adjustManualSeats(1)" class="w-10 h-10 bg-white dark:bg-slate-700 rounded-xl shadow font-bold text-xl hover:scale-105 transition">+</button>
+            </div>
+            
+            <button onclick="saveManualSeats()" class="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg">Update Availability</button>
+            <button onclick="document.getElementById('seat-modal').classList.add('hidden')" class="w-full py-3 mt-2 text-slate-500 font-bold text-xs">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Login/Register Screen -->
+    <div id="login-screen" class="min-h-screen flex flex-col justify-center px-6 hidden relative z-10 max-w-md mx-auto animate-slide-up overflow-y-auto pb-20">
+        <div class="text-center mb-8 mt-10">
+            <div class="bg-gradient-to-tr from-brand-500 to-brand-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
+                <i data-lucide="car-taxi-front" class="h-8 w-8 text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="auth-title">Partner Portal</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1" id="auth-subtitle">Driver Login</p>
+            
+            <!-- Auth Mode Switcher -->
+            <div class="flex justify-center gap-4 mt-6 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl inline-flex mx-auto">
+                <button onclick="toggleAuthMode('login')" id="tab-login" class="px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white">Login</button>
+                <button onclick="toggleAuthMode('register')" id="tab-register" class="px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700">Register</button>
+            </div>
+        </div>
+        
+        <div class="max-w-sm mx-auto w-full">
+            <!-- Step 1: Mobile -->
+            <div id="auth-step-1" class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Mobile Number</label>
+                <div class="flex mt-1 mb-4 group">
+                    <span class="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-500 font-bold text-sm">+91</span>
+                    <input type="tel" id="auth-mobile" class="flex-1 w-full px-4 py-3.5 rounded-r-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 dark:text-white focus:border-brand-500 outline-none font-medium text-lg tracking-wide transition-colors" placeholder="9876543210" maxlength="10">
+                </div>
+                
+                <button type="button" onclick="sendOtp()" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition flex justify-center items-center gap-2 hover:bg-brand-700" id="btn-send-otp">
+                    Send OTP <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                </button>
+                <p class="text-xs text-blue-700 font-semibold mt-2">Phone numbers and emails are used only for booking management and identity verification.</p>
+                <div id="recaptcha-container" class="mt-4 flex justify-center"></div>
+            </div>
+
+            <!-- Step 2: OTP (Hidden) -->
+            <div id="auth-step-2" class="hidden bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Enter OTP</label>
+                <div class="flex gap-2 my-4 justify-center">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="0">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="1">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="2">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="3">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="4">
+                    <input type="tel" class="otp-input" maxlength="1" data-idx="5">
+                </div>
+                <button type="button" onclick="verifyOtp()" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition hover:bg-brand-700" id="btn-verify-otp">
+                    Verify & Proceed
+                </button>
+                <button onclick="location.reload()" class="w-full mt-3 text-slate-400 text-xs font-bold">Change Number</button>
+            </div>
+
+            <!-- Step 3: Registration Form (Only for Register Mode) -->
+            <div id="auth-step-3-register" class="hidden bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
+                <h3 class="font-bold text-lg text-center dark:text-white">Complete Profile</h3>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                    <input type="text" id="reg-name" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1" placeholder="Enter name">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Email Address</label>
+                    <input type="email" id="reg-email" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1" placeholder="driver@email.com">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Vehicle Number</label>
+                    <input type="text" id="reg-plate" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1 uppercase" placeholder="TS00XX0000">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Vehicle Type</label>
+                    <select id="reg-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1">
+                        <option value="5 Seater">5 Seater (Sedan/Etios)</option>
+                        <option value="7 Seater">7 Seater (Innova/Ertiga)</option>
+                    </select>
+                </div>
+                 <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Primary Route</label>
+                    <select id="reg-route" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1">
+                        <option value="Karimnagar">Karimnagar</option>
+                        <option value="JBS">JBS / Secunderabad</option>
+                        <option value="RGI Airport">RGI Airport</option>
+                        <option value="Hyderabad">Hyderabad City</option>
+                    </select>
+                </div>
+                <button onclick="completeRegistration()" class="w-full py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition">
+                    Finish Registration
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard -->
+    <div id="app-screen" class="hidden max-w-lg mx-auto min-h-screen flex flex-col pb-24">
+        
+        <!-- Header -->
+        <header class="glass sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 px-5 py-3 flex justify-between items-center transition-all duration-300">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm relative">
+                    <img id="header-pic" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nandu" class="w-full h-full rounded-full object-cover" alt="Profile">
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                </div>
+                <div>
+                    <!-- CHANGED ID from header-name to driver-name to match fix instructions -->
+                    <h2 id="driver-name" class="font-bold text-sm leading-tight dark:text-white truncate max-w-[120px]">...</h2>
+                    <div class="flex items-center gap-1.5" id="header-plate-container">
+                        <span id="header-plate" class="text-[10px] font-bold text-slate-500 uppercase bg-slate-100 dark:bg-slate-800 px-1.5 rounded border border-slate-200 dark:border-slate-700 flex items-center">
+                            ...
+                        </span>
+                        <i data-lucide="badge-check" class="h-3 w-3 text-blue-500"></i>
+                    </div>
+                </div>
+            </div>
+            <!-- Online Toggle -->
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="document.getElementById('status-toggle').click()">
+                <span id="status-label" class="text-[10px] font-bold text-slate-400 uppercase transition-colors">Offline</span>
+                <div class="relative inline-block w-11 h-6">
+                    <input type="checkbox" id="status-toggle" class="peer sr-only" onchange="toggleOnlineStatus(this)">
+                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shadow-inner"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-4 space-y-5">
+
+            <!-- HOME TAB -->
+            <div id="view-home" class="space-y-4 animate-slide-up">
+                
+                <!-- Preferences Bar -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-3 flex justify-between items-center shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center gap-3">
+                         <div class="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-lg text-indigo-600 dark:text-indigo-400">
+                            <i data-lucide="settings-2" class="h-4 w-4"></i>
+                         </div>
+                         <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Current Settings</p>
+                            <div class="flex items-center gap-2">
+                                <span id="home-pref-route" class="font-bold text-sm dark:text-white">...</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="home-pref-ac" class="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">...</span>
+                            </div>
+                         </div>
+                    </div>
+                    <button onclick="openSettingsModal()" class="text-xs font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/20 px-3 py-1.5 rounded-lg border border-brand-100 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition">
+                        Edit
+                    </button>
+                </div>
+
+                <!-- Seat Status Card -->
+                <div id="trip-status-card" class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-xl shadow-slate-500/10 hidden relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <i data-lucide="armchair" class="w-24 h-24 text-white"></i>
+                    </div>
+                    <div class="flex justify-between items-center mb-3 relative z-10">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i> Occupancy</span>
+                        <button onclick="openSeatModal()" class="text-[10px] font-bold bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20 border border-white/10 transition-colors">Manage Seats</button>
+                    </div>
+                    <div class="flex items-baseline gap-2 relative z-10">
+                        <span id="seats-filled-display" class="text-5xl font-black tracking-tighter">0</span>
+                        <span class="text-sm font-medium text-slate-400">/ <span id="seats-total-display">0</span> Filled</span>
+                    </div>
+                    <div class="w-full bg-slate-700/50 h-2.5 rounded-full mt-4 overflow-hidden relative z-10">
+                        <div id="seat-progress-bar" class="bg-brand-500 h-full w-0 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                    </div>
+                </div>
+
+                <!-- Job Filters -->
+                <div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl flex sticky top-20 z-30 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <button onclick="setHomeTab('new')" id="htab-new" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white">
+                        New <span id="badge-new" class="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full hidden text-[10px]">0</span>
+                    </button>
+                    <button onclick="setHomeTab('active')" id="htab-active" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">
+                        Active Trip <span id="badge-active" class="ml-1 px-1.5 py-0.5 bg-red-500 text-white rounded-full hidden text-[10px]">0</span>
+                    </button>
+                </div>
+
+                <!-- Bulk Action Bar -->
+                <div id="bulk-action-bar" class="hidden animate-slide-up sticky top-36 z-30 space-y-2">
+                    <!-- Start Action (Injected via JS) -->
+                </div>
+
+                <!-- Job List -->
+                <div id="job-list-container" class="space-y-4 pb-20 min-h-[300px]"></div>
+            </div>
+
+            <!-- WALLET TAB -->
+            <div id="view-wallet" class="hidden space-y-5 animate-slide-up">
+                <div class="bg-gradient-to-br from-brand-600 to-indigo-800 rounded-3xl p-6 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-2">
+                             <p class="text-xs font-medium text-blue-100 flex items-center gap-2"><i data-lucide="wallet" class="w-3 h-3"></i> Total Earnings</p>
+                             <select id="wallet-filter" onchange="updateWalletView()" class="bg-white/20 text-xs font-bold border-none rounded-lg px-2 py-1 outline-none cursor-pointer hover:bg-white/30 text-white">
+                                <option value="all" class="text-slate-900">All Time</option>
+                                <option value="week" class="text-slate-900">This Week</option>
+                                <option value="month" class="text-slate-900">This Month</option>
+                             </select>
+                        </div>
+                        <h2 class="text-5xl font-black mb-6 tracking-tight">₹<span id="wallet-balance">0</span></h2>
+                        <button onclick="toggleExpenseForm()" class="w-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Expense
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Expense Form -->
+                <div id="expense-form" class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 animate-slide-up shadow-sm">
+                    <h3 class="font-bold text-sm mb-3 dark:text-white">Log Expense</h3>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <input type="text" id="exp-desc" placeholder="Fuel, Toll..." class="col-span-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-3 text-sm outline-none dark:text-white focus:border-brand-500 transition-colors">
+                        <input type="number" id="exp-amt" placeholder="₹" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-3 text-sm outline-none dark:text-white focus:border-brand-500 transition-colors">
+                    </div>
+                    <button onclick="saveExpense()" class="w-full bg-slate-900 dark:bg-brand-600 text-white py-3 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-shadow">Save Record</button>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-sm text-slate-500 uppercase tracking-wide ml-1">Reports</h3>
+                    <div id="wallet-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- HISTORY TAB -->
+            <div id="view-history" class="hidden space-y-4 animate-slide-up">
+                 <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-sm sticky top-20 z-20">
+                    <div>
+                        <h3 class="font-bold text-lg dark:text-white">Trip History</h3>
+                        <p class="text-xs text-slate-500">Past completed rides</p>
+                    </div>
+                    <div class="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 p-2 rounded-xl">
+                        <i data-lucide="history" class="h-6 w-6"></i>
+                    </div>
+                 </div>
+                 <div id="history-list" class="space-y-4 pb-20"></div>
+            </div>
+
+            <!-- PROFILE TAB (Enhanced) -->
+            <div id="view-profile" class="hidden space-y-6 animate-slide-up pb-20">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center shadow-sm relative overflow-hidden">
+                    <div class="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 border-4 border-white dark:border-slate-700 shadow-lg relative cursor-pointer group" onclick="document.getElementById('profile-upload').click()">
+                        <img id="profile-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nandu" class="w-full h-full rounded-full object-cover">
+                        <div class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-lucide="camera" class="text-white h-6 w-6"></i>
+                        </div>
+                        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="uploadProfilePic(this)">
+                    </div>
+                    <h3 id="prof-name" class="font-bold text-xl dark:text-white">Driver Name</h3>
+                    
+                    <!-- NEW: PARTNER ID DISPLAY -->
+                    <div class="mt-1 flex flex-col items-center gap-1">
+                        <span id="prof-id" class="text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">ID-....</span>
+                        <div class="flex items-center gap-1 text-slate-500 text-sm">
+                             <i data-lucide="phone" class="h-3 w-3"></i> <span id="prof-phone">...</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex gap-2">
+                        <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold rounded-full border border-green-200 dark:border-green-900 flex items-center gap-1"><i data-lucide="badge-check" class="h-3 w-3"></i> Verified Partner</span>
+                        <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold rounded-full border border-blue-200 dark:border-blue-900" id="prof-type">Type</span>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard Mini (Moved to Profile) -->
+                <div class="grid grid-cols-2 gap-3">
+                     <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                          <p class="text-[10px] text-slate-400 font-bold uppercase">Jobs Done</p>
+                          <p class="text-2xl font-black text-slate-900 dark:text-white" id="stat-jobs">0</p>
+                          <span class="text-[9px] text-green-500 font-bold flex justify-center items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-1"></i> +2 this week</span>
+                     </div>
+                     <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                          <p class="text-[10px] text-slate-400 font-bold uppercase">Rating</p>
+                          <div class="flex items-center justify-center gap-1">
+                               <span class="text-2xl font-black text-slate-900 dark:text-white">4.9</span>
+                               <i data-lucide="star" class="h-4 w-4 text-yellow-400 fill-current"></i>
+                          </div>
+                          <span class="text-[9px] text-slate-400">50+ Reviews</span>
+                     </div>
+                </div>
+
+                <!-- Structured Sections -->
+                <div class="space-y-4">
+                    <!-- Personal Info -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Personal Info</h4>
+                            <button class="text-xs text-brand-600 font-bold" onclick="toggleEditProfile()">Edit</button>
+                        </div>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg"><i data-lucide="mail" class="h-4 w-4 text-slate-400"></i></div>
+                                <input type="email" id="prof-email" value="driver@nandu.com" class="bg-transparent outline-none w-full text-slate-600 dark:text-slate-300" disabled>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg"><i data-lucide="map-pin" class="h-4 w-4 text-slate-400"></i></div>
+                                <input type="text" id="prof-address" value="Karimnagar, Telangana" class="bg-transparent outline-none w-full text-slate-600 dark:text-slate-300" disabled>
+                            </div>
+                        </div>
+                        <button id="save-profile-btn" class="hidden w-full mt-3 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold" onclick="saveProfileChanges()">Save Changes</button>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                         <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Documents</h4>
+                            <button onclick="openDocModal()" class="text-xs text-brand-600 font-bold">+ Upload</button>
+                        </div>
+                        <div class="space-y-2">
+                             <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                 <div class="flex items-center gap-2">
+                                     <i data-lucide="file-text" class="h-4 w-4 text-slate-400"></i>
+                                     <span class="text-xs font-medium dark:text-white">Driving License</span>
+                                 </div>
+                                 <span class="text-[10px] font-bold text-green-500 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded">Verified</span>
+                             </div>
+                             <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                 <div class="flex items-center gap-2">
+                                     <i data-lucide="shield" class="h-4 w-4 text-slate-400"></i>
+                                     <span class="text-xs font-medium dark:text-white">Insurance</span>
+                                 </div>
+                                 <span class="text-[10px] font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded">Expiring Soon</span>
+                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Support & Settings -->
+                     <div class="grid grid-cols-2 gap-3">
+                         <button onclick="window.open('https://wa.me/917842424201', '_blank')" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl border border-green-100 dark:border-green-800 flex flex-col items-center justify-center gap-2 hover:bg-green-100 transition active:scale-95">
+                             <i data-lucide="headphones" class="h-6 w-6 text-green-600"></i>
+                             <span class="text-xs font-bold text-green-700 dark:text-green-400">Help & Support</span>
+                         </button>
+                          <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center gap-2">
+                             <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dark-toggle" class="sr-only peer" onchange="toggleTheme()">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900"></div>
+                            </label>
+                             <span class="text-xs font-bold text-slate-500">Dark Mode</span>
+                         </div>
+                     </div>
+
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 p-4 text-red-500 font-bold bg-white dark:bg-slate-900 rounded-2xl border border-red-100 hover:bg-red-50 dark:hover:bg-red-900/10 transition active:scale-95">
+                        <i data-lucide="log-out" class="h-4 w-4"></i> Log Out
+                    </button>
+                </div>
+                 <p class="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">Nandu Travels v3.3 (Optimized)</p>
+            </div>
+
+        </main>
+
+        <!-- Navigation Bar -->
+        <nav class="fixed bottom-0 w-full max-w-lg bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex justify-around py-3 px-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+            <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center gap-1 p-2 text-brand-600 dark:text-brand-500 transition-colors">
+                <i data-lucide="layout-grid" class="h-6 w-6"></i>
+                <span class="text-[10px] font-bold">Jobs</span>
+            </button>
+             <button onclick="switchView('history')" id="nav-history" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="history" class="h-6 w-6"></i>
+                <span class="text-[10px] font-bold">History</span>
+            </button>
+            <button onclick="switchView('wallet')" id="nav-wallet" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="wallet" class="h-6 w-6"></i>
+                <span class="text-[10px] font-bold">Wallet</span>
+            </button>
+            <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="user-circle" class="h-6 w-6"></i>
+                <span class="text-[10px] font-bold">Profile</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Error Catcher -->
+    <script>
+        window.onerror = function (msg, src, line, col, err) {
+            console.error("JS Error: " + msg + " line " + line);
+        };
+    </script>
+
+    <!-- FIREBASE LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, orderBy, addDoc, limit, arrayUnion, runTransaction, enableIndexedDbPersistence, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // CONFIG
+        import { firebaseConfig } from './firebase-config.js';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app); 
+        const db = getFirestore(app);
+        
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
+        
+        // --- GLOBAL STATE ---
+        let driverProfile = null;
+        let driverId = null; 
+        let currentTab = 'new';
+        let confirmationResult = null; // Store reCAPTCHA result
+        
+        // AUTH STATE
+        let isRegistering = false; // Toggle between Login and Register
+
+        // State
+        let myActiveJobs = []; 
+        let availableMarketJobs = []; 
+        
+        let activeJobsUnsubscribe = null;
+        let marketJobsUnsubscribe = null;
+        let historySubscription = null;
+        let walletSubscription = null;
+        
+        let historyJobs = [];
+        let expenseList = [];
+        let manualSeats = 0;
+        
+        let pendingVerifyJobId = null;
+        let pendingAcceptJobId = null;
+        let pendingPaymentJobId = null;
+        let pendingStartMode = null;
+        let pendingOptionsJobId = null; 
+
+        // --- AUTH FUNCTIONS (Exposed to Window for Button Clicks) ---
+
+        window.toggleAuthMode = (mode) => {
+            isRegistering = (mode === 'register');
+            
+            // UI Updates
+            const btnLogin = document.getElementById('tab-login');
+            const btnRegister = document.getElementById('tab-register');
+            const title = document.getElementById('auth-title');
+            const sub = document.getElementById('auth-subtitle');
+            
+            if(isRegistering) {
+                btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
+                btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
+                title.innerText = "New Partner";
+                sub.innerText = "Register to Drive";
+            } else {
+                btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
+                btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
+                title.innerText = "Partner Portal";
+                sub.innerText = "Driver Login";
+            }
+        };
+
+        window.setupRecaptcha = () => {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible',
+                    'callback': (response) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
+                        console.log("Recaptcha Verified");
+                    }
+                });
+            }
+        };
+
+        window.sendOtp = async () => {
+            const mobileInput = document.getElementById('auth-mobile');
+            const btn = document.getElementById('btn-send-otp');
+            const mobile = mobileInput.value.trim();
+            
+            if (!mobile || mobile.length !== 10) {
+                alert("Please enter a valid 10-digit mobile number");
+                return;
+            }
+
+            const phoneNumber = "+91" + mobile;
+            btn.disabled = true;
+            btn.innerHTML = "Sending...";
+
+            window.setupRecaptcha();
+            const appVerifier = window.recaptchaVerifier;
+
+            try {
+                confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                document.getElementById('auth-step-1').classList.add('hidden');
+                document.getElementById('auth-step-2').classList.remove('hidden');
+                showToast("OTP Sent!", "success");
+            } catch (error) {
+                console.error("SMS Error:", error);
+                alert("Error sending OTP: " + error.message);
+                btn.disabled = false;
+                btn.innerHTML = 'Send OTP <i data-lucide="arrow-right" class="h-4 w-4"></i>';
+                if(window.recaptchaVerifier) window.recaptchaVerifier.clear(); // Reset captcha
+            }
+        };
+
+        window.verifyOtp = async () => {
+            const inputs = document.querySelectorAll('.otp-input');
+            let otp = '';
+            inputs.forEach(input => otp += input.value);
+            
+            if (otp.length !== 6) {
+                alert("Please enter full 6-digit OTP");
+                return;
+            }
+
+            const btn = document.getElementById('btn-verify-otp');
+            btn.disabled = true;
+            btn.innerHTML = "Verifying...";
+
+            try {
+                const result = await confirmationResult.confirm(otp);
+                // SUCCESS: Auth State Listener will handle the redirection/logic based on isRegistering
+            } catch (error) {
+                console.error("OTP Error:", error);
+                alert("Invalid OTP");
+                btn.disabled = false;
+                btn.innerHTML = "Verify & Login";
+            }
+        };
+
+        // --- NEW REGISTRATION LOGIC ---
+        window.completeRegistration = async () => {
+            if (!auth.currentUser) return;
+            // Sanitize all user input
+            const name = sanitizeInput(document.getElementById('reg-name').value.trim());
+            const email = sanitizeInput(document.getElementById('reg-email').value.trim()); // Capture Email
+            const plate = sanitizeInput(document.getElementById('reg-plate').value.trim());
+            const type = sanitizeInput(document.getElementById('reg-type').value);
+            const route = sanitizeInput(document.getElementById('reg-route').value);
+            if (!name || !email || !plate) return alert("Please fill all details");
+            const user = auth.currentUser;
+            
+            try {
+                 await runTransaction(db, async (transaction) => {
+                    const counterRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'counters', 'driver_seq');
+                    let seq = 1;
+                    const today = new Date();
+                    const dateStr = `${String(today.getFullYear()).slice(-2)}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+                    
+                    const counterSnap = await transaction.get(counterRef);
+                    if (counterSnap.exists()) {
+                        const data = counterSnap.data();
+                        if (data.date === dateStr) {
+                            seq = data.count + 1;
+                        }
+                    }
+                    
+                    const customId = `${dateStr}${String(seq).padStart(3, '0')}`;
+                    
+                    const newProfile = {
+                        uid: user.uid,
+                        customId: customId,
+                        phone: user.phoneNumber,
+                        email: email, // Save Email to Profile
+                        name: name,
+                        vehicleNo: plate.toUpperCase(),
+                        vehicleType: type,
+                        prefRoute: route,
+                        status: 'offline',
+                        rating: 5.0,
+                        completedJobs: 0,
+                        createdAt: serverTimestamp(),
+                        manualFilledSeats: 0,
+                        prefAc: false
+                    };
+                    
+                    transaction.set(doc(db, 'artifacts', APP_ID, 'drivers', user.uid), newProfile);
+                    transaction.set(counterRef, { date: dateStr, count: seq });
+                });
+                
+                // Reload to trigger auth listener fresh
+                location.reload();
+                
+            } catch(e) {
+                console.error("Reg Error", e);
+                alert("Registration Failed: " + e.message);
+            }
+        };
+
+        // --- INIT ---
+        function init() {
+            // Theme setup
+            const savedTheme = localStorage.getItem('nandu_theme');
+            if(savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-toggle').checked = true;
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('dark-toggle').checked = false;
+            }
+            
+            // Persistence
+            enableIndexedDbPersistence(db).catch((err) => {
+                console.log('Persistence disabled/error');
+            });
+
+            // Auto-OTP Input Focus
+            const inputs = document.querySelectorAll('.otp-input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.length === 1 && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            // Auth State Listener
+            onAuthStateChanged(auth, async (user) => {
+                const splash = document.getElementById('splash-screen');
+                const login = document.getElementById('login-screen');
+                const appScreen = document.getElementById('app-screen');
+
+                if (user) {
+                    console.log("User Logged In:", user.uid);
+                    
+                    // Fetch Profile
+                    let profile = await fetchProfile(user.uid);
+                    
+                    // STRICT CHECK LOGIC
+                    if (profile) {
+                        // User HAS a profile
+                        if (isRegistering) {
+                            alert("Account already exists with this number. Logging you in...");
+                            isRegistering = false;
+                            toggleAuthMode('login'); // Switch UI back to login
+                        }
+                        // Proceed to Load App
+                        loadAppWithProfile(user, profile);
+                    } else {
+                        // User HAS NO profile (New user)
+                        if (!isRegistering) {
+                            // User tried to Login but has no account
+                            alert("No driver account found with this number. Please register.");
+                            await signOut(auth); // Kick them out
+                            toggleAuthMode('register'); // Switch UI to register
+                            document.getElementById('auth-step-2').classList.add('hidden');
+                            document.getElementById('auth-step-1').classList.remove('hidden');
+                            return;
+                        }
+                        
+                        // User is Registering and has no profile -> Show Registration Form
+                        document.getElementById('auth-step-1').classList.add('hidden');
+                        document.getElementById('auth-step-2').classList.add('hidden');
+                        document.getElementById('auth-step-3-register').classList.remove('hidden');
+                        
+                        splash.classList.add('hidden'); // Ensure splash is gone so they see form
+                    }
+
+                } else {
+                    console.log("No User");
+                    splash.classList.add('hidden');
+                    login.classList.remove('hidden');
+                    appScreen.classList.add('hidden');
+                }
+            });
+        }
+        
+        function loadAppWithProfile(user, profile) {
+            driverId = user.uid;
+            driverProfile = profile;
+            
+            // Update UI
+            document.getElementById("driver-name").innerText = profile.name || "Driver";
+            document.getElementById("prof-name").innerText = profile.name || "Driver"; 
+            document.getElementById("header-plate").innerText = profile.vehicleNo || "TS--";
+            document.getElementById("prof-phone").innerText = profile.phone;
+            document.getElementById("prof-id").innerText = profile.customId ? "ID-" + profile.customId : "ID-" + user.uid.slice(-4).toUpperCase();
+            document.getElementById('stat-jobs').innerText = profile.completedJobs || 0;
+            document.getElementById("prof-type").innerText = profile.vehicleType || "Vehicle"; 
+            
+            // Set Preferences UI
+            if(profile.prefAc !== undefined) document.getElementById('setting-ac').checked = profile.prefAc;
+            if(profile.prefRoute) {
+                const r = document.querySelector(`input[name="route_pref"][value="${profile.prefRoute}"]`);
+                if(r) r.checked = true;
+                document.getElementById('home-pref-route').innerText = profile.prefRoute;
+            }
+            document.getElementById('home-pref-ac').innerText = profile.prefAc ? "AC Only" : "Any Type";
+
+            document.getElementById('splash-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            
+            loadDashboard();
+        }
+
+        async function fetchProfile(uid) {
+            try {
+                const docRef = doc(db, 'artifacts', APP_ID, 'drivers', uid);
+                const docSnap = await getDoc(docRef);
+                return docSnap.exists() ? docSnap.data() : null;
+            } catch(e) { console.error("Profile Fetch Error:", e); return null; }
+        }
+
+        // --- DASHBOARD LOADER ---
+        window.loadDashboard = function() {
+            console.log("Initializing Dashboard...");
+            listenToJobs();
+            listenToHistory();
+            listenToWallet();
+            updateSeatUI();
+            updateWalletView();
+            setHomeTab('new');
+            showToast("Welcome back!", "success");
+        }
+        
+        // --- DATA LISTENERS ---
+
+        async function listenToJobs() {
+            if(activeJobsUnsubscribe) activeJobsUnsubscribe();
+            if(marketJobsUnsubscribe) marketJobsUnsubscribe();
+
+            const jobsRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings');
+
+            // My Active Jobs
+            const qActive = query(jobsRef, where('driverId', '==', driverId), where('status', 'in', ['assigned', 'verified', 'started']));
+            activeJobsUnsubscribe = onSnapshot(qActive, (snapshot) => {
+                myActiveJobs = [];
+                snapshot.forEach(doc => myActiveJobs.push({ id: doc.id, ...doc.data() }));
+                
+                // AUTO-ASSIGN NOTIFICATION LOGIC
+                if (myActiveJobs.length > 0 && currentTab !== 'active') {
+                     document.getElementById('badge-active').classList.remove('hidden');
+                }
+
+                updateCombinedJobList();
+                updateSeatUI(); 
+                syncDriverState(); // SYNC ON JOB UPDATE
+            }, (error) => console.log("Active Jobs Sync Error:", error.message));
+
+            // OPTIMIZED: Only download pending jobs for the driver's specific route
+            let baseMarketQuery = [where('status', '==', 'pending')];
+            if (driverProfile && driverProfile.prefRoute) {
+                baseMarketQuery.push(where('routeKey', '==', driverProfile.prefRoute));
+            }
+            const qMarket = query(jobsRef, ...baseMarketQuery);
+            marketJobsUnsubscribe = onSnapshot(qMarket, (snapshot) => {
+                availableMarketJobs = [];
+                snapshot.forEach(doc => {
+                    const job = { id: doc.id, ...doc.data() };
+                    // --- PREFERENCE FILTERING LOGIC ---
+                    if (driverProfile) {
+                        if (driverProfile.prefAc !== undefined) {
+                            const jobIsAc = (job.vehicleType || '').toLowerCase().includes('ac') && !(job.vehicleType || '').toLowerCase().includes('non');
+                            if (jobIsAc && !driverProfile.prefAc) return; 
+                        }
+                    }
+                    availableMarketJobs.push(job);
+                });
+                updateCombinedJobList();
+            }, (error) => console.log("Market Jobs Sync Error:", error.message));
+        };
+
+        async function listenToHistory() {
+            if(historySubscription) return;
+            const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), where('driverId', '==', driverId), where('status', 'in', ['completed', 'cancelled']), limit(20));
+            historySubscription = onSnapshot(q, (snap) => {
+                historyJobs = [];
+                const container = document.getElementById('history-list');
+                if(container) container.innerHTML = '';
+                if (snap.empty) { if(container) container.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">No completed trips yet.</p>'; return; }
+                snap.forEach(d => {
+                    const job = {id:d.id, ...d.data()};
+                    historyJobs.push(job);
+                    const div = document.createElement('div');
+                    div.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm";
+                    const dateStr = job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Date';
+                    div.innerHTML = `<div class="flex justify-between mb-2"><span class="text-[10px] font-bold text-slate-400">${dateStr}</span><span class="text-[10px] font-bold uppercase ${job.status === 'completed' ? 'text-green-500' : 'text-red-500'}">${job.status}</span></div><div class="flex justify-between items-center"><div><h4 class="font-bold text-sm dark:text-white">${job.to.split(',')[0]}</h4><p class="text-xs text-slate-500">From: ${job.from.split(',')[0]}</p></div><p class="font-black text-lg dark:text-white">₹${job.price}</p></div>`;
+                    if(container) container.appendChild(div);
+                });
+                updateWalletView();
+            });
+        };
+
+        async function listenToWallet() {
+            if(walletSubscription) return;
+            try {
+                const q = query(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'), orderBy('date', 'desc'), limit(50));
+                walletSubscription = onSnapshot(q, (snap) => {
+                     expenseList = [];
+                     snap.forEach(d => expenseList.push({id:d.id, ...d.data()}));
+                     updateWalletView();
+                }, (err) => {});
+            } catch(e) {}
+        };
+        
+        window.updateWalletView = () => {
+            const balanceEl = document.getElementById('wallet-balance');
+            if(balanceEl) balanceEl.innerText = "0"; 
+        };
+
+        window.saveExpense = async () => {
+            const desc = sanitizeInput(document.getElementById('exp-desc').value);
+            const amt = sanitizeInput(document.getElementById('exp-amt').value);
+            if(!desc || !amt) return alert("Fill details");
+            try {
+                await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'), { description: desc, amount: parseInt(amt), date: serverTimestamp() });
+                document.getElementById('exp-desc').value = '';
+                document.getElementById('exp-amt').value = '';
+                document.getElementById('expense-form').classList.add('hidden');
+                showToast("Expense Added", "success");
+            } catch(e) { console.error(e); showToast("Error saving", "error"); }
+        };
+        
+        window.toggleExpenseForm = () => { document.getElementById('expense-form').classList.toggle('hidden'); };
+
+        window.toggleTheme = () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('nandu_theme', isDark ? 'dark' : 'light');
+        };
+
+        /* --- UI FUNCTIONS (EXPOSED TO WINDOW) --- */
+
+        // --- HELPER: CAPACITY ---
+        function getTotalCapacity() {
+            if (!driverProfile) return 4;
+            const type = (driverProfile.vehicleType || "").toLowerCase();
+            if (type.includes("7") || type.includes("innova") || type.includes("suv") || type.includes("ertiga")) return 6;
+            return 4; // Default 5 Seater (4 Pax)
+        }
+
+        // --- HELPER: SYNC STATE ---
+        async function syncDriverState() {
+            if (!driverId || !driverProfile) return;
+            const capacity = getTotalCapacity();
+            
+            // Calculate Booked Seats (Only ACTIVE trips count)
+            const activeOnly = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status));
+            const booked = activeOnly.reduce((sum, j) => sum + (parseInt(j.passengers) || 1), 0);
+            
+            const manual = driverProfile.manualFilledSeats || 0;
+            const totalFilled = manual + booked;
+            const available = Math.max(0, capacity - totalFilled);
+            
+            // Update Local Display
+            document.getElementById('seats-filled-display').innerText = Math.min(totalFilled, capacity);
+            document.getElementById('seats-total-display').innerText = capacity;
+            
+            const bar = document.getElementById('seat-progress-bar');
+            if(bar) bar.style.width = (Math.min(totalFilled, capacity)/capacity * 100) + "%";
+
+            // Update Firestore
+            try {
+                // Update driver profile
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                    filledSeats: totalFilled,
+                    seatsAvailable: available
+                });
+                // NEW: Also update the LIVE trips collection so customers see the updated seats immediately!
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
+                    filledSeats: totalFilled,
+                    seatsAvailable: available
+                });
+            } catch(e) {
+                // Suppress harmless offline/permission errors
+                console.log("Sync error (often normal if offline):", e);
+            }
+        }
+
+        window.updateSeatUI = function() {
+            if(!driverProfile) return;
+            const capacity = getTotalCapacity();
+            
+            // Exclude 'completed' jobs strictly
+            const activeOnly = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status));
+            const booked = activeOnly.reduce((sum, j) => sum + (parseInt(j.passengers) || 1), 0);
+            
+            const manual = driverProfile.manualFilledSeats || 0;
+            const totalFilled = manual + booked;
+            
+            document.getElementById('seats-filled-display').innerText = Math.min(totalFilled, capacity);
+            document.getElementById('seats-total-display').innerText = capacity;
+            
+            const bar = document.getElementById('seat-progress-bar');
+            if(bar) bar.style.width = (Math.min(totalFilled, capacity)/capacity * 100) + "%";
+
+            document.getElementById('seat-mod-app').innerText = booked;
+            document.getElementById('manual-seat-count').innerText = manual;
+            const modBar = document.getElementById('seat-mod-bar');
+            if(modBar) modBar.style.width = `${(booked/capacity)*100}%`;
+        };
+
+        window.openSettingsModal = () => document.getElementById('settings-modal').classList.remove('hidden');
+        window.closeSettingsModal = () => document.getElementById('settings-modal').classList.add('hidden');
+
+        window.saveSettings = async () => {
+            const ac = document.getElementById('setting-ac').checked;
+            const routeEl = document.querySelector('input[name="route_pref"]:checked');
+            const route = routeEl ? sanitizeInput(routeEl.value) : 'Karimnagar';
+            try {
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { prefAc: ac, prefRoute: route });
+                driverProfile.prefAc = ac;
+                driverProfile.prefRoute = route;
+                document.getElementById('home-pref-route').innerText = route;
+                document.getElementById('home-pref-ac').innerText = ac ? "AC Only" : "Any Type";
+                closeSettingsModal();
+                showToast("Preferences Saved", "success");
+                listenToJobs(); 
+            } catch(e) { console.error(e); showToast("Failed to save settings", "error"); }
+        };
+
+        window.switchView = (viewId) => {
+            ['home', 'history', 'wallet', 'profile'].forEach(v => {
+                const view = document.getElementById(`view-${v}`);
+                const nav = document.getElementById(`nav-${v}`);
+                if(view) view.classList.add('hidden');
+                if(nav) { nav.classList.remove('text-brand-600', 'dark:text-brand-500'); nav.classList.add('text-slate-400'); }
+            });
+            const selectedView = document.getElementById(`view-${viewId}`);
+            const selectedNav = document.getElementById(`nav-${viewId}`);
+            if(selectedView) { selectedView.classList.remove('hidden'); selectedView.classList.remove('animate-slide-up'); void selectedView.offsetWidth; selectedView.classList.add('animate-slide-up'); }
+            if(selectedNav) { selectedNav.classList.add('text-brand-600', 'dark:text-brand-500'); selectedNav.classList.remove('text-slate-400'); }
+            if(viewId === 'history') listenToHistory();
+            if(viewId === 'wallet') listenToWallet();
+        };
+
+        window.openSeatModal = () => {
+            manualSeats = driverProfile ? (driverProfile.manualFilledSeats || 0) : 0;
+            updateSeatUI(); 
+            document.getElementById('seat-modal').classList.remove('hidden');
+        };
+
+        window.adjustManualSeats = (delta) => {
+            const capacity = getTotalCapacity();
+            const booked = myActiveJobs
+                .filter(j => ['assigned', 'verified', 'started'].includes(j.status))
+                .reduce((sum, j) => sum + (parseInt(j.passengers) || 1), 0);
+            
+            let newManual = manualSeats + delta;
+            if (newManual < 0) newManual = 0;
+            if (newManual + booked > capacity) newManual = capacity - booked;
+            manualSeats = newManual;
+            document.getElementById('manual-seat-count').innerText = manualSeats;
+        };
+
+        window.saveManualSeats = async () => {
+            try {
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { manualFilledSeats: manualSeats });
+                driverProfile.manualFilledSeats = manualSeats;
+                updateSeatUI();
+                syncDriverState(); 
+                document.getElementById('seat-modal').classList.add('hidden');
+                showToast("Availability Updated", "success");
+            } catch(e) { console.error(e); showToast("Update Failed", "error"); }
+        };
+
+        window.toggleOnlineStatus = async (checkbox) => {
+            const isOnline = checkbox.checked;
+            const label = document.getElementById('status-label');
+            const card = document.getElementById('trip-status-card');
+            if (isOnline) {
+                try {
+                    label.innerText = "Syncing...";
+                    const docRef = doc(db, 'artifacts', APP_ID, 'drivers', driverId);
+                    const snap = await getDoc(docRef);
+                    if (!snap.exists()) {
+                         await setDoc(docRef, { uid: driverId, status: 'online', manualFilledSeats: 0 });
+                    } else {
+                         await updateDoc(docRef, { status: 'online' });
+                    }
+
+                    // NEW: Create the Trip document so the customer app can find it
+                    await setDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
+                        driverId: driverId,
+                        name: driverProfile.name,
+                        phone: driverProfile.phone,
+                        vehicleType: driverProfile.vehicleType,
+                        vehicleNo: driverProfile.vehicleNo,
+                        totalSeats: getTotalCapacity(),
+                        seatsAvailable: Math.max(0, getTotalCapacity() - (driverProfile.manualFilledSeats || 0)),
+                        filledSeats: driverProfile.manualFilledSeats || 0,
+                        status: 'scheduled',
+                        prefRoute: driverProfile.prefRoute || 'Karimnagar'
+                    });
+
+                    driverProfile.status = 'online';
+                    await syncDriverState(); // SYNC ON ONLINE
+
+                    label.innerText = "Online";
+                    label.className = "text-[10px] font-bold text-green-500 uppercase";
+                    card.classList.remove('hidden');
+                    if (window.Android) Android.driverOnline(driverProfile.phone || driverId);
+                    showToast("You are now ONLINE", "success");
+                } catch (e) {
+                    console.error(e);
+                    checkbox.checked = false;
+                    label.innerText = "Error";
+                    showToast("Failed: " + e.message, "error");
+                }
+            } else {
+                const activeCount = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status)).length;
+                if (activeCount > 0) {
+                    checkbox.checked = true; 
+                    document.getElementById('offline-msg').innerText = `You have ${activeCount} active trips. Complete them before going offline.`;
+                    document.getElementById('offline-modal').classList.remove('hidden');
+                } else {
+                    performOffline();
+                }
+            }
+        };
+
+        window.closeOfflineModal = () => document.getElementById('offline-modal').classList.add('hidden');
+        
+        window.confirmOfflineAction = async () => {
+            document.getElementById('offline-modal').classList.add('hidden');
+            document.getElementById('status-toggle').checked = false;
+            await performOffline();
+        };
+
+        async function performOffline() {
+            const label = document.getElementById('status-label');
+            const card = document.getElementById('trip-status-card');
+            try {
+                label.innerText = "Syncing...";
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { status: 'offline' });
+                driverProfile.status = 'offline';
+                try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'active_drivers', driverId)); } catch(e){}
+
+                // NEW: Mark the trip as offline so it disappears from the map
+                try { await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), { status: 'offline' }); } catch(e){}
+
+                label.innerText = "Offline";
+                label.className = "text-[10px] font-bold text-slate-400 uppercase";
+                card.classList.add('hidden');
+                if (window.Android) Android.driverOffline(driverProfile.phone || driverId);
+                showToast("You are now OFFLINE", "success");
+            } catch(e) { console.error(e); showToast("Error going offline", "error"); }
+        }
+
+        window.logout = () => {
+            if(confirm("Are you sure you want to log out?")) {
+                signOut(auth).then(() => location.reload());
+            }
+        };
+
+        window.setHomeTab = (tab) => {
+            currentTab = tab;
+            document.getElementById('htab-new').className = tab === 'new' ? "flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400";
+            document.getElementById('htab-active').className = tab === 'active' ? "flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "flex-1 py-2.5 rounded-lg text-xs font-bold text-center transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400";
+            updateCombinedJobList();
+        };
+
+        function updateCombinedJobList() {
+            const activeList = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status));
+            const newCount = availableMarketJobs.length;
+            const activeCount = activeList.length;
+
+            const bNew = document.getElementById('badge-new');
+            const bAct = document.getElementById('badge-active');
+            bNew.innerText = newCount; bNew.classList.toggle('hidden', newCount === 0);
+            bAct.innerText = activeCount; bAct.classList.toggle('hidden', activeCount === 0);
+
+            // Bulk Action Bar visibility
+            const bulkBar = document.getElementById('bulk-action-bar');
+            if (bulkBar) {
+                bulkBar.innerHTML = ''; // Clear previous content
+                
+                // 1. Check for "Started" jobs -> Show "End All"
+                const startedJobs = activeList.filter(j => j.status === 'started');
+                if (startedJobs.length > 0) {
+                    bulkBar.classList.remove('hidden');
+                    const btn = document.createElement('button');
+                    btn.onclick = () => document.getElementById('complete-all-modal').classList.remove('hidden');
+                    btn.className = "w-full bg-slate-900 dark:bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-between group transition-all";
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/20 p-2 rounded-full"><i data-lucide="check-circle-2" class="h-5 w-5 fill-current"></i></div>
+                            <div class="text-left">
+                                <p class="text-sm font-bold">End & Collect All</p>
+                                <p class="text-[10px] text-white/80">Complete ${startedJobs.length} active trips</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-5 w-5 group-hover:translate-x-1 transition-transform"></i>
+                    `;
+                    bulkBar.appendChild(btn);
+                } 
+                // 2. Check for "Verified" jobs -> Show "Start Trip"
+                else if (activeList.some(j => j.status === 'verified')) {
+                     bulkBar.classList.remove('hidden');
+                     const btn = document.createElement('button');
+                     btn.onclick = () => document.getElementById('start-confirm-modal').classList.remove('hidden');
+                     btn.className = "w-full bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-between group transition-all";
+                     btn.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/20 p-2 rounded-full"><i data-lucide="play" class="h-5 w-5 fill-current"></i></div>
+                            <div class="text-left">
+                                <p class="text-sm font-bold">Start Trip</p>
+                                <p class="text-[10px] text-brand-100 opacity-80">For verified passengers</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="h-5 w-5 group-hover:translate-x-1 transition-transform"></i>
+                     `;
+                     bulkBar.appendChild(btn);
+                } else {
+                     bulkBar.classList.add('hidden');
+                }
+            }
+
+            const container = document.getElementById('job-list-container');
+            container.innerHTML = '';
+            let listToRender = currentTab === 'new' ? availableMarketJobs : activeList;
+            
+            if (listToRender.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 opacity-50"><i data-lucide="${currentTab === 'new' ? 'inbox' : 'car'}" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i><p class="text-sm font-bold text-slate-400">No ${currentTab} trips</p></div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            // GROUPING LOGIC (For Active Trips only)
+            if (currentTab === 'active') {
+                // Sort by route: From -> To
+                listToRender.sort((a, b) => (a.from + a.to).localeCompare(b.from + b.to));
+                
+                let lastRoute = '';
+                listToRender.forEach(job => {
+                    const currentRoute = `${job.from} → ${job.to}`;
+                    if (currentRoute !== lastRoute) {
+                        const header = document.createElement('div');
+                        header.className = "flex items-center gap-2 mt-4 mb-2 px-1";
+                        header.innerHTML = `
+                            <div class="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-950 px-2 rounded">${currentRoute}</span>
+                            <div class="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                        `;
+                        container.appendChild(header);
+                        lastRoute = currentRoute;
+                    }
+                    renderJobCard(job, container);
+                });
+            } else {
+                listToRender.forEach(job => renderJobCard(job, container));
+            }
+            lucide.createIcons();
+        }
+
+        function renderJobCard(job, container) {
+            let btnAction = '';
+            let statusColor = 'border-l-4 border-slate-300';
+            
+            if (currentTab === 'new') {
+                 btnAction = `<button onclick="openAcceptModal('${job.id}')" class="w-full mt-3 py-2.5 bg-brand-600 text-white font-bold rounded-lg shadow-lg active:scale-95 transition">Accept Request</button>`;
+                 statusColor = 'border-l-4 border-blue-500';
+            } else {
+                if(job.status === 'assigned') {
+                    btnAction = `<button onclick="openOtpModal('${job.id}')" class="w-full mt-3 py-2.5 bg-brand-600 text-white font-bold rounded-lg shadow-lg active:scale-95 transition">Verify OTP</button>`;
+                    statusColor = 'border-l-4 border-yellow-500';
+                } else if (job.status === 'verified') {
+                    btnAction = `<div class="mt-3 p-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-center font-bold text-xs rounded-lg">Passenger Verified</div>`;
+                    statusColor = 'border-l-4 border-green-500';
+                } else if (job.status === 'started') {
+                    btnAction = `<button onclick="openPaymentModal('${job.id}')" class="w-full mt-3 py-2.5 bg-slate-900 dark:bg-slate-700 text-white font-bold rounded-lg shadow-lg active:scale-95 transition">End & Collect</button>`;
+                    statusColor = 'border-l-4 border-purple-500';
+                }
+            }
+
+            const card = document.createElement('div');
+            card.className = `bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-slide-up relative ${statusColor}`;
+            
+            const menuBtn = currentTab === 'active' ? 
+                `<button onclick="openOptions(event, '${job.id}')" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><i data-lucide="more-vertical" class="h-4 w-4"></i></button>` : '';
+
+            // Customer Name Logic (FIXED)
+            const customerName = job.userName || job.name || job.customerName || 'Guest User';
+            const customerInitial = customerName.charAt(0).toUpperCase();
+            // Customer Phone Logic (FIXED)
+            const customerPhone = job.userPhone || job.phone || 'Hidden';
+
+            card.innerHTML = `
+                ${menuBtn}
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">ID: ${job.id.slice(-4)}</span>
+                        <h3 class="font-bold text-lg dark:text-white">${job.from.split(',')[0]} <span class="text-slate-300">→</span> ${job.to.split(',')[0]}</h3>
+                    </div>
+                    <div class="text-right mr-6">
+                         <p class="font-black text-xl text-brand-600 dark:text-brand-400">₹${job.price}</p>
+                         <p class="text-[10px] text-slate-400">${job.vehicleType || 'Any'}</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between mb-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-500 text-xs">${customerInitial}</div>
+                        <div>
+                            <p class="text-xs font-bold dark:text-white">${customerName}</p>
+                            <a href="tel:${customerPhone}" class="text-[10px] text-brand-500 font-bold hover:underline flex items-center gap-1"><i data-lucide="phone" class="h-3 w-3"></i> ${customerPhone}</a>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 bg-white dark:bg-slate-700 px-2 py-1 rounded border border-slate-200 dark:border-slate-600">
+                        <i data-lucide="users" class="h-3 w-3 text-slate-500 dark:text-slate-400"></i>
+                        <span class="text-xs font-bold dark:text-white">${job.passengers || 1}</span>
+                    </div>
+                </div>
+                ${btnAction}
+            `;
+            container.appendChild(card);
+        }
+
+        // --- MODAL FUNCTIONS ---
+        window.openAcceptModal = (id) => {
+            pendingAcceptJobId = id;
+            const job = availableMarketJobs.find(j => j.id === id);
+            if(job) {
+                document.getElementById('accept-modal-price').innerText = "₹" + job.price;
+                document.getElementById('accept-modal-type').innerText = job.vehicleType;
+                document.getElementById('accept-modal').classList.remove('hidden');
+            }
+        };
+        
+        window.closeAcceptModal = () => { document.getElementById('accept-modal').classList.add('hidden'); pendingAcceptJobId = null; };
+        
+        window.confirmAcceptJob = async () => {
+            if(!pendingAcceptJobId) return;
+            try {
+                // FIXED: Explicitly use driverProfile or fallback
+                const vNo = (driverProfile && driverProfile.vehicleNo) ? driverProfile.vehicleNo : "TS--";
+                // FIXED: Fallback to "Driver" if name is missing, but prioritize profile name
+                const dName = (driverProfile && driverProfile.name) ? driverProfile.name : "Driver"; 
+                const dPhone = (driverProfile && driverProfile.phone) ? driverProfile.phone : "";
+
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingAcceptJobId), { 
+                    status: 'assigned', 
+                    driverId: driverId, 
+                    driverName: dName, 
+                    driverPhone: dPhone, 
+                    driverVehicle: vNo 
+                });
+                showToast("Request Accepted!", "success");
+                closeAcceptModal();
+                setHomeTab('active');
+            } catch(e) { console.error(e); showToast("Error accepting", "error"); }
+        };
+
+        window.openOtpModal = (id) => {
+            pendingVerifyJobId = id;
+            document.getElementById('otp-modal').classList.remove('hidden');
+            document.querySelectorAll('#otp-modal .otp-input').forEach(i => i.value = '');
+            document.querySelector('#otp-modal .otp-input').focus();
+        };
+        
+        window.closeOtpModal = () => { document.getElementById('otp-modal').classList.add('hidden'); pendingVerifyJobId = null; };
+
+        window.submitOtp = async () => {
+            if(!pendingVerifyJobId) return;
+            try {
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingVerifyJobId), { status: 'verified' });
+                showToast("Passenger Verified", "success");
+                closeOtpModal();
+            } catch(e) { console.error(e); showToast("Error verifying", "error"); }
+        };
+
+        window.confirmStartRide = async () => {
+            document.getElementById('start-confirm-modal').classList.add('hidden');
+            const jobsToStart = myActiveJobs.filter(j => j.status === 'verified');
+            if(jobsToStart.length === 0) return;
+
+            try {
+                const promises = jobsToStart.map(job => 
+                    updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { 
+                        status: 'started',
+                        startTime: serverTimestamp()
+                    })
+                );
+                await Promise.all(promises);
+                showToast("Trip Started!", "success");
+            } catch(e) { console.error(e); showToast("Error starting trip", "error"); }
+        };
+
+        window.openPaymentModal = (id) => {
+            pendingPaymentJobId = id;
+            const job = myActiveJobs.find(j => j.id === id);
+            if(job) {
+                document.getElementById('payment-total').innerText = "₹" + job.price;
+                document.getElementById('payment-modal').classList.remove('hidden');
+            }
+        };
+
+        window.confirmCompleteRide = async () => {
+            if(!pendingPaymentJobId) return;
+            const job = myActiveJobs.find(j => j.id === pendingPaymentJobId);
+            if(!job) { showToast("Error finding job", "error"); return; }
+
+            try {
+                await completeSingleJob(job);
+                showToast("Trip Completed!", "success");
+                document.getElementById('payment-modal').classList.add('hidden');
+            } catch(e) { console.error(e); showToast("Error completing", "error"); }
+        };
+
+        // NEW: Complete All Function
+        window.confirmCompleteAllRides = async () => {
+            document.getElementById('complete-all-modal').classList.add('hidden');
+            const jobsToEnd = myActiveJobs.filter(j => j.status === 'started');
+            if(jobsToEnd.length === 0) return;
+
+            try {
+                const promises = jobsToEnd.map(job => completeSingleJob(job));
+                await Promise.all(promises);
+                showToast("All Trips Completed!", "success");
+            } catch(e) { console.error(e); showToast("Error completing all", "error"); }
+        };
+
+        async function completeSingleJob(job) {
+            // 1. Update Booking
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { 
+                status: 'completed',
+                endTime: serverTimestamp()
+            });
+            
+            // 2. Add to Wallet
+            await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'wallet_txns'), { 
+                amount: parseInt(job.price), 
+                type: 'credit', 
+                jobId: job.id, 
+                date: serverTimestamp() 
+            });
+
+            // 3. Update Driver Stats (Accurate Job Count)
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                completedJobs: increment(1)
+            });
+            
+            // Update local stat immediately for UI snapiness
+            if(driverProfile) {
+                driverProfile.completedJobs = (driverProfile.completedJobs || 0) + 1;
+                document.getElementById('stat-jobs').innerText = driverProfile.completedJobs;
+            }
+        }
+        
+        window.openOptions = (event, id) => {
+            event.stopPropagation();
+            pendingOptionsJobId = id;
+            document.getElementById('options-modal').classList.remove('hidden');
+        };
+
+        window.reportNoResponse = () => {
+            if(pendingOptionsJobId) { showToast("Reported: No Response", "success"); document.getElementById('options-modal').classList.add('hidden'); }
+        };
+
+        window.reportNotInterested = () => {
+             if(pendingOptionsJobId) { showToast("Reported: Not Interested", "success"); document.getElementById('options-modal').classList.add('hidden'); }
+        };
+
+        window.cancelTripReason = () => {
+             if(pendingOptionsJobId) {
+                updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), { status: 'cancelled' });
+                showToast("Trip Cancelled", "error");
+                document.getElementById('options-modal').classList.add('hidden');
+            }
+        };
+        
+        window.closeDocModal = () => document.getElementById('doc-upload-modal').classList.add('hidden');
+        window.openDocModal = () => document.getElementById('doc-upload-modal').classList.remove('hidden');
+        window.closeTripModal = () => document.getElementById('trip-details-modal').classList.add('hidden');
+
+        window.showToast=(m,t)=>{ const d=document.createElement('div'); d.className=`p-4 rounded-xl shadow-lg text-white text-xs font-bold animate-enter fixed top-4 right-4 z-[100] ${t==='success'?'bg-green-600':'bg-red-500'}`; d.textContent=m; document.body.appendChild(d); setTimeout(()=>d.remove(),3000); }
+        
+        init(); 
+
+    function androidSetDriver(phone){ if (window.Android && phone) { Android.setDriverPhone(phone); } }
+    function androidGoOnline(phone){ if (window.Android && phone) { Android.driverOnline(phone); } }
+    function androidGoOffline(phone){ if (window.Android && phone) { Android.driverOffline(phone); } }
+
+    window.onDriverForcedOffline = function(reason){
+      alert("You are offline (" + reason.replace('_',' ') + ")");
+      const toggle = document.getElementById('status-toggle');
+      if (toggle) toggle.checked = false;
+      const label = document.getElementById('status-label');
+      if (label) { label.textContent = 'Offline'; label.className = "text-[10px] font-bold text-red-500 uppercase"; }
+    };
+    </script>
+</body>
+</html>

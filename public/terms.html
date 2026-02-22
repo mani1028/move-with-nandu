@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - Travel With Nandu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+    </style>
+</head>
+<body class="text-slate-900 bg-slate-50 flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg"><i data-lucide="car" class="h-6 w-6 text-white"></i></div>
+                    <span class="font-extrabold text-2xl tracking-tight text-slate-900">Travel With <span class="text-blue-600">Nandu</span></span>
+                </a>
+                <a href="index.html" class="font-bold text-slate-500 hover:text-blue-600 transition flex items-center gap-2">
+                    <i data-lucide="arrow-left" class="h-4 w-4"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="bg-white pt-32 pb-16 border-b border-slate-200">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <h1 class="text-4xl font-black text-slate-900 mb-4">Terms of Service</h1>
+            <p class="text-slate-500 text-lg">Last Updated: January 2026</p>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="max-w-3xl mx-auto px-6 py-16 flex-grow">
+        <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-200 space-y-10">
+            
+            <div class="bg-yellow-50 border border-yellow-100 p-6 rounded-2xl flex gap-4">
+                <div class="mt-1"><i data-lucide="alert-circle" class="h-6 w-6 text-yellow-600"></i></div>
+                <div>
+                    <h3 class="font-bold text-yellow-800 text-lg mb-1">Important Disclaimer</h3>
+                    <p class="text-yellow-700 text-sm leading-relaxed">Travel with Nandu is a technology aggregator. We connect passengers with independent drivers. We are not responsible for delays, accidents, or driver behavior. By booking, you acknowledge that the contract of carriage is between you and the driver.</p>
+                </div>
+            </div>
+
+            <section>
+                <h2 class="text-xl font-bold text-slate-900 mb-3">1. Service Nature</h2>
+                <p class="text-slate-600 leading-relaxed">Travel with Nandu provides a platform for booking seats in shared vehicles, private cabs, and ambulances. We do not own the vehicles.</p>
+            </section>
+            
+            <section>
+                <h2 class="text-xl font-bold text-slate-900 mb-3">2. Payments & Pricing</h2>
+                <p class="text-slate-600 leading-relaxed">Fares shown on the app are estimates. Final payment is to be made directly to the driver via Cash or UPI upon completion of the trip. Tolls and parking fees are extra if applicable.</p>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-bold text-slate-900 mb-3">3. Cancellation Policy</h2>
+                <p class="text-slate-600 leading-relaxed">You may cancel your booking up to 1 hour before the scheduled departure without penalty. Late cancellations or "no-shows" may result in a suspension of your account.</p>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12 rounded-t-[3rem] mt-10">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-slate-400 text-sm font-medium">&copy; 2026 Travel With Nandu. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
