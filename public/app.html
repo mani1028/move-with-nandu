@@ -642,8 +642,7 @@
         onAuthStateChanged(auth, async (u) => {
             if(u) {
                 user = u;
-                syncData(); // NEW: Sync Data Logic
-
+                syncData();
                 try {
                     // OFFLINE-FIRST: Try local storage first if offline
                     const cachedUser = localStorage.getItem('user_profile');
@@ -651,9 +650,8 @@
                         userData = JSON.parse(cachedUser);
                         initUserUI(u);
                     } else {
-                        // Use email as key for user_profiles
-                        const emailKey = u.email ? u.email.replace(/[^a-zA-Z0-9]/g, '_') : 'guest';
-                        const snap = await getDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',emailKey));
+                        // Use uid as key for user_profiles
+                        const snap = await getDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',u.uid));
                         if(snap.exists()) {
                             userData = snap.data();
                             localStorage.setItem('user_profile', JSON.stringify(userData));
@@ -811,8 +809,7 @@
         window.saveUserProfile = async () => {
             const nameInput = document.getElementById('user-name-input').value;
             const safeName = sanitizeInput(nameInput);
-            const emailKey = auth.currentUser.email ? auth.currentUser.email.replace(/[^a-zA-Z0-9]/g, '_') : 'guest';
-            await setDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',emailKey), { name: safeName, email: auth.currentUser.email, createdAt: serverTimestamp() });
+            await setDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',auth.currentUser.uid), { name: safeName, email: auth.currentUser.email, createdAt: serverTimestamp() });
             location.reload();
         }
         window.handleLogout = async () => { if(confirm("Logout?")) { await signOut(auth); location.reload(); } }
@@ -822,9 +819,8 @@
             const newNameRaw = document.getElementById('edit-profile-name-input').value.trim();
             if(!newNameRaw) return;
             const newName = sanitizeInput(newNameRaw);
-            const emailKey = user.email ? user.email.replace(/[^a-zA-Z0-9]/g, '_') : 'guest';
             if(navigator.onLine) {
-                 await updateDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',emailKey), {name: newName});
+                 await updateDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',user.uid), {name: newName});
             } else {
                 alert("Saved locally. Will update server when online.");
             }
@@ -895,7 +891,7 @@
             
             if(navigator.onLine) {
                 await addDoc(collection(db, 'artifacts', APP_ID, 'support_tickets'), {
-                    userId: user.uid, userMobile: user.phoneNumber,
+                    userId: user.uid, userEmail: user.email,
                     orderId: ticketOrderId, issue: issue, description: desc,
                     status: 'open', createdAt: serverTimestamp()
                 });
@@ -1299,7 +1295,7 @@
             
             let payload = {
                 orderId: oid, // NEW: REQUIRED BY CLOUD FUNCTION!
-                userId: user.uid, name: userData.name, mobile: user.phoneNumber,
+                userId: user.uid, name: userData.name, email: user.email,
                 from: displayFrom, to: displayTo, 
                 price: document.getElementById('total-price-mobile').innerText,
                 date: document.getElementById('travel-date').value,
