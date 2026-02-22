@@ -86,27 +86,34 @@
             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Try Again
         </button>
     </div>
+<!-- Splash Screen -->
+<div id="splash-screen" class="fixed inset-0 bg-slate-50 dark:bg-slate-950 z-[150] flex flex-col items-center justify-center transition-opacity duration-700">
+  
+  <!-- Logo container -->
+  <div class="relative w-24 h-24 mb-8">
+    <!-- Ping effect -->
+    <div class="absolute inset-0 rounded-2xl animate-ping opacity-20 bg-[url('assets/nandu.png')] bg-cover bg-center bg-no-repeat"></div>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="fixed inset-0 bg-slate-50 dark:bg-slate-950 z-[150] flex flex-col items-center justify-center transition-opacity duration-700">
-        <div class="relative w-24 h-24 mb-8">
-            <div class="absolute inset-0 bg-blue-500 rounded-2xl animate-ping opacity-20"></div>
-            <div class="relative z-10 w-full h-full bg-gradient-to-tr from-blue-600 to-blue-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
-                <i data-lucide="car-front" class="h-12 w-12 text-white fill-current/20"></i>
-            </div>
-        </div>
-        <div class="text-center space-y-2">
-            <h1 class="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">
-                Travel<span class="text-blue-600">Nandu</span>
-            </h1>
-            <p id="splash-text" class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">
-                Secure Login...
-            </p>
-        </div>
-        <div class="w-48 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden">
-            <div class="h-full bg-blue-600 rounded-full animate-progress origin-left"></div>
-        </div>
+    <!-- Main logo -->
+    <div class="relative z-10 w-full h-full rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30 bg-[url('assets/nandu.png')] bg-cover bg-center bg-no-repeat">
+      <!-- No <img> needed -->
     </div>
+  </div>
+
+  <!-- Text + progress bar -->
+  <div class="text-center space-y-2">
+    <h1 class="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">
+      Travel<span class="text-blue-600">Nandu</span>
+    </h1>
+    <p id="splash-text" class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">
+      Secure Login...
+    </p>
+  </div>
+
+  <div class="w-48 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden">
+    <div class="h-full bg-blue-600 rounded-full animate-progress origin-left"></div>
+  </div>
+</div>
 
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-4 left-4 right-4 z-[110] pointer-events-none flex flex-col gap-2"></div>
@@ -403,9 +410,10 @@
     <!-- Login/Register Screen -->
     <div id="login-screen" class="min-h-screen flex flex-col justify-center px-6 hidden relative z-10 max-w-md mx-auto animate-slide-up overflow-y-auto pb-20">
         <div class="text-center mb-8 mt-10">
-            <div class="bg-gradient-to-tr from-brand-500 to-brand-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30">
-                <i data-lucide="car-taxi-front" class="h-8 w-8 text-white"></i>
-            </div>
+            <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-500/30 bg-gradient-to-tr from-brand-500 to-brand-600"
+     style="background: url('assets/nandu.png') center/cover no-repeat, linear-gradient(to top right, var(--tw-gradient-stops));">
+</div>
+
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white" id="auth-title">Partner Portal</h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm mt-1" id="auth-subtitle">Driver Login</p>
             
@@ -418,15 +426,33 @@
         
         <div class="max-w-sm mx-auto w-full">
             <!-- Step 1: Mobile -->
-            <div id="auth-step-1" class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800">
-                    <div id="recaptcha-container" class="mt-4 flex justify-center"></div>
-                <input type="email" id="auth-email" class="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-200 outline-none font-medium" placeholder="Email Address">
-                <input type="password" id="auth-password" class="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-200 outline-none font-medium" placeholder="Password">
-                <button onclick="driverEmailAuth()" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg">Proceed</button>
-                <button onclick="driverGoogleAuth()" class="w-full py-4 mt-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5 h-5"> Google Login
-                </button>
-            </div>
+            <div id="auth-step-1" class="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
+  
+  <!-- Recaptcha -->
+  <div id="recaptcha-container" class="flex justify-center"></div>
+
+  <!-- Email -->
+  <input type="email" id="auth-email"
+    class="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-200 outline-none font-medium"
+    placeholder="Email Address">
+
+  <!-- Password -->
+  <input type="password" id="auth-password"
+    class="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-200 outline-none font-medium"
+    placeholder="Password">
+
+  <!-- Proceed button -->
+  <button onclick="driverEmailAuth()"
+    class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg">
+    Proceed
+  </button>
+
+  <!-- Google login button -->
+  <button onclick="driverGoogleAuth()"
+    class="w-full py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2">
+    <img src="assets/google.svg" class="w-5 h-5" alt="Google"> Google Login
+  </button>
+</div>
 
             <!-- Step 2: OTP (Hidden) -->
             <div id="auth-step-2" class="hidden bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800">
@@ -447,37 +473,70 @@
 
             <!-- Step 3: Registration Form (Only for Register Mode) -->
             <div id="auth-step-3-register" class="hidden bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
-                <h3 class="font-bold text-lg text-center dark:text-white">Complete Profile</h3>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Full Name</label>
-                    <input type="text" id="reg-name" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1" placeholder="Enter name">
+                <div id="driver-reg-step-1" class="space-y-6">
+                    <div class="text-center">
+                        <h3 class="font-black text-2xl dark:text-white">Join the Fleet</h3>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step 1 of 3: Profile</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <i data-lucide="user" class="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                            <input type="text" id="reg-name" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold" placeholder="Full Name">
+                            <div id="reg-name-error" class="text-xs text-red-500 mt-1 hidden">Please enter your name</div>
+                        </div>
+                        <div class="relative group">
+                            <i data-lucide="mail" class="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                            <input type="email" id="reg-email" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold" placeholder="Email Address">
+                            <div id="reg-email-error" class="text-xs text-red-500 mt-1 hidden">Please enter a valid email</div>
+                        </div>
+                    </div>
+                    <button onclick="driverRegNextStep(1)" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl shadow-xl shadow-brand-500/30 active:scale-95 transition-transform flex justify-center items-center gap-2">
+                        Continue <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Email Address</label>
-                    <input type="email" id="reg-email" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1" placeholder="driver@email.com">
+                <div id="driver-reg-step-2" class="space-y-6 hidden">
+                    <div class="text-center">
+                        <h3 class="font-black text-2xl dark:text-white">Vehicle Details</h3>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step 2 of 3: Vehicle</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <i data-lucide="car-front" class="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                            <input type="text" id="reg-plate" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold uppercase" placeholder="TS00XX0000">
+                            <div id="reg-plate-error" class="text-xs text-red-500 mt-1 hidden">Please enter your vehicle number</div>
+                        </div>
+                        <div class="relative group">
+                            <i data-lucide="truck" class="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                            <select id="reg-type" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold mt-1">
+                                <option value="5 Seater">5 Seater (Sedan/Etios)</option>
+                                <option value="7 Seater">7 Seater (Innova/Ertiga)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="driverRegNextStep(2)" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white font-black rounded-2xl shadow-xl shadow-brand-500/30 active:scale-95 transition-transform flex justify-center items-center gap-2">
+                        Continue <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Vehicle Number</label>
-                    <input type="text" id="reg-plate" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1 uppercase" placeholder="TS00XX0000">
+                <div id="driver-reg-step-3" class="space-y-6 hidden">
+                    <div class="text-center">
+                        <h3 class="font-black text-2xl dark:text-white">Route Preferences</h3>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step 3 of 3: Route</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <i data-lucide="map-pin" class="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                            <select id="reg-route" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold mt-1">
+                                <option value="Karimnagar">Karimnagar</option>
+                                <option value="JBS">JBS / Secunderabad</option>
+                                <option value="RGI Airport">RGI Airport</option>
+                                <option value="Hyderabad">Hyderabad City</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="driverRegSubmit()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 active:scale-95 transition-transform flex justify-center items-center gap-2">
+                        Finish Registration <i data-lucide="check" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Vehicle Type</label>
-                    <select id="reg-type" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1">
-                        <option value="5 Seater">5 Seater (Sedan/Etios)</option>
-                        <option value="7 Seater">7 Seater (Innova/Ertiga)</option>
-                    </select>
-                </div>
-                 <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase">Primary Route</label>
-                    <select id="reg-route" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none dark:text-white mt-1">
-                        <option value="Karimnagar">Karimnagar</option>
-                        <option value="JBS">JBS / Secunderabad</option>
-                        <option value="RGI Airport">RGI Airport</option>
-                        <option value="Hyderabad">Hyderabad City</option>
-                    </select>
-                </div>
-                <button onclick="completeRegistration()" class="w-full py-4 bg-green-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition">
-                    Finish Registration
                 </button>
             </div>
         </div>
@@ -771,8 +830,33 @@
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, orderBy, addDoc, limit, arrayUnion, runTransaction, enableIndexedDbPersistence, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Email Auth Logic
+        window.driverEmailAuth = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const pass = document.getElementById('auth-password').value;
+            if(!email || !pass) return alert("Please enter credentials");
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) {
+                if (window.isRegistering && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential')) {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                } else {
+                    alert("Login Error: " + e.message);
+                }
+            }
+        };
+
+        // Google Auth Logic
+        window.driverGoogleAuth = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                alert("Google Auth Error: " + e.message);
+            }
+        };
 
         // CONFIG
         import { firebaseConfig } from './firebase-config.js';
