@@ -852,7 +852,19 @@
         window.driverGoogleAuth = async () => {
             const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                // Lock email if registering
+                const regEmail = document.getElementById('reg-email');
+                if (regEmail) {
+                    regEmail.value = user.email;
+                    regEmail.disabled = true;
+                    regEmail.classList.add('bg-slate-100', 'cursor-not-allowed');
+                }
+                // Transition to registration form
+                document.getElementById('auth-step-1').classList.add('hidden');
+                document.getElementById('auth-step-3-register').classList.remove('hidden');
+                document.getElementById('driver-reg-step-1').classList.remove('hidden');
             } catch (e) {
                 alert("Google Auth Error: " + e.message);
             }
@@ -896,28 +908,70 @@
 
         // --- AUTH FUNCTIONS (Exposed to Window for Button Clicks) ---
 
-        window.toggleAuthMode = (mode) => {
-            isRegistering = (mode === 'register');
-            
-            // UI Updates
-            const btnLogin = document.getElementById('tab-login');
-            const btnRegister = document.getElementById('tab-register');
-            const title = document.getElementById('auth-title');
-            const sub = document.getElementById('auth-subtitle');
-            
-            if(isRegistering) {
-                btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
-                btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
-                title.innerText = "New Partner";
-                sub.innerText = "Register to Drive";
-            } else {
-                btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
-                btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
-                title.innerText = "Partner Portal";
-                sub.innerText = "Driver Login";
-            }
-        };
+        // --- REGISTRATION NAVIGATION LOGIC ---
+window.driverRegNextStep = (currentStep) => {
+    if (currentStep === 1) {
+        const name = document.getElementById('reg-name').value.trim();
+        if (!name) return alert("Please enter your name");
+        document.getElementById('driver-reg-step-1').classList.add('hidden');
+        document.getElementById('driver-reg-step-2').classList.remove('hidden');
+    } else if (currentStep === 2) {
+        const plate = document.getElementById('reg-plate').value.trim();
+        if (!plate) return alert("Please enter your vehicle number");
+        document.getElementById('driver-reg-step-2').classList.add('hidden');
+        document.getElementById('driver-reg-step-3').classList.remove('hidden');
+    }
+    lucide.createIcons();
+};
 
+// --- REGISTRATION SUBMISSION ---
+window.driverRegSubmit = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const plate = document.getElementById('reg-plate').value.trim().toUpperCase();
+    const type = document.getElementById('reg-type').value;
+    const route = document.getElementById('reg-route').value;
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const counterRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'counters', 'driver_seq');
+            let seq = 1;
+            const today = new Date();
+            const dateStr = `${String(today.getFullYear()).slice(-2)}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+            const counterSnap = await transaction.get(counterRef);
+            if (counterSnap.exists()) {
+                const data = counterSnap.data();
+                if (data.date === dateStr) seq = data.count + 1;
+            }
+            const customId = `${dateStr}${String(seq).padStart(3, '0')}`;
+            transaction.set(doc(db, 'artifacts', APP_ID, 'drivers', user.uid), {
+                uid: user.uid,
+                customId: customId,
+                phone: user.phoneNumber || "Google Login",
+                email: email,
+                name: name,
+                vehicleNo: plate,
+                vehicleType: type,
+                prefRoute: route,
+                status: 'offline',
+                rating: 5.0,
+                completedJobs: 0,
+                createdAt: serverTimestamp(),
+                manualFilledSeats: 0,
+                prefAc: false
+            });
+            transaction.set(counterRef, { date: dateStr, count: seq });
+        });
+        showToast("Welcome Partner!", "success");
+        setTimeout(() => location.reload(), 1500);
+    } catch(e) {
+        console.error("Reg Error", e);
+        showToast("Registration Failed", "error");
+    }
+};
         window.setupRecaptcha = () => {
             if (!window.recaptchaVerifier) {
                 window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
