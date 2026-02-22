@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+        <link rel="icon" type="image/png" href="assets/nandu.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Driver Partner - Nandu Travels</title>
     
     <!-- External Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="assets/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -831,50 +832,84 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where, serverTimestamp, orderBy, addDoc, limit, arrayUnion, runTransaction, enableIndexedDbPersistence, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import {
+  collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
+  onSnapshot, query, where, serverTimestamp, orderBy,
+  addDoc, limit, arrayUnion, runTransaction, increment
+} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // Email Auth Logic
         window.driverEmailAuth = async () => {
-            const email = document.getElementById('auth-email').value.trim();
-            const pass = document.getElementById('auth-password').value;
-            if(!email || !pass) return alert("Please enter credentials");
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) {
-                if (window.isRegistering && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential')) {
-                    await createUserWithEmailAndPassword(auth, email, pass);
-                } else {
-                    alert("Login Error: " + e.message);
-                }
-            }
-        };
+    const email = document.getElementById('auth-email').value.trim();
+    const pass = document.getElementById('auth-password').value;
 
-        // Google Auth Logic
+    if (!email || !pass) {
+        alert("Please enter credentials");
+        return;
+    }
+
+    try {
+        // Try login
+        await signInWithEmailAndPassword(auth, email, pass);
+
+    } catch (e) {
+
+        // If Register mode → create account
+        if (isRegistering &&
+           (e.code === 'auth/user-not-found' ||
+            e.code === 'auth/invalid-credential')) {
+
+            await createUserWithEmailAndPassword(auth, email, pass);
+
+        } else {
+            alert("Login Error: " + e.message);
+        }
+    }
+};
+
         window.driverGoogleAuth = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                // Lock email if registering
-                const regEmail = document.getElementById('reg-email');
-                if (regEmail) {
-                    regEmail.value = user.email;
-                    regEmail.disabled = true;
-                    regEmail.classList.add('bg-slate-100', 'cursor-not-allowed');
-                }
-                // Transition to registration form
-                document.getElementById('auth-step-1').classList.add('hidden');
-                document.getElementById('auth-step-3-register').classList.remove('hidden');
-                document.getElementById('driver-reg-step-1').classList.remove('hidden');
-            } catch (e) {
-                alert("Google Auth Error: " + e.message);
-            }
-        };
+
+    const provider = new GoogleAuthProvider();
+
+    try {
+
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        const regEmail = document.getElementById('reg-email');
+
+        if (regEmail) {
+            regEmail.value = user.email;
+            regEmail.disabled = true;
+
+            regEmail.classList.add(
+                'bg-slate-100',
+                'cursor-not-allowed',
+                'opacity-70'
+            );
+        }
+
+        // Switch to registration UI
+        isRegistering = true;
+
+        document.getElementById('auth-step-1').classList.add('hidden');
+        document.getElementById('auth-step-3-register').classList.remove('hidden');
+        document.getElementById('driver-reg-step-1').classList.remove('hidden');
+
+    } catch (e) {
+        alert("Google Login Error: " + e.message);
+    }
+};
 
         // CONFIG
         import { firebaseConfig } from './firebase-config.js';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app); 
-        const db = getFirestore(app);
+                const db = initializeFirestore(app, {
+                    localCache: persistentLocalCache({
+                        tabManager: persistentMultipleTabManager()
+                    })
+                });
         
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
         
@@ -886,7 +921,69 @@
         
         // AUTH STATE
         let isRegistering = false; // Toggle between Login and Register
+   // ===== LOGIN / REGISTER TOGGLE =====
+window.toggleAuthMode = (mode) => {
 
+    isRegistering = (mode === 'register');
+
+    const btnLogin = document.getElementById('tab-login');
+    const btnRegister = document.getElementById('tab-register');
+    const title = document.getElementById('auth-title');
+    const sub = document.getElementById('auth-subtitle');
+
+    if (isRegistering) {
+
+        btnLogin.className =
+          "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500";
+
+        btnRegister.className =
+          "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white shadow-sm text-brand-600";
+
+        title.innerText = "New Partner";
+        sub.innerText = "Register to Drive";
+
+    } else {
+
+        btnLogin.className =
+          "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white shadow-sm text-brand-600";
+
+        btnRegister.className =
+          "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500";
+
+        title.innerText = "Partner Portal";
+        sub.innerText = "Driver Login";
+    }
+};
+
+
+// ===== REGISTRATION STEP NAVIGATION =====
+window.driverRegNextStep = (step) => {
+
+    if (step === 1) {
+
+        const name = document.getElementById('reg-name').value.trim();
+        if (!name) {
+            alert("Please enter your name");
+            return;
+        }
+
+        document.getElementById('driver-reg-step-1').classList.add('hidden');
+        document.getElementById('driver-reg-step-2').classList.remove('hidden');
+
+    } else if (step === 2) {
+
+        const plate = document.getElementById('reg-plate').value.trim();
+        if (!plate) {
+            alert("Please enter vehicle number");
+            return;
+        }
+
+        document.getElementById('driver-reg-step-2').classList.add('hidden');
+        document.getElementById('driver-reg-step-3').classList.remove('hidden');
+    }
+
+    if (window.lucide) lucide.createIcons();
+};
         // State
         let myActiveJobs = []; 
         let availableMarketJobs = []; 
@@ -908,20 +1005,24 @@
 
         // --- AUTH FUNCTIONS (Exposed to Window for Button Clicks) ---
 
-        // --- REGISTRATION NAVIGATION LOGIC ---
+// --- FIX: Registration Steps Navigation ---
 window.driverRegNextStep = (currentStep) => {
     if (currentStep === 1) {
         const name = document.getElementById('reg-name').value.trim();
         if (!name) return alert("Please enter your name");
+
         document.getElementById('driver-reg-step-1').classList.add('hidden');
         document.getElementById('driver-reg-step-2').classList.remove('hidden');
+
     } else if (currentStep === 2) {
         const plate = document.getElementById('reg-plate').value.trim();
         if (!plate) return alert("Please enter your vehicle number");
+
         document.getElementById('driver-reg-step-2').classList.add('hidden');
         document.getElementById('driver-reg-step-3').classList.remove('hidden');
     }
-    lucide.createIcons();
+
+    if (window.lucide) lucide.createIcons();
 };
 
 // --- REGISTRATION SUBMISSION ---
@@ -1112,9 +1213,64 @@ window.driverRegSubmit = async () => {
             }
             
             // Persistence
-            enableIndexedDbPersistence(db).catch((err) => {
-                console.log('Persistence disabled/error');
-            });
+            // Persistence now handled by initializeFirestore localCache
+// --- Expose toggleAuthMode for HTML ---
+// --- FIX: Expose toggleAuthMode to window for HTML onclick events ---
+window.toggleAuthMode = (mode) => {
+    isRegistering = (mode === 'register');
+    
+    // UI Elements
+    const btnLogin = document.getElementById('tab-login');
+    const btnRegister = document.getElementById('tab-register');
+    const title = document.getElementById('auth-title');
+    const sub = document.getElementById('auth-subtitle');
+    const step1 = document.getElementById('auth-step-1');
+    const step2 = document.getElementById('auth-step-2');
+    const step3 = document.getElementById('auth-step-3-register');
+    
+    // Reset view to initial step
+    if (step1) step1.classList.remove('hidden');
+    if (step2) step2.classList.add('hidden');
+    if (step3) step3.classList.add('hidden');
+
+    if (isRegistering) {
+        // Update tab styles for Register
+        btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
+        btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
+        title.innerText = "New Partner";
+        sub.innerText = "Register to Drive";
+    } else {
+        // Update tab styles for Login
+        btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";
+        btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
+        title.innerText = "Partner Portal";
+        sub.innerText = "Driver Login";
+    }
+};
+
+// --- FIX: Expose Registration Navigation to window ---
+window.driverRegNextStep = (currentStep) => {
+    if (currentStep === 1) {
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        if (!name || !email) {
+            alert("Please enter both name and email.");
+            return;
+        }
+        document.getElementById('driver-reg-step-1').classList.add('hidden');
+        document.getElementById('driver-reg-step-2').classList.remove('hidden');
+    } else if (currentStep === 2) {
+        const plate = document.getElementById('reg-plate').value.trim();
+        if (!plate) {
+            alert("Please enter your vehicle number.");
+            return;
+        }
+        document.getElementById('driver-reg-step-2').classList.add('hidden');
+        document.getElementById('driver-reg-step-3').classList.remove('hidden');
+    }
+    if (window.lucide) lucide.createIcons();
+};
+
 
             // Auto-OTP Input Focus
             const inputs = document.querySelectorAll('.otp-input');
