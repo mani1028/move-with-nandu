@@ -1548,20 +1548,53 @@ window.driverRegNextStep = (currentStep) => {
         window.closeSettingsModal = () => document.getElementById('settings-modal').classList.add('hidden');
 
         window.saveSettings = async () => {
-            const ac = document.getElementById('setting-ac').checked;
-            const routeEl = document.querySelector('input[name="route_pref"]:checked');
-            const route = routeEl ? sanitizeInput(routeEl.value) : 'Karimnagar';
-            try {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { prefAc: ac, prefRoute: route });
-                driverProfile.prefAc = ac;
-                driverProfile.prefRoute = route;
-                document.getElementById('home-pref-route').innerText = route;
-                document.getElementById('home-pref-ac').innerText = ac ? "AC Only" : "Any Type";
-                closeSettingsModal();
-                showToast("Preferences Saved", "success");
-                listenToJobs(); 
-            } catch(e) { console.error(e); showToast("Failed to save settings", "error"); }
-        };
+    const ac = document.getElementById('setting-ac').checked;
+    const routeEl = document.querySelector('input[name="route_pref"]:checked');
+    const newRoute = routeEl ? sanitizeInput(routeEl.value) : driverProfile.prefRoute;
+
+    // 1. Identify active assigned or verified customers
+    const assignedCustomers = myActiveJobs.filter(j => ['assigned', 'verified'].includes(j.status));
+
+    // 2. Check if the location (Route) is being changed while customers are assigned
+    if (newRoute !== driverProfile.prefRoute && assignedCustomers.length > 0) {
+        const confirmChange = confirm(
+            `You have ${assignedCustomers.length} assigned customer(s). Changing your location will CANCEL these trips. Do you want to proceed?`
+        );
+        if (!confirmChange) return;
+        // 3. Bulk Cancel existing customers if the driver proceeds
+        try {
+            const cancelPromises = assignedCustomers.map(job => 
+                updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), {
+                    status: 'cancelled',
+                    cancelReason: 'Driver changed location settings'
+                })
+            );
+            await Promise.all(cancelPromises);
+            showToast("Existing trips cancelled due to location change", "warning");
+        } catch (e) {
+            console.error("Error cancelling trips:", e);
+            return showToast("Failed to cancel existing trips", "error");
+        }
+    }
+
+    // 4. Save the new settings (AC can be toggled without cancellation)
+    try {
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+            prefAc: ac,
+            prefRoute: newRoute
+        });
+        driverProfile.prefAc = ac;
+        driverProfile.prefRoute = newRoute;
+        document.getElementById('home-pref-route').innerText = newRoute;
+        document.getElementById('home-pref-ac').innerText = ac ? "AC Only" : "Any Type";
+        closeSettingsModal();
+        showToast("Preferences Updated", "success");
+        listenToJobs(); // Refresh market jobs for the new location
+    } catch(e) {
+        console.error(e);
+        showToast("Failed to save settings", "error");
+    }
+};
 
         window.switchView = (viewId) => {
             ['home', 'history', 'wallet', 'profile'].forEach(v => {
@@ -1652,13 +1685,14 @@ window.driverRegNextStep = (currentStep) => {
                     showToast("Failed: " + e.message, "error");
                 }
             } else {
-                const activeCount = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status)).length;
-                if (activeCount > 0) {
-                    checkbox.checked = true; 
-                    document.getElementById('offline-msg').innerText = `You have ${activeCount} active trips. Complete them before going offline.`;
+                // STRICT CHECK: Find any trip that is NOT completed or cancelled
+                const activeTrips = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status));
+                if (activeTrips.length > 0) {
+                    checkbox.checked = true;
+                    document.getElementById('offline-msg').innerText = `You have ${activeTrips.length} active rides. Please Complete or Cancel them before going offline.`;
                     document.getElementById('offline-modal').classList.remove('hidden');
                 } else {
-                    performOffline();
+                    await performOffline();
                 }
             }
         };
@@ -1676,18 +1710,33 @@ window.driverRegNextStep = (currentStep) => {
             const card = document.getElementById('trip-status-card');
             try {
                 label.innerText = "Syncing...";
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { status: 'offline' });
+                const capacity = getTotalCapacity();
+                // 1. Update Driver Profile: Reset seats and status
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                    status: 'offline',
+                    filledSeats: 0,
+                    seatsAvailable: capacity,
+                    manualFilledSeats: 0
+                });
                 driverProfile.status = 'offline';
+                driverProfile.manualFilledSeats = 0;
                 try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'active_drivers', driverId)); } catch(e){}
 
-                // NEW: Mark the trip as offline so it disappears from the map
-                try { await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), { status: 'offline' }); } catch(e){}
+                // 2. Remove Live Trip entry or mark offline and reset seats
+                try {
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
+                        status: 'offline',
+                        filledSeats: 0,
+                        seatsAvailable: capacity
+                    });
+                } catch(e) { console.log("Trip doc already handled"); }
 
                 label.innerText = "Offline";
                 label.className = "text-[10px] font-bold text-slate-400 uppercase";
                 card.classList.add('hidden');
+                updateSeatUI(); // Refresh the seat display to 0
                 if (window.Android) Android.driverOffline(driverProfile.phone || driverId);
-                showToast("You are now OFFLINE", "success");
+                showToast("Logged out & seats cleared", "success");
             } catch(e) { console.error(e); showToast("Error going offline", "error"); }
         }
 
