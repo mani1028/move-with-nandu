@@ -182,14 +182,22 @@
                 <p class="text-sm text-slate-500 mt-2">Do you want to accept this trip?</p>
             </div>
             
-            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl mb-6">
-                <div class="flex justify-between items-center mb-2">
+            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl mb-6 space-y-2">
+                <div class="flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-400 uppercase">Fare</span>
                     <span class="text-lg font-black text-slate-900 dark:text-white" id="accept-modal-price">₹0</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-400 uppercase">Vehicle</span>
                     <span class="text-sm font-bold text-slate-900 dark:text-white" id="accept-modal-type">...</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Route</span>
+                    <span class="text-sm font-bold text-slate-900 dark:text-white text-right max-w-[160px] truncate" id="accept-modal-route">...</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Passengers</span>
+                    <span class="text-sm font-bold text-slate-900 dark:text-white" id="accept-modal-pax">1 pax</span>
                 </div>
             </div>
 
@@ -838,7 +846,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
-  collection, doc, setDoc, getDoc, updateDoc, deleteDoc,
+  collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
   onSnapshot, query, where, serverTimestamp, orderBy,
   addDoc, limit, arrayUnion, runTransaction, increment
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -1065,52 +1073,6 @@ window.driverRegSubmit = async () => {
                 btn.innerHTML = "Verify & Login";
             }
         };
-
-        // --- NEW REGISTRATION LOGIC ---
-        window.completeRegistration = async () => {
-            if (!auth.currentUser) return;
-            // Sanitize all user input
-            const name = sanitizeInput(document.getElementById('reg-name').value.trim());
-            const email = sanitizeInput(document.getElementById('reg-email').value.trim()); // Capture Email
-            const plate = sanitizeInput(document.getElementById('reg-plate').value.trim());
-            const type = sanitizeInput(document.getElementById('reg-type').value);
-            const route = sanitizeInput(document.getElementById('reg-route').value);
-            if (!name || !email || !plate) return alert("Please fill all details");
-            const user = auth.currentUser;
-            
-            try {
-                 await runTransaction(db, async (transaction) => {
-                    const counterRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'counters', 'driver_seq');
-                    let seq = 1;
-                    const today = new Date();
-                    const dateStr = `${String(today.getFullYear()).slice(-2)}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
-                    
-                    const counterSnap = await transaction.get(counterRef);
-                    if (counterSnap.exists()) {
-                        const data = counterSnap.data();
-                        if (data.date === dateStr) {
-                            seq = data.count + 1;
-                        }
-                    }
-                    
-                    const customId = `${dateStr}${String(seq).padStart(3, '0')}`;
-                    
-                    const newProfile = {
-                        uid: user.uid,
-                        customId: customId,
-                        phone: user.phoneNumber,
-                        email: email, // Save Email to Profile
-                        name: name,
-                        vehicleNo: plate.toUpperCase(),
-                        vehicleType: type,
-                        prefRoute: route,
-                        status: 'offline',
-                        rating: 5.0,
-                        completedJobs: 0,
-                        createdAt: serverTimestamp(),
-                        manualFilledSeats: 0,
-                        prefAc: false
-                    };
                     
                     transaction.set(doc(db, 'artifacts', APP_ID, 'drivers', user.uid), newProfile);
                     transaction.set(counterRef, { date: dateStr, count: seq });
@@ -1222,16 +1184,13 @@ window.driverRegNextStep = (currentStep) => {
                 });
             });
 
-            // Delegated listener for 3-dot job options button (fixes mobile tap issues)
-            document.addEventListener('click', (e) => {
+            // Delegated tap handler for 3-dot job-options buttons (dynamically rendered cards)
+            document.addEventListener('click', e => {
                 const btn = e.target.closest('.job-options-btn');
                 if (btn) {
                     e.stopPropagation();
-                    const jobId = btn.getAttribute('data-jobid');
-                    if (jobId) {
-                        pendingOptionsJobId = jobId;
-                        document.getElementById('options-modal').classList.remove('hidden');
-                    }
+                    pendingOptionsJobId = btn.getAttribute('data-jobid');
+                    if (pendingOptionsJobId) document.getElementById('options-modal').classList.remove('hidden');
                 }
             });
 
@@ -1428,55 +1387,142 @@ window.driverRegNextStep = (currentStep) => {
             }, (error) => console.log("Market Jobs Sync Error:", error.message));
         };
 
+        // One-shot fetch: completed/cancelled docs never mutate — no live listener needed.
+        // Call appendToHistory() to add a new card without a re-fetch.
         async function listenToHistory() {
-            if(historySubscription) return;
-            const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), where('driverId', '==', driverId), where('status', 'in', ['completed', 'cancelled']), limit(20));
-            historySubscription = onSnapshot(q, (snap) => {
+            if (historySubscription) return;
+            historySubscription = true; // flag: already fetched
+            try {
+                const q = query(
+                    collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'),
+                    where('driverId', '==', driverId),
+                    where('status', 'in', ['completed', 'cancelled']),
+                    orderBy('endTime', 'desc'),
+                    limit(30)
+                );
+                const snap = await getDocs(q);
                 historyJobs = [];
                 const container = document.getElementById('history-list');
-                if(container) container.innerHTML = '';
-                if (snap.empty) { if(container) container.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">No completed trips yet.</p>'; return; }
-                snap.forEach(d => {
-                    const job = {id:d.id, ...d.data()};
-                    historyJobs.push(job);
-                    const div = document.createElement('div');
-                    div.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm";
-                    const dateStr = job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Date';
-                    div.innerHTML = `<div class="flex justify-between mb-2"><span class="text-[10px] font-bold text-slate-400">${dateStr}</span><span class="text-[10px] font-bold uppercase ${job.status === 'completed' ? 'text-green-500' : 'text-red-500'}">${job.status}</span></div><div class="flex justify-between items-center"><div><h4 class="font-bold text-sm dark:text-white">${job.to.split(',')[0]}</h4><p class="text-xs text-slate-500">From: ${job.from.split(',')[0]}</p></div><p class="font-black text-lg dark:text-white">₹${job.price}</p></div>`;
-                    if(container) container.appendChild(div);
-                });
+                if (container) container.innerHTML = '';
+                if (snap.empty) {
+                    if (container) container.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">No completed trips yet.</p>';
+                } else {
+                    snap.forEach(d => {
+                        const job = {id: d.id, ...d.data()};
+                        historyJobs.push(job);
+                        renderHistoryCard(job, container, false);
+                    });
+                }
                 updateWalletView();
-            });
+            } catch(e) { console.error('History fetch:', e); }
         };
 
+        function renderHistoryCard(job, container, prepend) {
+            if (!container) return;
+            const div = document.createElement('div');
+            div.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm";
+            const ts = job.endTime || job.createdAt;
+            const dateStr = ts ? new Date(ts.seconds * 1000).toLocaleDateString('en-IN') : '';
+            div.innerHTML =
+                '<div class="flex justify-between mb-2">' +
+                  '<span class="text-[10px] font-bold text-slate-400">' + dateStr + '</span>' +
+                  '<span class="text-[10px] font-bold uppercase ' + (job.status === 'completed' ? 'text-green-500' : 'text-red-500') + '">' + job.status + '</span>' +
+                '</div>' +
+                '<div class="flex justify-between items-center">' +
+                  '<div><h4 class="font-bold text-sm dark:text-white">' + (job.to||'').split(',')[0] + '</h4>' +
+                       '<p class="text-xs text-slate-500">From: ' + (job.from||'').split(',')[0] + '</p></div>' +
+                  '<p class="font-black text-lg dark:text-white">₹' + job.price + '</p>' +
+                '</div>';
+            prepend ? container.prepend(div) : container.appendChild(div);
+        }
+
+        // Append a just-completed trip locally — zero extra Firestore reads
+        function appendToHistory(job) {
+            const fake = { ...job, status: 'completed', endTime: { seconds: Math.floor(Date.now()/1000) } };
+            historyJobs.unshift(fake);
+            const c = document.getElementById('history-list');
+            const placeholder = c ? c.querySelector('p') : null;
+            if (placeholder) placeholder.remove();
+            renderHistoryCard(fake, c, true);
+            updateWalletView();
+        }
+
+        // One-shot fetch: expenses only change when the driver adds them here.
+        // saveExpense() appends locally, so no re-fetch needed.
         async function listenToWallet() {
-            if(walletSubscription) return;
+            if (walletSubscription) return;
+            walletSubscription = true;
             try {
-                const q = query(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'), orderBy('date', 'desc'), limit(50));
-                walletSubscription = onSnapshot(q, (snap) => {
-                     expenseList = [];
-                     snap.forEach(d => expenseList.push({id:d.id, ...d.data()}));
-                     updateWalletView();
-                }, (err) => {});
-            } catch(e) {}
+                const q = query(
+                    collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'),
+                    orderBy('date', 'desc'), limit(50)
+                );
+                const snap = await getDocs(q);
+                expenseList = [];
+                snap.forEach(d => expenseList.push({id: d.id, ...d.data()}));
+                updateWalletView();
+            } catch(e) { console.error('Wallet fetch:', e); }
         };
         
         window.updateWalletView = () => {
             const balanceEl = document.getElementById('wallet-balance');
-            if(balanceEl) balanceEl.innerText = "0"; 
+            const listEl    = document.getElementById('wallet-list');
+            const filter    = document.getElementById('wallet-filter') ? document.getElementById('wallet-filter').value : 'all';
+            const now       = Date.now();
+            const cutoff    = filter === 'week'  ? now - 7  * 86400000 :
+                              filter === 'month' ? now - 30 * 86400000 : 0;
+
+            const earnings = historyJobs
+                .filter(j => j.status === 'completed' && j.endTime && (j.endTime.seconds * 1000) >= cutoff)
+                .reduce((s, j) => s + (parseInt(j.price) || 0), 0);
+
+            const expenses = expenseList
+                .filter(e => e.date && (e.date.seconds * 1000) >= cutoff)
+                .reduce((s, e) => s + (parseInt(e.amount) || 0), 0);
+
+            if (balanceEl) balanceEl.innerText = (earnings - expenses).toLocaleString('en-IN');
+
+            if (listEl) {
+                listEl.innerHTML = '';
+                const trips = historyJobs.filter(j => j.status === 'completed' && j.endTime && (j.endTime.seconds*1000) >= cutoff);
+                const exps  = expenseList.filter(e => e.date && (e.date.seconds*1000) >= cutoff);
+                if (!trips.length && !exps.length) {
+                    listEl.innerHTML = '<p class="text-center text-slate-400 text-xs py-6">No transactions in this period.</p>';
+                    return;
+                }
+                trips.forEach(j => {
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm";
+                    const dt = j.endTime ? new Date(j.endTime.seconds*1000).toLocaleDateString('en-IN') : '';
+                    el.innerHTML = '<div><p class="text-xs font-bold dark:text-white">' + (j.from||'').split(',')[0] + ' → ' + (j.to||'').split(',')[0] + '</p><p class="text-[10px] text-slate-400">' + dt + '</p></div><p class="font-black text-green-600">+₹' + j.price + '</p>';
+                    listEl.appendChild(el);
+                });
+                exps.forEach(e => {
+                    const el = document.createElement('div');
+                    el.className = "flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm";
+                    const dt = e.date ? new Date(e.date.seconds*1000).toLocaleDateString('en-IN') : '';
+                    el.innerHTML = '<div><p class="text-xs font-bold dark:text-white">' + (e.description||'Expense') + '</p><p class="text-[10px] text-slate-400">' + dt + '</p></div><p class="font-black text-red-500">-₹' + e.amount + '</p>';
+                    listEl.appendChild(el);
+                });
+            }
         };
 
         window.saveExpense = async () => {
             const desc = sanitizeInput(document.getElementById('exp-desc').value);
-            const amt = sanitizeInput(document.getElementById('exp-amt').value);
-            if(!desc || !amt) return alert("Fill details");
+            const amt  = sanitizeInput(document.getElementById('exp-amt').value);
+            if (!desc || !amt) return showToast("Fill both fields", "error");
             try {
-                await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'), { description: desc, amount: parseInt(amt), date: serverTimestamp() });
+                const ref = await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'expenses'), {
+                    description: desc, amount: parseInt(amt), date: serverTimestamp()
+                });
+                // Append locally — no re-fetch needed
+                expenseList.unshift({ id: ref.id, description: desc, amount: parseInt(amt), date: { seconds: Math.floor(Date.now()/1000) } });
                 document.getElementById('exp-desc').value = '';
                 document.getElementById('exp-amt').value = '';
                 document.getElementById('expense-form').classList.add('hidden');
+                updateWalletView();
                 showToast("Expense Added", "success");
-            } catch(e) { console.error(e); showToast("Error saving", "error"); }
+            } catch(e) { console.error(e); showToast("Error saving expense", "error"); }
         };
         
         window.toggleExpenseForm = () => { document.getElementById('expense-form').classList.toggle('hidden'); };
@@ -1496,42 +1542,41 @@ window.driverRegNextStep = (currentStep) => {
             return 4; // Default 5 Seater (4 Pax)
         }
 
-        // --- HELPER: SYNC STATE ---
+        // --- HELPER: SYNC STATE (debounced + skip-if-unchanged = far fewer Firestore writes) ---
+        let _syncTimer = null;
+        let _lastSyncedFilled = -1;
         async function syncDriverState() {
             if (!driverId || !driverProfile) return;
-            const capacity = getTotalCapacity();
-            
-            // Calculate Booked Seats (Only ACTIVE trips count)
-            const activeOnly = myActiveJobs.filter(j => ['assigned', 'verified', 'started'].includes(j.status));
-            const booked = activeOnly.reduce((sum, j) => sum + (parseInt(j.passengers) || 1), 0);
-            
-            const manual = driverProfile.manualFilledSeats || 0;
-            const totalFilled = manual + booked;
-            const available = Math.max(0, capacity - totalFilled);
-            
-            // Update Local Display
-            document.getElementById('seats-filled-display').innerText = Math.min(totalFilled, capacity);
-            document.getElementById('seats-total-display').innerText = capacity;
-            
-            const bar = document.getElementById('seat-progress-bar');
-            if(bar) bar.style.width = (Math.min(totalFilled, capacity)/capacity * 100) + "%";
+            clearTimeout(_syncTimer);
+            _syncTimer = setTimeout(async () => {
+                const capacity = getTotalCapacity();
+                const activeOnly = myActiveJobs.filter(j => ['assigned','verified','started'].includes(j.status));
+                const booked = activeOnly.reduce((s,j) => s + (parseInt(j.passengers)||1), 0);
+                const manual = driverProfile.manualFilledSeats || 0;
+                const totalFilled = Math.min(manual + booked, capacity);
+                const available = Math.max(0, capacity - totalFilled);
 
-            // Update Firestore
-            try {
-                // Update driver profile
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
-                    filledSeats: totalFilled,
-                    seatsAvailable: available
-                });
-                // NEW: Also update the LIVE trips collection so customers see the updated seats immediately!
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
-                    filledSeats: totalFilled,
-                    seatsAvailable: available
-                });
-            } catch(e) {
-                // Suppress harmless offline/permission errors
-                console.log("Sync error (often normal if offline):", e);
-            }
+                // Always update local UI
+                const filledEl = document.getElementById('seats-filled-display');
+                const totalEl  = document.getElementById('seats-total-display');
+                const bar      = document.getElementById('seat-progress-bar');
+                if (filledEl) filledEl.innerText = totalFilled;
+                if (totalEl)  totalEl.innerText  = capacity;
+                if (bar) bar.style.width = (totalFilled / capacity * 100) + '%';
+
+                // Skip Firestore if value hasn't changed or driver is offline
+                if (totalFilled === _lastSyncedFilled) return;
+                if (driverProfile.status !== 'online') return;
+                _lastSyncedFilled = totalFilled;
+
+                // Both writes in parallel (not sequential) to halve network round-trips
+                try {
+                    await Promise.all([
+                        updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { filledSeats: totalFilled, seatsAvailable: available }),
+                        updateDoc(doc(db, 'artifacts', APP_ID, 'trips',   driverId), { filledSeats: totalFilled, seatsAvailable: available })
+                    ]);
+                } catch(e) { console.log('syncDriverState:', e.code || e.message); }
+            }, 1500); // 1.5 s debounce window
         }
 
         window.updateSeatUI = function() {
@@ -1626,7 +1671,9 @@ window.driverRegNextStep = (currentStep) => {
 
         window.openSeatModal = () => {
             manualSeats = driverProfile ? (driverProfile.manualFilledSeats || 0) : 0;
-            updateSeatUI(); 
+            const capEl = document.getElementById('seat-mod-cap');
+            if (capEl) capEl.innerText = getTotalCapacity();
+            updateSeatUI();
             document.getElementById('seat-modal').classList.remove('hidden');
         };
 
@@ -1661,30 +1708,20 @@ window.driverRegNextStep = (currentStep) => {
             if (isOnline) {
                 try {
                     label.innerText = "Syncing...";
-                    const docRef = doc(db, 'artifacts', APP_ID, 'drivers', driverId);
-                    const snap = await getDoc(docRef);
-                    if (!snap.exists()) {
-                         await setDoc(docRef, { uid: driverId, status: 'online', manualFilledSeats: 0 });
-                    } else {
-                         await updateDoc(docRef, { status: 'online' });
-                    }
-
-                    // NEW: Create the Trip document so the customer app can find it
-                    await setDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
-                        driverId: driverId,
-                        name: driverProfile.name,
-                        phone: driverProfile.phone,
-                        vehicleType: driverProfile.vehicleType,
-                        vehicleNo: driverProfile.vehicleNo,
-                        totalSeats: getTotalCapacity(),
-                        seatsAvailable: Math.max(0, getTotalCapacity() - (driverProfile.manualFilledSeats || 0)),
-                        filledSeats: driverProfile.manualFilledSeats || 0,
-                        status: 'scheduled',
-                        prefRoute: driverProfile.prefRoute || 'Karimnagar'
-                    });
-
+                    const cap    = getTotalCapacity();
+                    const filled = driverProfile.manualFilledSeats || 0;
+                    // Parallel writes: driver status + trip doc (saves 1 read + 1 sequential wait)
+                    await Promise.all([
+                        updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { status: 'online' }),
+                        setDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
+                            driverId, name: driverProfile.name, phone: driverProfile.phone,
+                            vehicleType: driverProfile.vehicleType, vehicleNo: driverProfile.vehicleNo,
+                            totalSeats: cap, seatsAvailable: Math.max(0, cap - filled),
+                            filledSeats: filled, status: 'scheduled',
+                            prefRoute: driverProfile.prefRoute || 'Karimnagar'
+                        })
+                    ]);
                     driverProfile.status = 'online';
-                    await syncDriverState(); // SYNC ON ONLINE
 
                     label.innerText = "Online";
                     label.className = "text-[10px] font-bold text-green-500 uppercase";
@@ -1925,9 +1962,13 @@ window.driverRegNextStep = (currentStep) => {
         window.openAcceptModal = (id) => {
             pendingAcceptJobId = id;
             const job = availableMarketJobs.find(j => j.id === id);
-            if(job) {
-                document.getElementById('accept-modal-price').innerText = "₹" + job.price;
-                document.getElementById('accept-modal-type').innerText = job.vehicleType;
+            if (job) {
+                document.getElementById('accept-modal-price').innerText = '₹' + job.price;
+                document.getElementById('accept-modal-type').innerText = job.vehicleType || 'Any';
+                const re = document.getElementById('accept-modal-route');
+                if (re) re.innerText = (job.from||'').split(',')[0] + ' → ' + (job.to||'').split(',')[0];
+                const pe = document.getElementById('accept-modal-pax');
+                if (pe) pe.innerText = (job.passengers||1) + ' pax';
                 document.getElementById('accept-modal').classList.remove('hidden');
             }
         };
@@ -1994,8 +2035,21 @@ window.driverRegNextStep = (currentStep) => {
         window.openPaymentModal = (id) => {
             pendingPaymentJobId = id;
             const job = myActiveJobs.find(j => j.id === id);
-            if(job) {
-                document.getElementById('payment-total').innerText = "₹" + job.price;
+            if (job) {
+                const listEl = document.getElementById('payment-list');
+                if (listEl) {
+                    const name = job.userName || job.name || job.customerName || 'Guest';
+                    listEl.innerHTML =
+                        '<div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">' +
+                          '<div>' +
+                            '<p class="text-xs font-bold dark:text-white">' + name + '</p>' +
+                            '<p class="text-[10px] text-slate-400">' + (job.from||'').split(',')[0] + ' → ' + (job.to||'').split(',')[0] + '</p>' +
+                            '<p class="text-[10px] text-slate-400">' + (job.passengers||1) + ' passenger(s)</p>' +
+                          '</div>' +
+                          '<p class="font-black text-green-600">₹' + job.price + '</p>' +
+                        '</div>';
+                }
+                document.getElementById('payment-total').innerText = '₹' + job.price;
                 document.getElementById('payment-modal').classList.remove('hidden');
             }
         };
@@ -2026,48 +2080,50 @@ window.driverRegNextStep = (currentStep) => {
         };
 
         async function completeSingleJob(job) {
-            // 1. Update Booking status to completed
-            await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { 
-                status: 'completed',
-                endTime: serverTimestamp()
-            });
-            
-            // 2. Add earnings to Wallet
-            await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'wallet_txns'), { 
-                amount: parseInt(job.price), 
-                jobId: job.id,
-                date: serverTimestamp(),
-                type: 'credit',
-                description: `Trip completed: ${job.from} → ${job.to}`
+            const cap = getTotalCapacity();
+            const isLastJob = myActiveJobs.filter(
+                j => j.id !== job.id && ['assigned','verified','started'].includes(j.status)
+            ).length === 0;
+
+            // Write 1: booking status (cannot batch with driver doc — different collection)
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), {
+                status: 'completed', endTime: serverTimestamp()
             });
 
-            // 3. Check if this was the LAST active job - if so, clear manual seats too
-            const remainingActive = myActiveJobs.filter(j => 
-                j.id !== job.id && ['assigned', 'verified', 'started'].includes(j.status)
-            );
-            if (remainingActive.length === 0) {
-                // All trips done - reset manual seats to 0
-                driverProfile.manualFilledSeats = 0;
-                const capacity = getTotalCapacity();
-                try {
-                    await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
-                        manualFilledSeats: 0,
-                        filledSeats: 0,
-                        seatsAvailable: capacity
-                    });
-                    await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
-                        filledSeats: 0,
-                        seatsAvailable: capacity
-                    });
-                } catch(e) { console.log("Seat reset after completion:", e); }
+            // Write 2: driver doc — increment completedJobs + conditionally reset seats (1 write covers both)
+            const driverUpdate = { completedJobs: increment(1) };
+            if (isLastJob) Object.assign(driverUpdate, { manualFilledSeats: 0, filledSeats: 0, seatsAvailable: cap });
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), driverUpdate);
+
+            // Write 3: wallet credit entry (in parallel with nothing blocking — fire-and-go)
+            addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'wallet_txns'), {
+                amount: parseInt(job.price), jobId: job.id, date: serverTimestamp(),
+                type: 'credit', description: `Trip: ${job.from} → ${job.to}`
+            }).catch(e => console.error('wallet write:', e));
+
+            // Update local state — no Firestore read needed
+            if (driverProfile) {
+                driverProfile.completedJobs = (driverProfile.completedJobs || 0) + 1;
+                const el = document.getElementById('stat-jobs');
+                if (el) el.innerText = driverProfile.completedJobs;
+            }
+
+            // Update history tab locally
+            appendToHistory(job);
+
+            if (isLastJob) {
+                if (driverProfile) driverProfile.manualFilledSeats = 0;
+                // Write 4 (conditional): reset trips collection seat count
+                updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), { filledSeats: 0, seatsAvailable: cap })
+                    .catch(() => {});
                 updateSeatUI();
+                _lastSyncedFilled = 0; // reset debounce cache
             }
         }
         window.closeDocModal = () => document.getElementById('doc-upload-modal').classList.add('hidden');
         window.openDocModal = () => document.getElementById('doc-upload-modal').classList.remove('hidden');
-        window.closeTripModal = () => document.getElementById('trip-details-modal').classList.add('hidden');
 
-        window.showToast=(m,t)=>{ const d=document.createElement('div'); d.className=`p-4 rounded-xl shadow-lg text-white text-xs font-bold animate-enter fixed top-4 right-4 z-[100] ${t==='success'?'bg-green-600':'bg-red-500'}`; d.textContent=m; document.body.appendChild(d); setTimeout(()=>d.remove(),3000); }
+        window.showToast=(m,t)=>{ const d=document.createElement('div'); const c=t==='success'?'bg-green-600':t==='warning'?'bg-orange-500':t==='info'?'bg-blue-600':'bg-red-500'; d.className=`p-4 rounded-xl shadow-lg text-white text-xs font-bold fixed top-4 right-4 z-[100] max-w-[280px] ${c}`; d.textContent=m; document.body.appendChild(d); setTimeout(()=>d.remove(),3000); }
         
         init(); 
 
@@ -2135,56 +2191,41 @@ window.uploadProfilePic = (input) => {
     reader.readAsDataURL(file);
 };
 
-// --- FIX: 3-dot Options Menu — open modal and set which job is selected ---
+// ── Trip options handlers ─────────────────────────────────────────────────────
 window.openOptions = (event, jobId) => {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     pendingOptionsJobId = jobId;
     document.getElementById('options-modal').classList.remove('hidden');
 };
-
-// --- FIX: Customer Not Responding — cancels the booking ---
 window.reportNoResponse = async () => {
     if (!pendingOptionsJobId) return;
     document.getElementById('options-modal').classList.add('hidden');
     try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: 'Customer not responding',
-            cancelledBy: 'driver'
-        });
-        showToast("Reported: Customer Not Responding", "success");
-    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId),
+            { status: 'cancelled', cancelReason: 'Customer not responding', cancelledBy: 'driver' });
+        showToast('Reported: Not Responding', 'warning');
+    } catch(e) { showToast('Error', 'error'); }
     pendingOptionsJobId = null;
 };
-
-// --- FIX: Customer Not Interested — cancels the booking ---
 window.reportNotInterested = async () => {
     if (!pendingOptionsJobId) return;
     document.getElementById('options-modal').classList.add('hidden');
     try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: 'Customer not interested',
-            cancelledBy: 'driver'
-        });
-        showToast("Reported: Customer Not Interested", "success");
-    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId),
+            { status: 'cancelled', cancelReason: 'Customer not interested', cancelledBy: 'driver' });
+        showToast('Reported: Not Interested', 'warning');
+    } catch(e) { showToast('Error', 'error'); }
     pendingOptionsJobId = null;
 };
-
-// --- FIX: Cancel Trip with optional reason ---
 window.cancelTripReason = async () => {
     if (!pendingOptionsJobId) return;
     document.getElementById('options-modal').classList.add('hidden');
-    const reason = prompt("Reason for cancellation (optional):");
+    const reason = prompt('Reason (optional):');
     try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: reason || 'Cancelled by driver',
-            cancelledBy: 'driver'
-        });
-        showToast("Trip Cancelled", "success");
-    } catch(e) { console.error(e); showToast("Error cancelling", "error"); }
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId),
+            { status: 'cancelled', cancelReason: reason || 'Cancelled by driver', cancelledBy: 'driver' });
+        showToast('Trip Cancelled', 'success');
+    } catch(e) { showToast('Error cancelling', 'error'); }
     pendingOptionsJobId = null;
 };
 
