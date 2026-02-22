@@ -1,0 +1,14 @@
+| Test Case ID | Description | Steps | Expected Result | Status |
+|--------------|-------------|-------|-----------------|--------|
+| TC-001 | Splash screen shows logo | Open portal | Logo and progress bar visible |  |
+| TC-002 | Email login success | Enter valid email/pass | Redirect to dashboard |  |
+| TC-003 | Email login fail | Enter invalid credentials | Error message shown |  |
+| TC-004 | Google login success | Click Google login, complete | Redirect to dashboard |  |
+| TC-005 | Registration step 1 validation | Leave required blank, next | Error shown, cannot proceed |  |
+| TC-006 | Registration step navigation | Complete step 1, next | Step 2 visible |  |
+| TC-007 | Profile loads by UID | Login, view profile | Correct data shown |  |
+| TC-008 | Booking/ticket loads by UID | Login, view bookings | Correct data shown |  |
+| TC-009 | Firestore rules block other UIDs | Try to access other profile | Access denied |  |
+| TC-010 | Responsive layout | Resize window/device | Layout adapts |  |
+| TC-011 | Branding/logo on all screens | Navigate all screens | Logo visible |  |
+| TC-012 | Error handling | Cause error (e.g. offline) | User-friendly message |  |
