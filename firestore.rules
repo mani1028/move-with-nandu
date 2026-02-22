@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own profile by uid
+    match /artifacts/{appId}/public/data/user_profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Allow users to read their own bookings
+    match /artifacts/{appId}/public/data/bookings/{bookingId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false; // Only server can update/delete
+    }
+    // Allow users to create support tickets
+    match /artifacts/{appId}/support_tickets/{ticketId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if false;
+    }
+    // Allow public read for coupons
+    match /artifacts/{appId}/public/data/coupons/{couponId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
