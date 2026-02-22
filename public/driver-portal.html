@@ -723,7 +723,7 @@
                      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
                           <p class="text-[10px] text-slate-400 font-bold uppercase">Jobs Done</p>
                           <p class="text-2xl font-black text-slate-900 dark:text-white" id="stat-jobs">0</p>
-                          <span class="text-[9px] text-green-500 font-bold flex justify-center items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-1"></i> <span id="stat-jobs-week">0</span> this week</span>
+                          <span class="text-[9px] text-green-500 font-bold flex justify-center items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-1"></i> +2 this week</span>
                      </div>
                      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
                           <p class="text-[10px] text-slate-400 font-bold uppercase">Rating</p>
@@ -981,11 +981,9 @@ window.driverRegSubmit = async () => {
                 vehicleNo: plate,
                 vehicleType: type,
                 prefRoute: route,
-                homeAddress: "",
                 status: 'offline',
                 isVerified: false,
                 rating: 5.0,
-                totalReviews: 0,
                 completedJobs: 0,
                 createdAt: serverTimestamp(),
                 manualFilledSeats: 0,
@@ -1065,6 +1063,65 @@ window.driverRegSubmit = async () => {
                 alert("Invalid OTP");
                 btn.disabled = false;
                 btn.innerHTML = "Verify & Login";
+            }
+        };
+
+        // --- NEW REGISTRATION LOGIC ---
+        window.completeRegistration = async () => {
+            if (!auth.currentUser) return;
+            // Sanitize all user input
+            const name = sanitizeInput(document.getElementById('reg-name').value.trim());
+            const email = sanitizeInput(document.getElementById('reg-email').value.trim()); // Capture Email
+            const plate = sanitizeInput(document.getElementById('reg-plate').value.trim());
+            const type = sanitizeInput(document.getElementById('reg-type').value);
+            const route = sanitizeInput(document.getElementById('reg-route').value);
+            if (!name || !email || !plate) return alert("Please fill all details");
+            const user = auth.currentUser;
+            
+            try {
+                 await runTransaction(db, async (transaction) => {
+                    const counterRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'counters', 'driver_seq');
+                    let seq = 1;
+                    const today = new Date();
+                    const dateStr = `${String(today.getFullYear()).slice(-2)}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+                    
+                    const counterSnap = await transaction.get(counterRef);
+                    if (counterSnap.exists()) {
+                        const data = counterSnap.data();
+                        if (data.date === dateStr) {
+                            seq = data.count + 1;
+                        }
+                    }
+                    
+                    const customId = `${dateStr}${String(seq).padStart(3, '0')}`;
+                    
+                    const newProfile = {
+                        uid: user.uid,
+                        customId: customId,
+                        phone: user.phoneNumber,
+                        email: email, // Save Email to Profile
+                        name: name,
+                        vehicleNo: plate.toUpperCase(),
+                        vehicleType: type,
+                        prefRoute: route,
+                        status: 'offline',
+                        rating: 5.0,
+                        completedJobs: 0,
+                        createdAt: serverTimestamp(),
+                        manualFilledSeats: 0,
+                        prefAc: false
+                    };
+                    
+                    transaction.set(doc(db, 'artifacts', APP_ID, 'drivers', user.uid), newProfile);
+                    transaction.set(counterRef, { date: dateStr, count: seq });
+                });
+                
+                // Reload to trigger auth listener fresh
+                location.reload();
+                
+            } catch(e) {
+                console.error("Reg Error", e);
+                alert("Registration Failed: " + e.message);
             }
         };
 
@@ -1165,6 +1222,19 @@ window.driverRegNextStep = (currentStep) => {
                 });
             });
 
+            // Delegated listener for 3-dot job options button (fixes mobile tap issues)
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.job-options-btn');
+                if (btn) {
+                    e.stopPropagation();
+                    const jobId = btn.getAttribute('data-jobid');
+                    if (jobId) {
+                        pendingOptionsJobId = jobId;
+                        document.getElementById('options-modal').classList.remove('hidden');
+                    }
+                }
+            });
+
             // Auth State Listener
             onAuthStateChanged(auth, async (user) => {
                 const splash = document.getElementById('splash-screen');
@@ -1228,10 +1298,6 @@ window.driverRegNextStep = (currentStep) => {
             document.getElementById("prof-id").innerText = profile.customId ? "ID-" + profile.customId : "ID-" + user.uid.slice(-4).toUpperCase();
             document.getElementById('stat-jobs').innerText = profile.completedJobs || 0;
             document.getElementById("prof-type").innerText = profile.vehicleType || "Vehicle"; 
-            // Weekly jobs stat (will be updated when history loads)
-            if (document.getElementById('stat-jobs-week')) {
-                document.getElementById('stat-jobs-week').innerText = profile.completedJobsThisWeek || 0;
-            }
 
             // --- FIX: Populate email and address fields ---
             document.getElementById("prof-email").value = profile.email || "";
@@ -1370,29 +1436,15 @@ window.driverRegNextStep = (currentStep) => {
                 const container = document.getElementById('history-list');
                 if(container) container.innerHTML = '';
                 if (snap.empty) { if(container) container.innerHTML = '<p class="text-center text-slate-400 text-xs py-8">No completed trips yet.</p>'; return; }
-                
-                // Calculate this week's completed jobs
-                const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-                let weekCount = 0;
-                
                 snap.forEach(d => {
                     const job = {id:d.id, ...d.data()};
                     historyJobs.push(job);
-                    // Count completed jobs from this week
-                    if (job.status === 'completed' && job.endTime && (job.endTime.seconds * 1000) >= oneWeekAgo) {
-                        weekCount++;
-                    }
                     const div = document.createElement('div');
                     div.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm";
                     const dateStr = job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'Date';
                     div.innerHTML = `<div class="flex justify-between mb-2"><span class="text-[10px] font-bold text-slate-400">${dateStr}</span><span class="text-[10px] font-bold uppercase ${job.status === 'completed' ? 'text-green-500' : 'text-red-500'}">${job.status}</span></div><div class="flex justify-between items-center"><div><h4 class="font-bold text-sm dark:text-white">${job.to.split(',')[0]}</h4><p class="text-xs text-slate-500">From: ${job.from.split(',')[0]}</p></div><p class="font-black text-lg dark:text-white">₹${job.price}</p></div>`;
                     if(container) container.appendChild(div);
                 });
-                
-                // Update weekly count in profile
-                const weekEl = document.getElementById('stat-jobs-week');
-                if (weekEl) weekEl.innerText = '+' + weekCount;
-                
                 updateWalletView();
             });
         };
@@ -1831,7 +1883,7 @@ window.driverRegNextStep = (currentStep) => {
             card.className = `bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-slide-up relative ${statusColor}`;
             
             const menuBtn = currentTab === 'active' ? 
-                `<button onclick="openOptions(event, '${job.id}')" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><i data-lucide="more-vertical" class="h-4 w-4"></i></button>` : '';
+                `<button data-jobid="${job.id}" class="job-options-btn absolute top-4 right-4 p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"><i data-lucide="more-vertical" class="h-4 w-4"></i></button>` : '';
 
             // Customer Name Logic (FIXED)
             const customerName = job.userName || job.name || job.customerName || 'Guest User';
@@ -1943,20 +1995,6 @@ window.driverRegNextStep = (currentStep) => {
             pendingPaymentJobId = id;
             const job = myActiveJobs.find(j => j.id === id);
             if(job) {
-                // Populate the payment list with passenger details
-                const paymentList = document.getElementById('payment-list');
-                if (paymentList) {
-                    paymentList.innerHTML = `
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                            <div>
-                                <p class="text-xs font-bold dark:text-white">${job.userName || job.name || 'Guest User'}</p>
-                                <p class="text-[10px] text-slate-400">${job.from ? job.from.split(',')[0] : ''} → ${job.to ? job.to.split(',')[0] : ''}</p>
-                                <p class="text-[10px] text-slate-400">${job.passengers || 1} passenger(s)</p>
-                            </div>
-                            <p class="font-black text-brand-600 dark:text-brand-400">₹${job.price}</p>
-                        </div>
-                    `;
-                }
                 document.getElementById('payment-total').innerText = "₹" + job.price;
                 document.getElementById('payment-modal').classList.remove('hidden');
             }
@@ -1988,13 +2026,13 @@ window.driverRegNextStep = (currentStep) => {
         };
 
         async function completeSingleJob(job) {
-            // 1. Update Booking
+            // 1. Update Booking status to completed
             await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { 
                 status: 'completed',
                 endTime: serverTimestamp()
             });
             
-            // 2. Add to Wallet
+            // 2. Add earnings to Wallet
             await addDoc(collection(db, 'artifacts', APP_ID, 'drivers', driverId, 'wallet_txns'), { 
                 amount: parseInt(job.price), 
                 jobId: job.id,
@@ -2002,6 +2040,28 @@ window.driverRegNextStep = (currentStep) => {
                 type: 'credit',
                 description: `Trip completed: ${job.from} → ${job.to}`
             });
+
+            // 3. Check if this was the LAST active job - if so, clear manual seats too
+            const remainingActive = myActiveJobs.filter(j => 
+                j.id !== job.id && ['assigned', 'verified', 'started'].includes(j.status)
+            );
+            if (remainingActive.length === 0) {
+                // All trips done - reset manual seats to 0
+                driverProfile.manualFilledSeats = 0;
+                const capacity = getTotalCapacity();
+                try {
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                        manualFilledSeats: 0,
+                        filledSeats: 0,
+                        seatsAvailable: capacity
+                    });
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driverId), {
+                        filledSeats: 0,
+                        seatsAvailable: capacity
+                    });
+                } catch(e) { console.log("Seat reset after completion:", e); }
+                updateSeatUI();
+            }
         }
         window.closeDocModal = () => document.getElementById('doc-upload-modal').classList.add('hidden');
         window.openDocModal = () => document.getElementById('doc-upload-modal').classList.remove('hidden');
@@ -2011,55 +2071,7 @@ window.driverRegNextStep = (currentStep) => {
         
         init(); 
 
-// --- FIX: 3-dot Options Menu Functions ---
-window.openOptions = (event, jobId) => {
-    event.stopPropagation();
-    pendingOptionsJobId = jobId;
-    document.getElementById('options-modal').classList.remove('hidden');
-};
-
-window.reportNoResponse = async () => {
-    if (!pendingOptionsJobId) return;
-    document.getElementById('options-modal').classList.add('hidden');
-    try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: 'Customer not responding',
-            cancelledBy: 'driver'
-        });
-        showToast("Reported: Customer Not Responding", "success");
-    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
-    pendingOptionsJobId = null;
-};
-
-window.reportNotInterested = async () => {
-    if (!pendingOptionsJobId) return;
-    document.getElementById('options-modal').classList.add('hidden');
-    try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: 'Customer not interested',
-            cancelledBy: 'driver'
-        });
-        showToast("Reported: Customer Not Interested", "success");
-    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
-    pendingOptionsJobId = null;
-};
-
-window.cancelTripReason = async () => {
-    if (!pendingOptionsJobId) return;
-    document.getElementById('options-modal').classList.add('hidden');
-    const reason = prompt("Please enter reason for cancellation (optional):");
-    try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
-            status: 'cancelled',
-            cancelReason: reason || 'Cancelled by driver',
-            cancelledBy: 'driver'
-        });
-        showToast("Trip Cancelled", "success");
-    } catch(e) { console.error(e); showToast("Error cancelling", "error"); }
-    pendingOptionsJobId = null;
-};
+// --- FIX: toggleEditProfile — enables editing of email/address fields ---
 window.toggleEditProfile = () => {
     const emailInput = document.getElementById('prof-email');
     const addressInput = document.getElementById('prof-address');
@@ -2121,6 +2133,59 @@ window.uploadProfilePic = (input) => {
         // NOTE: To persist to Firebase Storage, integrate Firebase Storage upload here
     };
     reader.readAsDataURL(file);
+};
+
+// --- FIX: 3-dot Options Menu — open modal and set which job is selected ---
+window.openOptions = (event, jobId) => {
+    event.stopPropagation();
+    pendingOptionsJobId = jobId;
+    document.getElementById('options-modal').classList.remove('hidden');
+};
+
+// --- FIX: Customer Not Responding — cancels the booking ---
+window.reportNoResponse = async () => {
+    if (!pendingOptionsJobId) return;
+    document.getElementById('options-modal').classList.add('hidden');
+    try {
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
+            status: 'cancelled',
+            cancelReason: 'Customer not responding',
+            cancelledBy: 'driver'
+        });
+        showToast("Reported: Customer Not Responding", "success");
+    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
+    pendingOptionsJobId = null;
+};
+
+// --- FIX: Customer Not Interested — cancels the booking ---
+window.reportNotInterested = async () => {
+    if (!pendingOptionsJobId) return;
+    document.getElementById('options-modal').classList.add('hidden');
+    try {
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
+            status: 'cancelled',
+            cancelReason: 'Customer not interested',
+            cancelledBy: 'driver'
+        });
+        showToast("Reported: Customer Not Interested", "success");
+    } catch(e) { console.error(e); showToast("Error reporting", "error"); }
+    pendingOptionsJobId = null;
+};
+
+// --- FIX: Cancel Trip with optional reason ---
+window.cancelTripReason = async () => {
+    if (!pendingOptionsJobId) return;
+    document.getElementById('options-modal').classList.add('hidden');
+    const reason = prompt("Reason for cancellation (optional):");
+    try {
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingOptionsJobId), {
+            status: 'cancelled',
+            cancelReason: reason || 'Cancelled by driver',
+            cancelledBy: 'driver'
+        });
+        showToast("Trip Cancelled", "success");
+    } catch(e) { console.error(e); showToast("Error cancelling", "error"); }
+    pendingOptionsJobId = null;
 };
 
     function androidSetDriver(phone){ if (window.Android && phone) { Android.setDriverPhone(phone); } }
