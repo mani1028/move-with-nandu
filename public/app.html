@@ -699,46 +699,51 @@
                 updateOrdersUI();
             }
 
-            // 2. IF ONLINE, FETCH FRESH & UPDATE CACHE
-            if(navigator.onLine) {
-                try {
+// 2. IF ONLINE, FETCH FRESH & UPDATE CACHE
+if(navigator.onLine) {
+    try {
 
-                    // OPTIMIZED: Fetch Active Trips (removed strict route string matching)
-                    const tripsSnap = await getDocs(query(
-                        collection(db, 'artifacts', APP_ID, 'trips'), 
-                        where('status', '==', 'scheduled')
-                    ));
+        // OPTIMIZED: Fetch Active Trips (removed strict route string matching)
+        const tripsSnap = await getDocs(query(
+            collection(db, 'artifacts', APP_ID, 'trips'), 
+            where('status', '==', 'scheduled')
+        ));
 
-                    activeDrivers = [];
-                    tripsSnap.forEach(d => activeDrivers.push({id: d.id, ...d.data()}));
-                    localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
-                    updateFleetUI();
-                    updateDetailedAvailability();
-// ...inside syncData(), replacing the orders fetch block...
-// Fetch Orders (limit to recent 10)
-try {
-    console.log("Fetching rides for UID:", user.uid); // Debugging
-    const ordersSnap = await getDocs(query(
-        collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), 
-        where('userId', '==', user.uid),
-        limit(10)
-    ));
-    
-    allUserOrders = []; 
-    ordersSnap.forEach(d => {
-        allUserOrders.push({id: d.id, ...d.data()});
-    });
-    
-    console.log("Rides found in Firestore:", allUserOrders.length); // Debugging
-    
-    allUserOrders.sort((a, b) => b.createdAt - a.createdAt);
-    localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
-    updateOrdersUI();
-} catch (e) {
-    console.error("Error fetching My Rides:", e.message);
+        activeDrivers = [];
+        tripsSnap.forEach(d => activeDrivers.push({id: d.id, ...d.data()}));
+        localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
+        updateFleetUI();
+        updateDetailedAvailability();
+
+        // Fetch Orders (limit to recent 10)
+        try {
+            console.log("Fetching rides for UID:", user.uid); // Debugging
+            const ordersSnap = await getDocs(query(
+                collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), 
+                where('userId', '==', user.uid),
+                limit(10)
+            ));
+            
+            allUserOrders = []; 
+            ordersSnap.forEach(d => {
+                allUserOrders.push({id: d.id, ...d.data()});
+            });
+            
+            console.log("Rides found in Firestore:", allUserOrders.length); // Debugging
+            
+            allUserOrders.sort((a, b) => b.createdAt - a.createdAt);
+            localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
+            updateOrdersUI();
+        } catch (e) {
+            console.error("Error fetching My Rides:", e.message);
+        }
+    } catch (e) {
+        console.error("Error syncing data:", e.message);
+    }
 }
-        // Listen for connection restoration to sync again
-        window.addEventListener('online', syncData);
+        }
+// Listen for connection restoration to sync again
+window.addEventListener('online', syncData);
 
         function updateOrdersUI() {
             const completed = allUserOrders.filter(o => o.status === 'completed').length;
