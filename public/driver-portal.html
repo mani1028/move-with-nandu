@@ -826,6 +826,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+            import { getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
   collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
   onSnapshot, query, where, serverTimestamp, orderBy,
@@ -844,10 +845,22 @@
         }
 
         if (isWebView() && !isPWKApp()) {
-            alert("Please open this page in Chrome for secure login.");
-        }
+                        alert("Please open this page in Chrome for secure login.");
+                }
 
-        window.loginWithGoogle = function() {
+                // CONFIG
+                import { firebaseConfig } from './firebase-config.js';
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app); 
+                const db = initializeFirestore(app, {
+                        localCache: persistentLocalCache({
+                                tabManager: persistentMultipleTabManager()
+                        })
+                });
+
+                const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
+
+                window.loginWithGoogle = function() {
                         const provider = new GoogleAuthProvider();
                         if (isPWKApp()) {
                                 // PWK app: use popup for Google login
@@ -860,7 +873,6 @@
                                             getDoc(userRef).then((docSnap) => {
                                                 if (!docSnap.exists()) {
                                                     // New user, show registration UI or auto-register as needed
-                                                    // Example: show registration modal or call registration logic
                                                     // showRegistrationModal(result.user);
                                                     alert('Registration required. Please complete your profile.');
                                                 } else {
@@ -907,20 +919,8 @@
                                 console.error('Google Login Error:', error);
                                 alert('Login failed: ' + (error.message || error.code));
                             });
-        };
+                }
 
-
-        // CONFIG
-        import { firebaseConfig } from './firebase-config.js';
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app); 
-                const db = initializeFirestore(app, {
-                    localCache: persistentLocalCache({
-                        tabManager: persistentMultipleTabManager()
-                    })
-                });
-        
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
         
         // --- GLOBAL STATE ---
         let driverProfile = null;
@@ -1002,8 +1002,7 @@ window.driverRegSubmit = async () => {
         showToast("Registration Failed", "error");
     }
 };
-        window.setupRecaptcha = () => {
-
+        window.setupRecaptcha = () => {};
 
         // --- INIT ---
         // --- SANITIZE INPUT HELPER ---
