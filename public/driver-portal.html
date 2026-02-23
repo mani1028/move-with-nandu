@@ -825,7 +825,7 @@
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
             import { getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
   collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
@@ -862,64 +862,162 @@
 
                 // Auto-login with demo credentials (for webview compatibility)
                 window.loginWithGoogle = async function() {
+                        const loginBtn = document.querySelector('button[onclick*="loginWithGoogle"]');
+                        if (loginBtn) loginBtn.disabled = true;
+                        
                         try {
-                                // Use a demo/test account - you can customize this
-                                const demoEmail = 'driver@nandu-travels.com';
-                                const demoPassword = 'Driver@12345';
-                                
-                                // Show loading state
-                                const loginBtn = document.querySelector('button[onclick*="loginWithGoogle"]');
-                                if (loginBtn) loginBtn.disabled = true;
-                                
-                                // Sign in with email/password
-                                const result = await signInWithEmailAndPassword(auth, demoEmail, demoPassword);
-                                
-                                if (result && result.user) {
-                                        // Check if driver exists in Firestore
-                                        const userRef = doc(db, 'artifacts', APP_ID, 'drivers', result.user.uid);
-                                        const docSnap = await getDoc(userRef);
-                                        
-                                        if (!docSnap.exists()) {
-                                                // Create new driver profile
-                                                await setDoc(userRef, {
-                                                        email: demoEmail,
-                                                        name: 'Driver',
-                                                        phone: '',
-                                                        homeAddress: '',
-                                                        completedJobs: 0,
-                                                        rating: 5.0,
-                                                        manualFilledSeats: 0,
-                                                        createdAt: serverTimestamp()
+                                // STRATEGY 1: Check for native PWK Android bridge
+                                if (window.Android && typeof window.Android.getGoogleAuthToken === 'function') {
+                                        console.log('Using native Android Google Auth');
+                                        return new Promise((resolve) => {
+                                                window.Android.getGoogleAuthToken((idToken) => {
+                                                        if (idToken) {
+                                                                handleGoogleToken(idToken).finally(resolve);
+                                                        } else {
+                                                                showToast('Google sign-in cancelled', 'warning');
+                                                                if (loginBtn) loginBtn.disabled = false;
+                                                                resolve();
+                                                        }
                                                 });
+                                        });
+                                }
+                                
+                                // STRATEGY 2: Try Firebase Popup (works on some webviews)
+                                if (isWebView()) {
+                                        console.log('Attempting popup in webview');
+                                        try {
+                                                const provider = new GoogleAuthProvider();
+                                                const result = await signInWithPopup(auth, provider);
+                                                if (result && result.user) {
+                                                        await handleGoogleLogin(result.user);
+                                                }
+                                        } catch(popupError) {
+                                                console.log('Popup failed, trying redirect strategy:', popupError.code);
+                                                // STRATEGY 3: Fallback to redirect via external browser
+                                                showGoogleAuthModal();
                                         }
-                                        
-                                        // Redirect to dashboard
-                                        location.reload();
                                 } else {
-                                        alert('Login failed. Please try again.');
+                                        // STRATEGY 4: Normal browser - use redirect
+                                        console.log('Using redirect in normal browser');
+                                        const provider = new GoogleAuthProvider();
+                                        signInWithRedirect(auth, provider);
                                 }
                         } catch(error) {
-                                console.error('Login Error:', error);
-                                // If account doesn't exist, create it
-                                if (error.code === 'auth/user-not-found') {
-                                        try {
-                                                const demoEmail = 'driver@nandu-travels.com';
-                                                const demoPassword = 'Driver@12345';
-                                                
-                                                await createUserWithEmailAndPassword(auth, demoEmail, demoPassword);
-                                                // Retry login
-                                                window.loginWithGoogle();
-                                        } catch(createError) {
-                                                console.error('Account creation error:', createError);
-                                                alert('Account setup failed: ' + createError.message);
-                                        }
-                                } else {
-                                        alert('Login failed: ' + (error.message || error.code));
-                                }
+                                console.error('Google Login Error:', error);
+                                showToast('Google sign-in failed: ' + error.message, 'error');
                         } finally {
-                                const loginBtn = document.querySelector('button[onclick*="loginWithGoogle"]');
                                 if (loginBtn) loginBtn.disabled = false;
                         }
+                };
+                
+                // Handle Google authentication token
+                window.handleGoogleToken = async (idToken) => {
+                        try {
+                                const credential = GoogleAuthProvider.credential(idToken);
+                                const result = await signInWithCredential(auth, credential);
+                                if (result && result.user) {
+                                        await handleGoogleLogin(result.user);
+                                }
+                        } catch(error) {
+                                console.error('Token handling error:', error);
+                                showToast('Authentication failed: ' + error.message, 'error');
+                        }
+                };
+                
+                // Common login handler
+                window.handleGoogleLogin = async (user) => {
+                        try {
+                                const userRef = doc(db, 'artifacts', APP_ID, 'drivers', user.uid);
+                                const docSnap = await getDoc(userRef);
+                                
+                                if (!docSnap.exists()) {
+                                        // New user - create profile
+                                        await setDoc(userRef, {
+                                                uid: user.uid,
+                                                email: user.email || '',
+                                                name: user.displayName || 'Driver',
+                                                phone: '',
+                                                homeAddress: '',
+                                                status: 'offline',
+                                                isVerified: false,
+                                                completedJobs: 0,
+                                                rating: 5.0,
+                                                manualFilledSeats: 0,
+                                                prefAc: false,
+                                                createdAt: serverTimestamp()
+                                        });
+                                        showToast('Account created! Welcome!', 'success');
+                                } else {
+                                        showToast('Welcome back!', 'success');
+                                }
+                                
+                                setTimeout(() => location.reload(), 1000);
+                        } catch(error) {
+                                console.error('Profile creation error:', error);
+                                showToast('Error setting up profile', 'error');
+                        }
+                };
+                
+                // Modal for manual Google redirect
+                window.showGoogleAuthModal = function() {
+                        const modal = document.createElement('div');
+                        modal.className = 'fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in';
+                        modal.innerHTML = `
+                                <div class="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full shadow-2xl space-y-6">
+                                        <div class="text-center">
+                                                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                        <i data-lucide="shield-check" class="w-8 h-8 text-blue-600"></i>
+                                                </div>
+                                                <h3 class="text-xl font-black dark:text-white">Secure Google Login</h3>
+                                                <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                                                        For your security, we need to open Google login in your browser.
+                                                </p>
+                                        </div>
+                                        
+                                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 space-y-2">
+                                                <p class="text-xs font-bold text-blue-900 dark:text-blue-300">What happens next:</p>
+                                                <ol class="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                                                        <li>✓ Browser opens with Google sign-in</li>
+                                                        <li>✓ Sign in with your Google account</li>
+                                                        <li>✓ You'll be redirected back here</li>
+                                                </ol>
+                                        </div>
+                                        
+                                        <div class="flex gap-3">
+                                                <button onclick="this.closest('.fixed').remove()" class="flex-1 py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition active:scale-95">
+                                                        Cancel
+                                                </button>
+                                                <button onclick="openGoogleAuthInBrowser()" class="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition active:scale-95 flex items-center justify-center gap-2">
+                                                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032 c0-3.331,2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.461,2.268,15.365,1.016,12.545,1.016 c-6.32,0-11.434,5.115-11.434,11.434c0,6.319,5.114,11.434,11.434,11.434c6.477,0,11.434-4.959,11.434-11.434 C23.979,11.655,23.937,10.931,23.845,10.239H12.545z'/%3E%3C/svg%3E" alt="Google" class="w-4 h-4"> Continue
+                                                </button>
+                                        </div>
+                                </div>
+                        `;
+                        document.body.appendChild(modal);
+                        lucide.createIcons();
+                };
+                
+                // Open Google auth in external browser
+                window.openGoogleAuthInBrowser = function() {
+                        const currentUrl = window.location.href;
+                        
+                        // Try native Android method
+                        if (window.Android && typeof window.Android.openInBrowser === 'function') {
+                                window.Android.openInBrowser(currentUrl);
+                                document.body.querySelector('.fixed').remove();
+                                return;
+                        }
+                        
+                        // Try PWK app method
+                        if (window.PWK && typeof window.PWK.openURL === 'function') {
+                                window.PWK.openURL(currentUrl);
+                                document.body.querySelector('.fixed').remove();
+                                return;
+                        }
+                        
+                        // Fallback: show URL for manual copy
+                        showToast('Copy the URL below and open in browser:', 'info');
+                        const urlDisplay = prompt('Open this URL in your browser:\n\n' + currentUrl);
                 };
 
                 // On page load, handle redirect result for non-PWK users
