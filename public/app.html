@@ -800,28 +800,59 @@
             temp.textContent = str;
             return temp.innerHTML;
         }
-        window.saveUserProfile = async () => {
-            const nameInput = document.getElementById('user-name-input').value;
-            const phoneInput = document.getElementById('user-phone-input') ? document.getElementById('user-phone-input').value : '';
-            const safeName = sanitizeInput(nameInput);
-            const safePhone = phoneInput ? sanitizeInput(phoneInput) : '';
-            if (!safeName) {
-                alert("Name is required");
-                return;
-            }
-            // If phone field exists, require 10 digits
-            if (document.getElementById('user-phone-input') && (!/^\d{10}$/.test(safePhone))) {
-                alert("Valid 10-digit phone number required");
-                return;
-            }
-            await setDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',auth.currentUser.uid), { 
-                name: safeName, 
-                email: auth.currentUser.email,
-                phone: safePhone,
-                createdAt: serverTimestamp() 
-            });
-            location.reload();
-        }
+        // ...existing code...
+window.saveUserProfile = async () => {
+    const nameInput = document.getElementById('user-name-input').value;
+    const phoneInput = document.getElementById('user-phone-input') ? document.getElementById('user-phone-input').value : '';
+    const safeName = sanitizeInput(nameInput);
+    const safePhone = phoneInput ? sanitizeInput(phoneInput) : '';
+    if (!safeName) {
+        alert("Name is required");
+        return;
+    }
+    // If phone field exists, require 10 digits
+    if (document.getElementById('user-phone-input') && (!/^\d{10}$/.test(safePhone))) {
+        alert("Valid 10-digit phone number required");
+        return;
+    }
+    await setDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',auth.currentUser.uid), { 
+        name: safeName, 
+        email: auth.currentUser.email,
+        phone: safePhone,
+        registrationComplete: true, // <-- REQUIRED BY RULES
+        createdAt: serverTimestamp() 
+    });
+    location.reload();
+}
+
+
+window.completeRegistration = async () => {
+    const nameInput = document.getElementById('user-name-input');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        alert('Please enter your name');
+        nameInput.focus();
+        return;
+    }
+
+    try {
+        await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', user.uid), {
+            uid: user.uid,
+            name: name,
+            email: user.email || '',
+            registrationComplete: true,
+            createdAt: serverTimestamp()
+        });
+        alert('Profile created successfully!');
+        setTimeout(() => location.reload(), 1500);
+    } catch (error) {
+        console.error('Profile creation error:', error);
+        alert('Failed to create profile: ' + error.message);
+    }
+};
+
+
         window.handleLogout = async () => { if(confirm("Logout?")) { await signOut(auth); location.reload(); } }
         window.resetAuth = () => location.reload();
         window.enableNameEdit = () => { document.getElementById('name-edit-container').classList.remove('hidden'); document.getElementById('edit-profile-name-input').value = userData.name; }
