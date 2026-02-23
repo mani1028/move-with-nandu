@@ -865,7 +865,7 @@
 
                                 // --- ANDROID BRIDGE GOOGLE SIGN-IN LOGIC ---
                                 // Call this to start Google sign-in
-                                function signInWithGoogle() {
+                                window.signInWithGoogle = function() {
                                     if (window.Android && typeof window.Android.getGoogleAuthToken === 'function') {
                                         // Native Android bridge flow
                                         window.Android.getGoogleAuthToken();
@@ -874,20 +874,20 @@
                                         const provider = new GoogleAuthProvider();
                                         signInWithPopup(auth, provider)
                                             .then((result) => {
-                                                if (result.user) handleGoogleLogin(result.user);
+                                                if (result.user) window.handleGoogleLogin(result.user);
                                             })
                                             .catch((e) => {
-                                                showGoogleAuthModal();
+                                                window.showGoogleAuthModal();
                                             });
                                     }
                                 }
 
                                 // This function will be called by the Android app with the Google ID token
-                                function handleGoogleAuthToken(token) {
+                                window.handleGoogleAuthToken = function(token) {
                                     const credential = GoogleAuthProvider.credential(token);
                                     signInWithCredential(auth, credential)
                                         .then((result) => {
-                                            if (result.user) handleGoogleLogin(result.user);
+                                            if (result.user) window.handleGoogleLogin(result.user);
                                         })
                                         .catch((error) => {
                                             console.error(error);
