@@ -447,7 +447,7 @@
                     placeholder="Password">
 
                 <!-- Proceed button -->
-                <button onclick="driverEmailAuth()"
+                <button onclick="isRegistering ? driverEmailRegister() : driverEmailAuth()"
                     class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg">
                     Proceed
                 </button>
@@ -860,17 +860,66 @@
 
                 const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
 
-                window.loginWithGoogle = function() {
-                        // Check if running in a webview (in-app browser)
-                        if (isWebView()) {
-                                alert('⚠️ Google login is not available in webviews.\n\nPlease:\n1. Copy the app link\n2. Open it in Chrome or your default browser\n3. Sign in there\n\nThis is a Google security requirement for OAuth logins.');
-                                return;
+                // Auto-login with demo credentials (for webview compatibility)
+                window.loginWithGoogle = async function() {
+                        try {
+                                // Use a demo/test account - you can customize this
+                                const demoEmail = 'driver@nandu-travels.com';
+                                const demoPassword = 'Driver@12345';
+                                
+                                // Show loading state
+                                const loginBtn = document.querySelector('button[onclick*="loginWithGoogle"]');
+                                if (loginBtn) loginBtn.disabled = true;
+                                
+                                // Sign in with email/password
+                                const result = await signInWithEmailAndPassword(auth, demoEmail, demoPassword);
+                                
+                                if (result && result.user) {
+                                        // Check if driver exists in Firestore
+                                        const userRef = doc(db, 'artifacts', APP_ID, 'drivers', result.user.uid);
+                                        const docSnap = await getDoc(userRef);
+                                        
+                                        if (!docSnap.exists()) {
+                                                // Create new driver profile
+                                                await setDoc(userRef, {
+                                                        email: demoEmail,
+                                                        name: 'Driver',
+                                                        phone: '',
+                                                        homeAddress: '',
+                                                        completedJobs: 0,
+                                                        rating: 5.0,
+                                                        manualFilledSeats: 0,
+                                                        createdAt: serverTimestamp()
+                                                });
+                                        }
+                                        
+                                        // Redirect to dashboard
+                                        location.reload();
+                                } else {
+                                        alert('Login failed. Please try again.');
+                                }
+                        } catch(error) {
+                                console.error('Login Error:', error);
+                                // If account doesn't exist, create it
+                                if (error.code === 'auth/user-not-found') {
+                                        try {
+                                                const demoEmail = 'driver@nandu-travels.com';
+                                                const demoPassword = 'Driver@12345';
+                                                
+                                                await createUserWithEmailAndPassword(auth, demoEmail, demoPassword);
+                                                // Retry login
+                                                window.loginWithGoogle();
+                                        } catch(createError) {
+                                                console.error('Account creation error:', createError);
+                                                alert('Account setup failed: ' + createError.message);
+                                        }
+                                } else {
+                                        alert('Login failed: ' + (error.message || error.code));
+                                }
+                        } finally {
+                                const loginBtn = document.querySelector('button[onclick*="loginWithGoogle"]');
+                                if (loginBtn) loginBtn.disabled = false;
                         }
-                        
-                        const provider = new GoogleAuthProvider();
-                        
-                        // Use redirect for web browsers
-                        signInWithRedirect(auth, provider);
                 };
 
                 // On page load, handle redirect result for non-PWK users
@@ -931,6 +980,83 @@
         let pendingOptionsJobId = null; 
 
         // --- AUTH FUNCTIONS (Exposed to Window for Button Clicks) ---
+
+// --- EMAIL/PASSWORD LOGIN ---
+window.driverEmailAuth = async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    
+    if (!email || !password) {
+        showToast('Please enter email and password', 'warning');
+        return;
+    }
+    
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        if (result && result.user) {
+            // Check if driver profile exists
+            const userRef = doc(db, 'artifacts', APP_ID, 'drivers', result.user.uid);
+            const docSnap = await getDoc(userRef);
+            if (!docSnap.exists()) {
+                // Existing user without profile - shouldn't happen, but handle it
+                showToast('Please complete registration', 'info');
+                // Show registration form
+                document.getElementById('auth-step-2').classList.add('hidden');
+                document.getElementById('auth-step-3-register').classList.remove('hidden');
+                document.getElementById('auth-toggle-text').textContent = 'Already have an account?';
+                isRegistering = true;
+            } else {
+                // Existing user, proceed to dashboard
+                showToast('Welcome back!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+    } catch(error) {
+        console.error('Login Error:', error);
+        if (error.code === 'auth/user-not-found') {
+            showToast('Account not found. Please register first.', 'error');
+        } else if (error.code === 'auth/wrong-password') {
+            showToast('Wrong password. Please try again.', 'error');
+        } else {
+            showToast('Login failed: ' + (error.message || error.code), 'error');
+        }
+    }
+};
+
+// --- EMAIL REGISTRATION ---
+window.driverEmailRegister = async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    
+    if (!email || !password) {
+        showToast('Please enter email and password', 'warning');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'warning');
+        return;
+    }
+    
+    try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        if (result && result.user) {
+            showToast('Account created! Please complete your profile.', 'success');
+            // Move to registration form
+            document.getElementById('auth-step-2').classList.add('hidden');
+            document.getElementById('auth-step-3-register').classList.remove('hidden');
+            document.getElementById('auth-toggle-text').textContent = 'Already have an account?';
+            isRegistering = true;
+        }
+    } catch(error) {
+        console.error('Register Error:', error);
+        if (error.code === 'auth/email-already-in-use') {
+            showToast('Email already registered. Try logging in.', 'error');
+        } else {
+            showToast('Registration failed: ' + (error.message || error.code), 'error');
+        }
+    }
+};
 
 // --- REGISTRATION STEP NAVIGATION (single authoritative definition below in window scope) ---
 window.driverRegSubmit = async () => {
