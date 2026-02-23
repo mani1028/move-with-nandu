@@ -1239,11 +1239,12 @@ window.driverRegNextStep = (currentStep) => {
         const email = document.getElementById('reg-email').value.trim();
         const phone = document.getElementById('reg-phone').value.trim();
         if (!name || !email) {
-            showToast('Please enter your name and email', 'warning');
+            alert("Please enter both name and email.");
             return;
         }
-        if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-            showToast('Please enter a valid 10-digit mobile number', 'warning');
+        // STRENGTHENED CHECK: Ensure valid 10-digit number
+        if (!phone || phone.length < 10) {
+            alert("Please enter a valid 10-digit mobile number.");
             return;
         }
         document.getElementById('driver-reg-step-1').classList.add('hidden');
@@ -1293,30 +1294,32 @@ window.driverRegNextStep = (currentStep) => {
                 const appScreen = document.getElementById('app-screen');
 
                 if (user) {
-                    // 1. Attempt to fetch the profile document
+                    console.log("User Logged In:", user.uid);
+                    // 1. Fetch Profile first
                     let profile = await fetchProfile(user.uid);
-
                     if (profile) {
-                        // User already has a profile, proceed to app
+                        // EXISTING DRIVER: Proceed to dashboard
                         loadAppWithProfile(user, profile);
                     } else {
-                        // 2. NEW USER DETECTED: Force them to the Registration Form
+                        // NEW DRIVER: Force Registration Flow
                         splash.classList.add('hidden');
                         login.classList.remove('hidden');
+                        appScreen.classList.add('hidden');
 
-                        // Toggle UI to registration mode automatically
-                        window.toggleAuthMode('register');
+                        // Set state to registering
+                        isRegistering = true;
 
-                        // Hide the initial login buttons and show the details form
+                        // Toggle UI to registration mode (Updates titles/tabs)
+                        window.toggleAuthMode('register'); 
+
+                        // Hide initial login buttons and show the detail collection form
                         document.getElementById('auth-step-1').classList.add('hidden');
-                        document.getElementById('auth-step-2').classList.add('hidden');
                         document.getElementById('auth-step-3-register').classList.remove('hidden');
 
-                        showToast('Please complete your profile details first.', 'info');
-                        return; // Prevent any further app loading
+                        showToast('Welcome! Please complete your profile to continue.', 'info');
                     }
                 } else {
-                    // Standard logout view
+                    // NO USER: Show login screen
                     splash.classList.add('hidden');
                     login.classList.remove('hidden');
                     appScreen.classList.add('hidden');
