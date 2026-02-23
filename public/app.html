@@ -4,34 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Book Ride - Nandu Travels</title>
-    
-    <!-- PWA / Mobile App Meta Tags -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="application-name" content="Nandu App">
-    
-    <!-- 
-      ASSET LOADING STRATEGY:
-      1. Tries to load from local 'assets/' folder (for APK/Offline).
-      2. If that fails (onerror), falls back to CDN (for Web/Online).
-    -->
-    
-    <!-- Tailwind CSS -->
-    <link href="assets/tailwind.min.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://cdn.tailwindcss.com';">
-    
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Book Ride - Nandu Travels</title>
-
-    <meta name="theme-color" content="#ffffff">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Nandu App">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:,">
 
@@ -41,17 +21,60 @@
             -webkit-tap-highlight-color: transparent;
             background-color: #F8FAFC;
         }
-
-        /* Utilities */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .amb-radio:checked + div { border-color: #3B82F6; background-color: #EFF6FF; color: #1D4ED8; box-shadow: 0 0 0 2px #3B82F6; }
-        .amb-radio:checked + div { border-color: #EF4444; background-color: #FEF2F2; color: #B91C1C; box-shadow: 0 0 0 2px #EF4444; }
+
+        /* =====================================================
+           FIX 1: RADIO BUTTON HIGHLIGHT STYLES
+           Using JS-driven .selected class instead of broken CSS sibling selectors
+        ===================================================== */
+        .option-card {
+            border: 2px solid #e2e8f0;
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .option-card:hover { border-color: #93c5fd; background: #f0f9ff; }
+        .option-card.selected {
+            border-color: #2563eb !important;
+            background: #eff6ff !important;
+            color: #1d4ed8 !important;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .option-card.selected span { color: #1d4ed8 !important; }
+
+        /* Ambulance card selected = red theme */
+        .option-card.selected-red {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+            box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+        }
+        .option-card.selected-red p { color: #b91c1c !important; }
+
+        /* Service option cards */
+        .service-option {
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        }
+        .service-option:hover { border-color: #93c5fd; background: #f0f9ff; }
+        .service-option.active { border-color: #2563eb; background: #eff6ff; }
+        .service-option.active i { color: #2563eb; opacity: 1; }
+        .service-option.active-red { border-color: #ef4444; background: #fef2f2; }
+        .service-option.active-red i { color: #ef4444; opacity: 1; }
 
         @keyframes radar-ping { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
         .radar-ring { position: absolute; border-radius: 50%; border: 2px solid #3B82F6; width: 60px; height: 60px; animation: radar-ping 2s infinite; }
 
-        /* Desktop Background Pattern */
         @media (min-width: 1024px) {
             .main-content-bg {
                 background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
@@ -59,11 +82,9 @@
             }
         }
         
-        /* Input Focus Ring Animation */
         .focus-ring { transition: box-shadow 0.2s; }
         .focus-ring:focus-within { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
-        /* Chat Float */
         .chat-float {
             position: fixed; bottom: 85px; right: 20px;
             background-color: #2563EB; color: white;
@@ -75,13 +96,27 @@
         .chat-float:active { transform: scale(0.95); }
         @media (min-width: 1024px) { .chat-float { bottom: 30px; right: 30px; } }
         
-        /* Offline Banner */
         #offline-banner {
             transform: translateY(-100%);
             transition: transform 0.3s ease-out;
         }
-        #offline-banner.visible {
-            transform: translateY(0);
+        #offline-banner.visible { transform: translateY(0); }
+
+        /* OTP Display */
+        .otp-box {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+        .otp-digits {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 0.4em;
+            color: #f8fafc;
+            font-variant-numeric: tabular-nums;
         }
     </style>
 </head>
@@ -102,12 +137,12 @@
 
     <!-- AUTH MODAL -->
     <div id="auth-screen" class="fixed inset-0 bg-white/95 backdrop-blur-md z-[90] flex items-center justify-center hidden p-4 overflow-y-auto">
-        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 relative animate-slide-up">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 relative">
             <a href="index.html" class="inline-flex items-center gap-2 text-slate-500 font-bold text-sm mb-8 hover:text-blue-600"><i data-lucide="arrow-left" class="h-4 w-4"></i> Back to Website</a>
             <div class="text-center mb-8">
                 <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600 shadow-sm"><i data-lucide="smartphone" class="h-8 w-8"></i></div>
                 <h2 class="text-2xl font-black text-slate-900">Login / Signup</h2>
-                <p class="text-slate-500 text-sm font-medium">Enter mobile number to continue</p>
+                <p class="text-slate-500 text-sm font-medium">Enter your credentials to continue</p>
             </div>
             <div id="auth-step-1" class="space-y-4">
                 <input type="email" id="login-email" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold" placeholder="Email Address">
@@ -118,24 +153,23 @@
                     <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-500">Or continue with</span></div>
                 </div>
                 <button onclick="loginWithGoogle()" class="w-full py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl shadow-sm flex items-center justify-center gap-2">
-                    <img src="assets/google.svg" class="w-5 h-5" alt="Google">  Google Login
+                    <img src="assets/google.svg" class="w-5 h-5" alt="Google" onerror="this.style.display='none'"> Google Login
                 </button>
             </div>
             <div id="auth-step-2" class="hidden space-y-4">
                 <p class="text-center text-sm text-slate-500">OTP sent to <span id="display-otp-mobile" class="font-bold text-slate-900"></span></p>
-                <input type="tel" id="otp-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-3xl text-center tracking-[0.5em] focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" maxlength="6" placeholder="------">
-                <button onclick="verifyOtp()" id="btn-verify-otp" class="w-full py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg hover:bg-green-700 animate-scale">Verify & Login</button>
+                <input type="tel" id="otp-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-3xl text-center tracking-[0.5em] focus:border-blue-500 transition" maxlength="6" placeholder="------">
+                <button onclick="verifyOtp()" id="btn-verify-otp" class="w-full py-4 bg-green-600 text-white font-bold rounded-2xl shadow-lg hover:bg-green-700">Verify & Login</button>
                 <button onclick="resetAuth()" class="w-full text-xs font-bold text-slate-400 hover:text-slate-600 transition">Change Number</button>
             </div>
-<div id="auth-step-3" class="hidden space-y-4">
-    <div class="text-center mb-4"><p class="text-sm text-slate-600">New here? Let's get to know you.</p></div>
-    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Name</label>
-    <input type="text" id="user-name-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" placeholder="Full Name">
-    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
-    <input type="tel" id="user-phone-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" placeholder="10-digit mobile number" maxlength="10">
-    <button onclick="saveUserProfile()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 animate-scale">Create Profile</button>
-</div>
-
+            <div id="auth-step-3" class="hidden space-y-4">
+                <div class="text-center mb-4"><p class="text-sm text-slate-600">New here? Let's get to know you.</p></div>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Name</label>
+                <input type="text" id="user-name-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold focus:border-blue-500 transition" placeholder="Full Name">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone Number</label>
+                <input type="tel" id="user-phone-input" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold focus:border-blue-500 transition" placeholder="10-digit mobile number" maxlength="10">
+                <button onclick="saveUserProfile()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800">Create Profile</button>
+            </div>
         </div>
     </div>
 
@@ -149,7 +183,7 @@
             <button onclick="switchView('booking')" id="d-nav-booking" class="font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600"><i data-lucide="map-pin" class="h-4 w-4"></i> Book</button>
             <button onclick="switchView('orders')" id="d-nav-orders" class="font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent"><i data-lucide="list" class="h-4 w-4"></i> My Rides</button>
             <div class="h-6 w-px bg-slate-200 mx-2"></div>
-            <button onclick="switchView('profile')" class="flex items-center gap-3 font-bold text-slate-900 hover:bg-slate-50 pl-3 pr-4 py-2 rounded-full border border-slate-200 transition shadow-sm animate-scale">
+            <button onclick="switchView('profile')" class="flex items-center gap-3 font-bold text-slate-900 hover:bg-slate-50 pl-3 pr-4 py-2 rounded-full border border-slate-200 transition shadow-sm">
                 <div class="bg-blue-100 p-1.5 rounded-full"><i data-lucide="user" class="h-4 w-4 text-blue-600"></i></div>
                 <span id="header-user-name" class="text-sm">Guest</span>
             </button>
@@ -167,7 +201,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div id="m-connection-status" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                <button onclick="switchView('profile')" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:text-blue-600 animate-scale"><i data-lucide="user" class="h-4 w-4"></i></button>
+                <button onclick="switchView('profile')" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:text-blue-600"><i data-lucide="user" class="h-4 w-4"></i></button>
             </div>
         </header>
 
@@ -175,7 +209,7 @@
         <main class="flex-1 w-full overflow-y-auto p-4 md:p-8 pb-32 md:pb-12 flex flex-col items-center no-scrollbar" id="main-scroll-area">
             
             <!-- VIEW 1: BOOKING FORM -->
-            <div id="view-booking" class="animate-slide-up space-y-6 w-full max-w-lg pb-10">
+            <div id="view-booking" class="space-y-6 w-full max-w-lg pb-10">
                 <div class="flex items-center justify-between lg:hidden">
                     <div><p class="text-xs text-slate-400 font-bold uppercase">Welcome</p><h2 class="text-2xl font-black text-slate-900 tracking-tight truncate" id="user-display-name">Guest</h2></div>
                 </div>
@@ -184,7 +218,7 @@
                 <div id="booking-form-card" class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden relative w-full transition-all">
                     
                     <!-- Searching Overlay -->
-                    <div id="card-searching-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center">
+                    <div id="card-searching-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 hidden flex-col items-center justify-center" style="display:none">
                         <div class="relative w-24 h-24 flex items-center justify-center mb-6">
                             <div class="radar-ring"></div><div class="radar-ring" style="animation-delay: 0.5s"></div>
                             <div class="relative z-10 bg-blue-600 p-4 rounded-full shadow-xl"><i data-lucide="search" class="h-8 w-8 text-white animate-pulse"></i></div>
@@ -199,15 +233,14 @@
                         <div class="relative z-10">
                             <div class="flex justify-between items-start">
                                 <h3 class="font-bold flex items-center gap-2 text-lg"><i data-lucide="map-pin" class="h-5 w-5"></i> Trip Details</h3>
-                                <!-- LIVE FLEET BADGE -->
-                                <div id="live-fleet-status" class="flex gap-2 text-[10px] bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm animate-fade-in hidden border border-white/10 items-center">
+                                <div id="live-fleet-status" class="hidden flex gap-2 text-[10px] bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10 items-center">
                                     <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                                     <span id="fleet-stats-text" class="font-bold">Checking...</span>
                                 </div>
                             </div>
                             
                             <div class="flex bg-white/20 p-1.5 rounded-2xl mt-4 backdrop-blur-md">
-                                <button onclick="switchBookingType('shared')" id="tab-shared" class="flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all transform scale-100">Shared Seat</button>
+                                <button onclick="switchBookingType('shared')" id="tab-shared" class="flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all">Shared Seat</button>
                                 <button onclick="switchBookingType('full')" id="tab-full" class="flex-1 py-3 text-xs font-bold rounded-xl text-blue-100 hover:text-white transition-all hover:bg-white/10">Full Cab / Amb</button>
                             </div>
                         </div>
@@ -215,17 +248,16 @@
 
                     <div class="p-6 space-y-6">
                         
-                        <!-- AVAILABILITY STATUS LINE -->
-
-                        <!-- PAYMENT INTEGRATION PLACEHOLDER -->
-                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded-xl">
+                        <!-- PAYMENT NOTICE -->
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-xl">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="credit-card" class="h-5 w-5 text-yellow-600"></i>
                                 <span class="font-semibold text-yellow-800">Payment (Coming Soon)</span>
                             </div>
-                            <p class="text-yellow-700 text-xs mt-1">Online payment via UPI/credit card will be available soon. For now, please pay the driver directly. <br> <b>For cashless: <a href="#" onclick="alert('UPI Deep-link coming soon!')" class="underline text-blue-700">Pay via UPI</a></b></p>
+                            <p class="text-yellow-700 text-xs mt-1">Online payment via UPI/credit card will be available soon. Please pay the driver directly.</p>
                         </div>
-                        <div id="availability-status-line" class="hidden text-xs font-bold py-3 px-4 rounded-xl text-center transition-all animate-fade-in border leading-relaxed"></div>
+
+                        <div id="availability-status-line" class="hidden text-xs font-bold py-3 px-4 rounded-xl text-center transition-all border leading-relaxed"></div>
 
                         <!-- Location Inputs -->
                         <div class="space-y-4">
@@ -245,61 +277,116 @@
                             </div>
                         </div>
 
-                        <!-- Shared Options -->
-                        <div id="shared-options" class="space-y-5 animate-fade-in">
-                            <div class="grid grid-cols-2 gap-3">
-                                <label class="cursor-pointer group"><input type="radio" name="seat-type" value="7" class="hidden seat-radio" checked onclick="calculateEstimate()"><div class="border border-slate-200 bg-white rounded-2xl p-4 text-center transition-all group-hover:border-blue-200 h-full flex flex-col justify-center"><span class="text-sm font-bold block text-slate-800">7 Seater</span><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Innova/Ertiga</span></div></label>
-                                <label class="cursor-pointer group"><input type="radio" name="seat-type" value="5" class="hidden seat-radio" onclick="calculateEstimate()"><div class="border border-slate-200 bg-white rounded-2xl p-4 text-center transition-all group-hover:border-blue-200 h-full flex flex-col justify-center"><span class="text-sm font-bold block text-slate-800">5 Seater</span><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sedan</span></div></label>
-                            </div>
-                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Comfort</label>
-                                <div class="flex gap-2">
-                                    <label class="cursor-pointer flex-1"><input type="radio" name="shared-ac" value="ac" class="hidden ac-radio" checked onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-2.5 text-center transition-all"><span class="text-xs font-bold block text-slate-800">AC</span></div></label>
-                                    <label class="cursor-pointer flex-1"><input type="radio" name="shared-ac" value="non-ac" class="hidden ac-radio" onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-2.5 text-center transition-all"><span class="text-xs font-bold block text-slate-800">Non-AC</span></div></label>
+                        <!-- =====================================================
+                             FIX 1: SHARED OPTIONS - JS-driven highlight cards
+                        ===================================================== -->
+                        <div id="shared-options" class="space-y-5">
+                            <!-- Seat Type -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Vehicle Type</p>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="option-card selected" id="card-seat-7" onclick="selectSeatType('7')">
+                                        <span class="text-sm font-bold block text-slate-800">7 Seater</span>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Innova/Ertiga</span>
+                                    </div>
+                                    <div class="option-card" id="card-seat-5" onclick="selectSeatType('5')">
+                                        <span class="text-sm font-bold block text-slate-800">5 Seater</span>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sedan</span>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- AC Toggle -->
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Comfort</p>
+                                <div class="flex gap-3">
+                                    <div class="option-card selected flex-1" id="card-ac-ac" onclick="selectAC('ac')">
+                                        <span class="text-xs font-bold block text-slate-800">AC</span>
+                                    </div>
+                                    <div class="option-card flex-1" id="card-ac-nonac" onclick="selectAC('non-ac')">
+                                        <span class="text-xs font-bold block text-slate-800">Non-AC</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Passengers -->
                             <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                 <div class="flex items-center gap-3"><div class="bg-white p-2 rounded-xl shadow-sm"><i data-lucide="users" class="h-5 w-5 text-slate-400"></i></div><span class="text-sm font-bold text-slate-600">Passengers</span></div>
                                 <div class="flex items-center gap-4">
-                                    <button onclick="changePassengers(-1)" class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 font-bold text-blue-600 hover:bg-slate-50 animate-scale text-xl">-</button><span id="passenger-count" class="font-black text-2xl w-6 text-center text-slate-900">1</span><button onclick="changePassengers(1)" class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 font-bold text-blue-600 hover:bg-slate-50 animate-scale text-xl">+</button>
+                                    <button onclick="changePassengers(-1)" class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 font-bold text-blue-600 hover:bg-slate-50 text-xl">-</button>
+                                    <span id="passenger-count" class="font-black text-2xl w-6 text-center text-slate-900">1</span>
+                                    <button onclick="changePassengers(1)" class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 font-bold text-blue-600 hover:bg-slate-50 text-xl">+</button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Full Options -->
-                        <div id="full-options" class="hidden space-y-5 animate-fade-in">
+                        <!-- FULL CAB OPTIONS -->
+                        <div id="full-options" class="hidden space-y-5">
+                            <!-- Service Type -->
                             <div class="grid grid-cols-2 gap-3">
-                                <div id="srv-cab" onclick="selectService('cab')" class="service-option cursor-pointer p-4 rounded-2xl border-2 border-transparent bg-slate-50 text-center flex flex-col items-center gap-2 hover:bg-slate-100"><i data-lucide="car-front" class="h-7 w-7 opacity-50 mb-1"></i><p class="text-xs font-bold uppercase tracking-wide">Private Cab</p></div>
-                                <div id="srv-ambulance" onclick="selectService('ambulance')" class="service-option cursor-pointer p-4 rounded-2xl border-2 border-transparent bg-slate-50 text-center flex flex-col items-center gap-2 hover:bg-red-50"><i data-lucide="ambulance" class="h-7 w-7 opacity-50 text-red-500 mb-1"></i><p class="text-xs font-bold text-red-600 uppercase tracking-wide">Ambulance</p></div>
+                                <div id="srv-cab" onclick="selectService('cab')" class="service-option active">
+                                    <i data-lucide="car-front" class="h-7 w-7 text-blue-600"></i>
+                                    <p class="text-xs font-bold uppercase tracking-wide">Private Cab</p>
+                                </div>
+                                <div id="srv-ambulance" onclick="selectService('ambulance')" class="service-option">
+                                    <i data-lucide="ambulance" class="h-7 w-7 opacity-50 text-red-500"></i>
+                                    <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Ambulance</p>
+                                </div>
                             </div>
                             
                             <!-- Cab Config -->
-                            <div id="cab-type-selector" class="hidden space-y-4 animate-fade-in">
-                                <div class="flex gap-3"><label class="flex-1 cursor-pointer"><input type="radio" name="cab-variant" value="sedan" class="hidden cab-radio" checked onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-4 rounded-2xl text-center text-xs font-bold transition-all hover:border-blue-200">Sedan (5 Str)</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="cab-variant" value="suv" class="hidden cab-radio" onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-4 rounded-2xl text-center text-xs font-bold transition-all hover:border-blue-200">SUV (7 Str)</div></label></div>
-                                <div class="flex gap-3"><label class="flex-1 cursor-pointer"><input type="radio" name="cab-ac" value="ac" class="hidden cab-ac-radio" checked onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-4 rounded-2xl text-center text-xs font-bold transition-all hover:border-blue-200">AC</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="cab-ac" value="non-ac" class="hidden cab-ac-radio" onclick="calculateEstimate()"><div class="border border-slate-200 bg-white p-4 rounded-2xl text-center text-xs font-bold transition-all hover:border-blue-200">Non-AC</div></label></div>
-                                
+                            <div id="cab-type-selector" class="space-y-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Vehicle Size</p>
+                                    <div class="flex gap-3">
+                                        <div class="option-card selected flex-1" id="card-cab-sedan" onclick="selectCabVariant('sedan')">
+                                            <span class="text-xs font-bold text-slate-800">Sedan (5 Str)</span>
+                                        </div>
+                                        <div class="option-card flex-1" id="card-cab-suv" onclick="selectCabVariant('suv')">
+                                            <span class="text-xs font-bold text-slate-800">SUV (7 Str)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Comfort</p>
+                                    <div class="flex gap-3">
+                                        <div class="option-card selected flex-1" id="card-cab-ac-ac" onclick="selectCabAC('ac')">
+                                            <span class="text-xs font-bold text-slate-800">AC</span>
+                                        </div>
+                                        <div class="option-card flex-1" id="card-cab-ac-nonac" onclick="selectCabAC('non-ac')">
+                                            <span class="text-xs font-bold text-slate-800">Non-AC</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="pt-2 border-t border-slate-100">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Doorstep Pickup/Drop</p>
                                     <div class="space-y-3">
-                                        <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-4 h-4 w-4 text-slate-400"></i><input type="text" id="pickup-addr" placeholder="House No, Street Area" class="w-full pl-10 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:bg-white transition h-12"></div>
-                                        <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-4 h-4 w-4 text-slate-400"></i><input type="text" id="drop-addr" placeholder="Landmark / Area" class="w-full pl-10 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:bg-white transition h-12"></div>
+                                        <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-3.5 h-4 w-4 text-slate-400"></i><input type="text" id="pickup-addr" placeholder="House No, Street Area" class="w-full pl-10 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:bg-white transition h-12"></div>
+                                        <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-3.5 h-4 w-4 text-slate-400"></i><input type="text" id="drop-addr" placeholder="Landmark / Area" class="w-full pl-10 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:bg-white transition h-12"></div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Amb Config -->
-                            <div id="ambulance-config" class="hidden space-y-4 animate-fade-in">
-                                <div class="flex gap-3"><label class="flex-1 cursor-pointer"><input type="radio" name="amb-type" value="non-ac" class="hidden amb-radio" checked onclick="calculateEstimate()"><div class="border border-red-100 bg-white p-4 rounded-2xl text-center text-xs font-bold text-slate-700 transition-all hover:border-red-200">Basic Support</div></label><label class="flex-1 cursor-pointer"><input type="radio" name="amb-type" value="ventilator" class="hidden amb-radio" onclick="calculateEstimate()"><div class="border border-red-100 bg-white p-4 rounded-2xl text-center text-xs font-bold text-slate-700 transition-all hover:border-red-200">ICU / Ventilator</div></label></div>
+                            <!-- Ambulance Config -->
+                            <div id="ambulance-config" class="hidden space-y-4">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Ambulance Type</p>
+                                    <div class="flex gap-3">
+                                        <div class="option-card selected-red flex-1" id="card-amb-basic" onclick="selectAmbType('non-ac')">
+                                            <span class="text-xs font-bold text-slate-700">Basic Support</span>
+                                        </div>
+                                        <div class="option-card flex-1" id="card-amb-icu" onclick="selectAmbType('ventilator')">
+                                            <span class="text-xs font-bold text-slate-700">ICU / Ventilator</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="space-y-3">
-                                    <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-4 h-4 w-4 text-red-400"></i><input type="text" id="amb-pickup-addr" placeholder="Pickup Hospital / Loc" class="w-full pl-10 p-4 bg-white border border-red-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 placeholder-slate-400 h-12"></div>
-                                    <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-4 h-4 w-4 text-red-400"></i><input type="text" id="amb-drop-addr" placeholder="Drop Hospital / Loc" class="w-full pl-10 p-4 bg-white border border-red-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 placeholder-slate-400 h-12"></div>
+                                    <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-3.5 h-4 w-4 text-red-400"></i><input type="text" id="amb-pickup-addr" placeholder="Pickup Hospital / Loc" class="w-full pl-10 p-4 bg-white border border-red-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 h-12"></div>
+                                    <div class="relative focus-ring rounded-xl"><i data-lucide="map-pin" class="absolute left-4 top-3.5 h-4 w-4 text-red-400"></i><input type="text" id="amb-drop-addr" placeholder="Drop Hospital / Loc" class="w-full pl-10 p-4 bg-white border border-red-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 h-12"></div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- COUPON & PRICE -->
                         <div class="pt-4 border-t border-slate-100 space-y-4">
-                            <!-- Coupon Input -->
                             <div class="flex gap-2">
                                 <div class="relative flex-1">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i data-lucide="ticket" class="h-4 w-4 text-slate-400"></i></div>
@@ -315,120 +402,91 @@
                             </div>
                         </div>
 
+                        <!-- Date -->
                         <div class="flex gap-4 items-stretch pt-2">
-                            <div class="w-1/2 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:border-blue-100 transition group cursor-pointer relative">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1 tracking-widest group-hover:text-blue-500 transition-colors">Date</label>
-                                <input type="date" id="travel-date" class="w-full bg-transparent text-sm font-bold outline-none text-slate-700 cursor-pointer relative z-10" required>
-                            </div>
-                            <div class="w-1/2 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col justify-center text-right hidden"> <!-- Hidden as Price is shown above -->
-                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1 tracking-widest">Total Estimate</label>
-                                <span class="text-2xl font-black text-slate-900 leading-none tracking-tight">₹<span id="total-price-mobile">400</span></span>
+                            <div class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:border-blue-100 transition cursor-pointer">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1 tracking-widest">Date</label>
+                                <input type="date" id="travel-date" class="w-full bg-transparent text-sm font-bold outline-none text-slate-700 cursor-pointer" required>
                             </div>
                         </div>
 
-                        <button onclick="initiateBookingProcess()" id="submit-btn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 hover:bg-blue-700 animate-scale flex justify-center items-center gap-2 text-lg">
+                        <button onclick="initiateBookingProcess()" id="submit-btn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 hover:bg-blue-700 flex justify-center items-center gap-2 text-lg transition">
                             Confirm Booking <i data-lucide="arrow-right" class="h-5 w-5 stroke-[3]"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- VIEW 2: LIVE TRACKING (New Success View) -->
-            <div id="view-tracking" class="hidden animate-fade-in w-full max-w-lg">
+            <!-- VIEW 2: LIVE TRACKING -->
+            <div id="view-tracking" class="hidden w-full max-w-lg">
                  <div id="tracking-content" class="bg-white rounded-[2rem] shadow-xl p-6 relative min-h-[400px]">
-                     <!-- Dynamically populated by renderLiveTripDetails -->
                  </div>
             </div>
 
             <!-- VIEW 3: ORDERS LIST -->
-            <div id="view-orders" class="hidden p-0 animate-fade-in w-full max-w-2xl">
-                <div id="orders-list-container" class="space-y-6 pb-20"></div>
+            <div id="view-orders" class="hidden w-full max-w-2xl">
+                <div id="orders-list-container" class="space-y-4 pb-20"></div>
             </div>
 
             <!-- VIEW 4: PROFILE PAGE -->
-            <div id="view-profile" class="hidden p-0 animate-fade-in w-full max-w-xl pb-24">
+            <div id="view-profile" class="hidden w-full max-w-xl pb-24">
                 <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[80vh] flex flex-col">
-                    <!-- Background Decoration -->
                     <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-blue-50 to-white z-0"></div>
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
                     <div class="absolute top-20 -left-10 w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-50"></div>
 
                     <div class="relative z-10 flex flex-col items-center mt-4">
-                        <!-- Avatar Section -->
                         <div class="relative group">
                             <div class="w-32 h-32 rounded-full p-1.5 bg-white shadow-xl mb-4 relative z-10">
                                 <img id="profile-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=e0e7ff" alt="Avatar" class="w-full h-full rounded-full object-cover bg-blue-50">
                             </div>
-                            <div class="absolute inset-0 bg-blue-600 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition duration-500 scale-90 translate-y-4"></div>
                         </div>
-                        
                         <div class="text-center mb-8">
                             <h2 class="text-3xl font-black text-slate-900 tracking-tight" id="profile-name">Guest User</h2>
                             <p class="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full inline-block mt-2 border border-slate-100" id="profile-mobile">+91 --</p>
                         </div>
-
-                        <!-- Stats Grid -->
                         <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col items-center justify-center gap-1 transition transform hover:scale-105 hover:shadow-xl hover:border-blue-100">
+                            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg flex flex-col items-center justify-center gap-1">
                                 <div class="bg-blue-50 p-2 rounded-xl mb-1"><i data-lucide="car" class="h-5 w-5 text-blue-600"></i></div>
                                 <div class="text-3xl font-black text-slate-900" id="profile-rides-count">0</div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Rides</div>
                             </div>
-                             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 flex flex-col items-center justify-center gap-1 transition transform hover:scale-105 hover:shadow-xl hover:border-yellow-100">
+                            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg flex flex-col items-center justify-center gap-1">
                                 <div class="bg-yellow-50 p-2 rounded-xl mb-1"><i data-lucide="star" class="h-5 w-5 text-yellow-500 fill-current"></i></div>
                                 <div class="text-3xl font-black text-slate-900">5.0</div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">User Rating</div>
                             </div>
                         </div>
-
-                        <!-- Menu Actions -->
                         <div class="w-full space-y-3">
-                             <button onclick="enableNameEdit()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
+                            <button onclick="enableNameEdit()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
                                 <div class="w-12 h-12 rounded-2xl bg-white text-blue-600 flex items-center justify-center shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors"><i data-lucide="pencil" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm">Edit Name</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Display Name</p>
-                                </div>
+                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Edit Name</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Display Name</p></div>
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
                             </button>
-                            
-                             <div id="name-edit-container" class="hidden w-full px-1 mb-2 animate-fade-in">
+                            <div id="name-edit-container" class="hidden w-full px-1 mb-2">
                                 <div class="flex gap-2 bg-white p-2 rounded-2xl border border-blue-200 shadow-lg">
                                     <input type="text" id="edit-profile-name-input" class="flex-1 bg-transparent px-4 py-2 text-sm font-bold outline-none text-slate-900 placeholder-slate-300" placeholder="Enter new name">
-                                    <button onclick="saveNameEdit()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700 active:scale-95 transition">Save</button>
+                                    <button onclick="saveNameEdit()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700">Save</button>
                                 </div>
                             </div>
-
                             <button onclick="openChat()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
                                 <div class="w-12 h-12 rounded-2xl bg-white text-green-600 flex items-center justify-center shadow-sm group-hover:bg-green-600 group-hover:text-white transition-colors"><i data-lucide="message-circle" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm">Help & Support</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Live Chat</p>
-                                </div>
+                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Help & Support</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Live Chat</p></div>
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-green-500 transition-colors"></i>
                             </button>
-
                             <button onclick="document.getElementById('privacy-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
                                 <div class="w-12 h-12 rounded-2xl bg-white text-purple-600 flex items-center justify-center shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-colors"><i data-lucide="shield" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm">Privacy Policy</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Security & Data</p>
-                                </div>
+                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Privacy Policy</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Security & Data</p></div>
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors"></i>
                             </button>
-
                             <button onclick="document.getElementById('terms-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
                                 <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors"><i data-lucide="file-text" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm">Terms & Conditions</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Rules of Service</p>
-                                </div>
+                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Terms & Conditions</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Rules of Service</p></div>
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-orange-500 transition-colors"></i>
                             </button>
                         </div>
-                        
                         <div class="mt-8 w-full">
-                            <button onclick="handleLogout()" class="w-full py-4 rounded-2xl font-bold text-sm text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 hover:shadow-lg transition flex items-center justify-center gap-2">
+                            <button onclick="handleLogout()" class="w-full py-4 rounded-2xl font-bold text-sm text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 transition flex items-center justify-center gap-2">
                                 <i data-lucide="log-out" class="h-4 w-4"></i> Log Out
                             </button>
                             <p class="mt-4 text-[10px] text-center text-slate-300 font-bold uppercase tracking-[0.2em]">Version 2.0.0</p>
@@ -441,34 +499,28 @@
     </div>
 
     <!-- MOBILE BOTTOM NAV -->
-    <nav class="lg:hidden bg-white/90 backdrop-blur-md border-t border-slate-200 h-20 fixed bottom-0 w-full flex justify-around items-center z-40 pb-safe shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
-        <button onclick="switchView('booking')" id="nav-booking" class="flex flex-col items-center gap-1.5 text-blue-600 transition p-2 rounded-xl active:bg-slate-50"><i data-lucide="plus-circle" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Book</span></button>
-        <button onclick="switchView('orders')" id="nav-orders" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl active:bg-slate-50"><i data-lucide="list" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Orders</span></button>
-        <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl active:bg-slate-50"><i data-lucide="user" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Profile</span></button>
+    <nav id="mobile-nav" class="lg:hidden bg-white/90 backdrop-blur-md border-t border-slate-200 h-20 fixed bottom-0 w-full flex justify-around items-center z-40 pb-safe shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+        <button onclick="switchView('booking')" id="nav-booking" class="flex flex-col items-center gap-1.5 text-blue-600 transition p-2 rounded-xl"><i data-lucide="plus-circle" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Book</span></button>
+        <button onclick="switchView('orders')" id="nav-orders" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl"><i data-lucide="list" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Orders</span></button>
+        <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl"><i data-lucide="user" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Profile</span></button>
     </nav>
     
     <!-- Chat Float -->
     <button onclick="openChat()" class="chat-float hover:scale-110 transition"><i data-lucide="message-square" class="h-7 w-7 fill-current"></i></button>
 
     <!-- Chat Modal -->
-    <div id="chat-modal" class="fixed inset-0 bg-black/60 z-[160] hidden flex items-end md:items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] h-[500px] flex flex-col relative shadow-2xl animate-slide-up overflow-hidden">
-            <!-- Header -->
+    <div id="chat-modal" class="fixed inset-0 bg-black/60 z-[160] hidden items-end md:items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] h-[500px] flex flex-col relative shadow-2xl overflow-hidden">
             <div class="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"><i data-lucide="headset" class="h-5 w-5"></i></div>
                         <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-blue-600 rounded-full"></span>
                     </div>
-                    <div>
-                        <h3 class="font-bold text-sm">Nandu Support</h3>
-                        <p class="text-[10px] text-blue-100">Typically replies in 5m</p>
-                    </div>
+                    <div><h3 class="font-bold text-sm">Nandu Support</h3><p class="text-[10px] text-blue-100">Typically replies in 5m</p></div>
                 </div>
-                <button onclick="document.getElementById('chat-modal').classList.add('hidden')" class="p-2 hover:bg-white/10 rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
+                <button onclick="document.getElementById('chat-modal').style.display='none'" class="p-2 hover:bg-white/10 rounded-full transition"><i data-lucide="x" class="h-5 w-5"></i></button>
             </div>
-            
-            <!-- Chat Body -->
             <div class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4" id="chat-messages">
                 <div class="flex gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 text-xs font-bold">N</div>
@@ -477,12 +529,7 @@
                         <span class="text-[9px] text-slate-400 block mt-1 text-right">Just now</span>
                     </div>
                 </div>
-                <div class="flex justify-center my-4">
-                    <span class="bg-slate-200 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Today</span>
-                </div>
             </div>
-
-            <!-- Input Area -->
             <div class="p-3 bg-white border-t border-slate-100 shrink-0">
                 <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200">
                     <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none text-slate-700 placeholder-slate-400">
@@ -493,25 +540,61 @@
     </div>
 
     <!-- Order Details Modal -->
-    <div id="order-modal" class="fixed inset-0 bg-black/60 z-[110] hidden flex items-end md:items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2rem] p-6 animate-fade-in relative shadow-2xl">
-            <button onclick="document.getElementById('order-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
+    <div id="order-modal" class="fixed inset-0 bg-black/60 z-[110] hidden items-end md:items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-6 relative shadow-2xl">
+            <button onclick="document.getElementById('order-modal').style.display='none'" class="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
             <div id="modal-content"></div>
         </div>
     </div>
 
-    <!-- Rating Modal, Duplicate Warning, Fallback, Cancel Modals -->
-    <div id="duplicate-booking-modal" class="fixed inset-0 bg-black/60 z-[120] hidden flex items-center justify-center p-4"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl animate-fade-in"><div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600"><i data-lucide="alert-circle" class="h-7 w-7"></i></div><h3 class="font-bold text-lg mb-2 text-slate-900">Duplicate Booking?</h3><p class="text-xs text-slate-500 mb-6 font-medium leading-relaxed">Active booking found. Create another?</p><div class="flex gap-3"><button onclick="document.getElementById('duplicate-booking-modal').classList.add('hidden')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Cancel</button><button id="confirm-duplicate-btn" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs">Yes, Book</button></div></div></div>
+    <!-- Duplicate Warning Modal -->
+    <div id="duplicate-booking-modal" class="fixed inset-0 bg-black/60 z-[120] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl">
+            <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600"><i data-lucide="alert-circle" class="h-7 w-7"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-slate-900">Duplicate Booking?</h3>
+            <p class="text-xs text-slate-500 mb-6 font-medium leading-relaxed">Active booking found. Create another?</p>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('duplicate-booking-modal').style.display='none'" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Cancel</button>
+                <button id="confirm-duplicate-btn" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs">Yes, Book</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Fallback Modal -->
-    <div id="fallback-booking-modal" class="fixed inset-0 bg-black/60 z-[120] hidden flex items-center justify-center p-4"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl animate-fade-in"><div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600"><i data-lucide="info" class="h-7 w-7"></i></div><h3 class="font-bold text-lg mb-2 text-slate-900">Vehicle Update</h3><p class="text-xs text-slate-500 mb-6 font-medium leading-relaxed" id="fallback-msg"></p><div class="flex gap-3"><button onclick="document.getElementById('fallback-booking-modal').classList.add('hidden')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Cancel</button><button id="confirm-fallback-btn" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs">Accept</button></div></div></div>
+    <div id="fallback-booking-modal" class="fixed inset-0 bg-black/60 z-[120] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl">
+            <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600"><i data-lucide="info" class="h-7 w-7"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-slate-900">Vehicle Update</h3>
+            <p class="text-xs text-slate-500 mb-6 font-medium leading-relaxed" id="fallback-msg"></p>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('fallback-booking-modal').style.display='none'" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Cancel</button>
+                <button id="confirm-fallback-btn" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs">Accept</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Cancel Modal -->
-    <div id="cancel-modal" class="fixed inset-0 bg-black/60 z-[120] hidden flex items-center justify-center p-4"><div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl animate-fade-in"><div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600"><i data-lucide="alert-triangle" class="h-7 w-7"></i></div><h3 class="font-bold text-lg mb-2 text-slate-900">Cancel Booking?</h3><select id="cancel-reason" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold mb-6 outline-none text-slate-700"><option value="" disabled selected>Select Reason...</option><option value="Change of plans">Change of plans</option><option value="Driver delay">Driver delay</option><option value="Booked by mistake">Booked by mistake</option><option value="Found another ride">Found another ride</option></select><div class="flex gap-3"><button onclick="document.getElementById('cancel-modal').classList.add('hidden')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Back</button><button id="confirm-cancel-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-xs">Confirm</button></div></div></div>
+    <div id="cancel-modal" class="fixed inset-0 bg-black/60 z-[120] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl">
+            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600"><i data-lucide="alert-triangle" class="h-7 w-7"></i></div>
+            <h3 class="font-bold text-lg mb-2 text-slate-900">Cancel Booking?</h3>
+            <select id="cancel-reason" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold mb-6 outline-none text-slate-700">
+                <option value="" disabled selected>Select Reason...</option>
+                <option value="Change of plans">Change of plans</option>
+                <option value="Driver delay">Driver delay</option>
+                <option value="Booked by mistake">Booked by mistake</option>
+                <option value="Found another ride">Found another ride</option>
+            </select>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('cancel-modal').style.display='none'" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-xs">Back</button>
+                <button id="confirm-cancel-btn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-xs">Confirm</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Rating Modal -->
-    <div id="rating-modal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center animate-slide-up">
+    <div id="rating-modal" class="fixed inset-0 bg-black/80 z-[150] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center">
             <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⭐</div>
             <h3 class="text-xl font-bold mb-2">Rate Your Driver</h3>
             <p class="text-slate-500 text-sm mb-6">How was your ride with <span id="rate-driver-name" class="font-bold text-slate-900">Driver</span>?</p>
@@ -528,9 +611,9 @@
     </div>
 
     <!-- Support Modal -->
-    <div id="support-modal" class="fixed inset-0 bg-black/80 z-[150] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 animate-slide-up">
-            <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Report Issue</h3><button onclick="document.getElementById('support-modal').classList.add('hidden')"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+    <div id="support-modal" class="fixed inset-0 bg-black/80 z-[150] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Report Issue</h3><button onclick="document.getElementById('support-modal').style.display='none'"><i data-lucide="x" class="h-5 w-5"></i></button></div>
             <p class="text-xs text-slate-500 font-bold uppercase mb-2">Issue Type</p>
             <select id="ticket-type" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold mb-4 outline-none">
                 <option>Lost Item</option><option>Driver Behavior</option><option>Vehicle Condition</option><option>Overcharging</option><option>Other</option>
@@ -542,130 +625,182 @@
     </div>
 
     <!-- Privacy Modal -->
-    <div id="privacy-modal" class="fixed inset-0 bg-black/60 z-[130] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2rem] h-[80vh] flex flex-col relative shadow-2xl animate-scale">
+    <div id="privacy-modal" class="fixed inset-0 bg-black/60 z-[130] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-lg rounded-[2rem] h-[80vh] flex flex-col relative shadow-2xl">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
                 <h3 class="font-black text-xl text-slate-900">Privacy Policy</h3>
-                <button onclick="document.getElementById('privacy-modal').classList.add('hidden')" class="p-2 bg-slate-50 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
+                <button onclick="document.getElementById('privacy-modal').style.display='none'" class="p-2 bg-slate-50 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
             </div>
             <div class="p-6 overflow-y-auto prose prose-sm prose-slate max-w-none">
                 <h4 class="font-bold text-slate-900 mb-2">1. Information We Collect</h4>
                 <p class="text-slate-600 mb-4">We collect your phone number for authentication and your name for profile creation. We also collect trip details (pickup/drop locations, dates) to facilitate your bookings.</p>
-                <!-- ... content ... -->
+                <h4 class="font-bold text-slate-900 mb-2">2. How We Use It</h4>
+                <p class="text-slate-600 mb-4">Your data is used solely for booking management and driver coordination. We never sell your personal information to third parties.</p>
+                <h4 class="font-bold text-slate-900 mb-2">3. Data Security</h4>
+                <p class="text-slate-600 mb-4">All data is stored securely using Google Firebase with industry-standard encryption. Access is restricted to authorized personnel only.</p>
             </div>
         </div>
     </div>
 
     <!-- Terms Modal -->
-    <div id="terms-modal" class="fixed inset-0 bg-black/60 z-[130] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2rem] h-[80vh] flex flex-col relative shadow-2xl animate-scale">
+    <div id="terms-modal" class="fixed inset-0 bg-black/60 z-[130] hidden items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-lg rounded-[2rem] h-[80vh] flex flex-col relative shadow-2xl">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
                 <h3 class="font-black text-xl text-slate-900">Terms & Conditions</h3>
-                <button onclick="document.getElementById('terms-modal').classList.add('hidden')" class="p-2 bg-slate-50 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
+                <button onclick="document.getElementById('terms-modal').style.display='none'" class="p-2 bg-slate-50 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button>
             </div>
             <div class="p-6 overflow-y-auto prose prose-sm prose-slate max-w-none">
                 <h4 class="font-bold text-slate-900 mb-2">1. Booking Services</h4>
                 <p class="text-slate-600 mb-4">Nandu Travels acts as an aggregator connecting passengers with drivers. While we strive for reliability, we are not liable for driver conduct or vehicle conditions.</p>
-                <!-- ... content ... -->
+                <h4 class="font-bold text-slate-900 mb-2">2. Cancellation Policy</h4>
+                <p class="text-slate-600 mb-4">Cancellations made more than 30 minutes before departure are free. Late cancellations may incur a fee at the driver's discretion.</p>
+                <h4 class="font-bold text-slate-900 mb-2">3. Payment</h4>
+                <p class="text-slate-600 mb-4">All fares are estimates. Final fare is agreed with the driver. Online payment integration is coming soon.</p>
             </div>
         </div>
     </div>
 
-    <!-- REGISTER SERVICE WORKER -->
+    <!-- OFFLINE DETECTION -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('SW Registered', reg))
-                    .catch(err => console.log('SW Error', err));
-            });
-        }
-        
-        // Offline Status Detection
         function updateOnlineStatus() {
             const banner = document.getElementById('offline-banner');
-            if (navigator.onLine) {
-                banner.classList.remove('visible');
-            } else {
-                banner.classList.add('visible');
-            }
+            if (navigator.onLine) banner.classList.remove('visible');
+            else banner.classList.add('visible');
         }
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Error', err));
+            });
+        }
     </script>
 
-    <!-- LOGIC -->
+    <!-- MAIN APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, query, where, serverTimestamp, runTransaction, limit, addDoc, getDocs, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-functions.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, query, where, serverTimestamp, limit, addDoc, getDocs, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { firebaseConfig } from './firebase-config.js';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // ENABLE OFFLINE PERSISTENCE
         enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') {
-                console.log("Persistence failed: Multiple tabs open");
-            } else if (err.code == 'unimplemented') {
-                console.log("Persistence not supported by browser");
-            }
+            console.log("Persistence:", err.code);
         });
         
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
-        const functions = getFunctions(app);
         
         let user = null, userData = null, activeDrivers = [], allUserOrders = [];
-        let state = { bookingType: 'shared', service: 'cab', passengers: 1, ambTripType: 'oneWay', discount: 0 };
+
+        // =====================================================
+        // FIX 1: SELECTION STATE - JS-driven, no hidden radios
+        // =====================================================
+        let state = { 
+            bookingType: 'shared', 
+            service: 'cab', 
+            passengers: 1, 
+            discount: 0,
+            seatType: '7',      // shared seat type
+            sharedAC: 'ac',     // shared AC choice
+            cabVariant: 'sedan', // full cab variant
+            cabAC: 'ac',        // full cab AC
+            ambType: 'non-ac'   // ambulance type
+        };
+        
         let activeCoupon = null;
         let fallbackDriver = null, cancelTargetId = null;
         let currentTrackingOrderId = null;
         let rateOrderId = null;
         let ticketOrderId = null;
 
-        // Prices & Locations
         const PRICES = { 
             SHARED: { SEATER_7: { 'non-ac': 350, 'ac': 400 }, SEATER_5: { 'non-ac': 450, 'ac': 500 } }, 
             FULL_CAB: { SEDAN: { 'non-ac': 3000, 'ac': 3500 }, SUV: { 'non-ac': 4000, 'ac': 4500 } }, 
-            AMBULANCE: { 'non-ac': { oneWay: 4000, roundTrip: 6000 }, 'ac': { oneWay: 4500, roundTrip: 6500 }, 'ventilator': { oneWay: 7000, roundTrip: 10000 } } 
+            AMBULANCE: { 'non-ac': { oneWay: 4000 }, 'ac': { oneWay: 4500 }, 'ventilator': { oneWay: 7000 } } 
         };
         const LOCATIONS_SHARED = [{ val: "Karimnagar", label: "Karimnagar" }, { val: "JBS-Hyderabad", label: "JBS-Hyderabad" }];
         const LOCATIONS_FULL = [{ val: "Karimnagar", label: "Karimnagar" }, { val: "JBS-Hyderabad", label: "JBS-Hyderabad" }, { val: "Hyderabad-City", label: "Hyderabad City" }, { val: "Airport-RGI", label: "Airport RGI" }];
         const HYD_GROUP = ["JBS-Hyderabad", "Hyderabad-City", "Airport-RGI"];
 
+        // =====================================================
+        // FIX 1: SELECTION HELPERS - set .selected class on cards
+        // =====================================================
+        function setSelectedCard(groupPrefix, value) {
+            // Find all cards in this group and toggle selected
+            document.querySelectorAll(`[id^="${groupPrefix}"]`).forEach(el => {
+                el.classList.remove('selected', 'selected-red');
+            });
+            const target = document.getElementById(`${groupPrefix}${value}`);
+            if (target) {
+                const isRed = groupPrefix.includes('amb');
+                target.classList.add(isRed ? 'selected-red' : 'selected');
+            }
+        }
+
+        window.selectSeatType = (val) => {
+            state.seatType = val;
+            setSelectedCard('card-seat-', val);
+            calculateEstimate();
+        }
+
+        window.selectAC = (val) => {
+            state.sharedAC = val;
+            setSelectedCard('card-ac-', val === 'ac' ? 'ac' : 'nonac');
+            calculateEstimate();
+        }
+
+        window.selectCabVariant = (val) => {
+            state.cabVariant = val;
+            setSelectedCard('card-cab-', val);
+            calculateEstimate();
+        }
+
+        window.selectCabAC = (val) => {
+            state.cabAC = val;
+            setSelectedCard('card-cab-ac-', val === 'ac' ? 'ac' : 'nonac');
+            calculateEstimate();
+        }
+
+        window.selectAmbType = (val) => {
+            state.ambType = val;
+            // For ambulance: basic = non-ac, icu = ventilator
+            const cardKey = val === 'non-ac' ? 'basic' : 'icu';
+            document.querySelectorAll('[id^="card-amb-"]').forEach(el => el.classList.remove('selected-red'));
+            const target = document.getElementById(`card-amb-${cardKey}`);
+            if (target) target.classList.add('selected-red');
+            calculateEstimate();
+        }
+
         // --- INIT ---
-        // REMOVED window.addEventListener because modules are already deferred!
-        document.getElementById('splash-screen').style.opacity = '0';
-        setTimeout(() => document.getElementById('splash-screen').style.display='none', 500);
         document.getElementById('travel-date').valueAsDate = new Date();
+        
+        // Fade out splash
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.opacity = '0';
+            setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 500);
+        }, 800);
 
         onAuthStateChanged(auth, async (u) => {
-            const splash = document.getElementById('splash-screen');
-            const authScreen = document.getElementById('auth-screen');
-
-            if(u) {
+            if (u) {
                 user = u;
-                // 1. STOPS GUEST ACCESS: Check Firestore first
                 const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', u.uid));
-                if(snap.exists()) {
+                if (snap.exists()) {
                     userData = snap.data();
                     localStorage.setItem('user_profile', JSON.stringify(userData));
-                    initUserUI(u); // Proceed to Dashboard
-                    splash.classList.add('hidden');
+                    initUserUI(u);
                 } else {
-                    // 2. FORCE DETAILS: If no profile, show Step 3 (Name Input)
-                    splash.classList.add('hidden');
-                    authScreen.classList.remove('hidden');
+                    document.getElementById('auth-screen').classList.remove('hidden');
                     document.getElementById('auth-step-1').classList.add('hidden');
-                    document.getElementById('auth-step-2').classList.add('hidden');
                     document.getElementById('auth-step-3').classList.remove('hidden');
                 }
             } else {
-                splash.classList.add('hidden');
-                authScreen.classList.remove('hidden');
+                document.getElementById('auth-screen').classList.remove('hidden');
                 document.getElementById('auth-step-1').classList.remove('hidden');
             }
         });
@@ -674,126 +809,131 @@
             document.getElementById('auth-screen').classList.add('hidden');
             updateUserDisplayNames(userData.name);
             document.getElementById('profile-name').innerText = userData.name;
-            document.getElementById('profile-mobile').innerText = u.email || 'No email';
+            document.getElementById('profile-mobile').innerText = u.email || userData.phone || 'No email';
             const seed = u.email ? u.email.replace(/[^a-zA-Z0-9]/g, '') : 'guest';
-            const avatarUrl = `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=e0e7ff&radius=50`;
             const avatarEl = document.getElementById('profile-avatar');
-            if(avatarEl) avatarEl.src = avatarUrl;
-            document.getElementById('m-connection-status').classList.replace('bg-slate-300','bg-green-500');
-            if(window.innerWidth >= 1024) switchView('booking');
+            if (avatarEl) avatarEl.src = `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=e0e7ff&radius=50`;
+            document.getElementById('m-connection-status').classList.replace('bg-slate-300', 'bg-green-500');
+            
+            // FIX 2: syncData MUST be called after initUserUI so My Rides loads
+            syncData();
+            
+            populateLocations();
+            calculateEstimate();
+            lucide.createIcons();
         }
 
-        // --- OFFLINE-FIRST SYNC LOGIC ---
+        // =====================================================
+        // FIX 2: SYNC DATA — now properly called & orders fetched
+        // =====================================================
         async function syncData() {
-            if(!user) return;
-            // 1. LOAD FROM LOCAL CACHE IMMEDIATELY
+            if (!user) return;
+
+            // Load from cache immediately
+            const cachedOrders = localStorage.getItem('userOrders');
+            if (cachedOrders) {
+                try {
+                    allUserOrders = JSON.parse(cachedOrders);
+                    updateOrdersUI();
+                } catch(e) { allUserOrders = []; }
+            }
+
             const cachedDrivers = localStorage.getItem('activeDrivers');
-            if(cachedDrivers) {
-                activeDrivers = JSON.parse(cachedDrivers);
+            if (cachedDrivers) {
+                try {
+                    activeDrivers = JSON.parse(cachedDrivers);
+                    updateFleetUI();
+                    updateDetailedAvailability();
+                } catch(e) { activeDrivers = []; }
+            }
+
+            if (!navigator.onLine) return;
+
+            try {
+                // Fetch active trips
+                const tripsSnap = await getDocs(query(
+                    collection(db, 'artifacts', APP_ID, 'trips'), 
+                    where('status', '==', 'scheduled')
+                ));
+                activeDrivers = [];
+                tripsSnap.forEach(d => activeDrivers.push({ id: d.id, ...d.data() }));
+                localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
                 updateFleetUI();
                 updateDetailedAvailability();
+            } catch (e) {
+                console.error("Error syncing trips:", e.message);
             }
-            const cachedOrders = localStorage.getItem('userOrders');
-            if(cachedOrders) {
-                allUserOrders = JSON.parse(cachedOrders);
+
+            // FIX 2: Fetch orders — using correct collection path
+            try {
+                console.log("Fetching rides for user:", user.uid);
+                const ordersSnap = await getDocs(query(
+                    collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), 
+                    where('userId', '==', user.uid),
+                    limit(20)
+                ));
+                
+                allUserOrders = [];
+                ordersSnap.forEach(d => allUserOrders.push({ id: d.id, ...d.data() }));
+                
+                // Sort by createdAt descending (newest first)
+                allUserOrders.sort((a, b) => {
+                    const aTime = a.createdAt?.seconds || 0;
+                    const bTime = b.createdAt?.seconds || 0;
+                    return bTime - aTime;
+                });
+                
+                console.log("Rides fetched:", allUserOrders.length);
+                localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
                 updateOrdersUI();
+            } catch (e) {
+                console.error("Error fetching orders:", e.message);
             }
-
-// 2. IF ONLINE, FETCH FRESH & UPDATE CACHE
-if(navigator.onLine) {
-    try {
-
-        // OPTIMIZED: Fetch Active Trips (removed strict route string matching)
-        const tripsSnap = await getDocs(query(
-            collection(db, 'artifacts', APP_ID, 'trips'), 
-            where('status', '==', 'scheduled')
-        ));
-
-        activeDrivers = [];
-        tripsSnap.forEach(d => activeDrivers.push({id: d.id, ...d.data()}));
-        localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
-        updateFleetUI();
-        updateDetailedAvailability();
-
-        // Fetch Orders (limit to recent 10)
-        try {
-            console.log("Fetching rides for UID:", user.uid); // Debugging
-            const ordersSnap = await getDocs(query(
-                collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), 
-                where('userId', '==', user.uid),
-                limit(10)
-            ));
-            
-            allUserOrders = []; 
-            ordersSnap.forEach(d => {
-                allUserOrders.push({id: d.id, ...d.data()});
-            });
-            
-            console.log("Rides found in Firestore:", allUserOrders.length); // Debugging
-            
-            allUserOrders.sort((a, b) => b.createdAt - a.createdAt);
-            localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
-            updateOrdersUI();
-        } catch (e) {
-            console.error("Error fetching My Rides:", e.message);
         }
-    } catch (e) {
-        console.error("Error syncing data:", e.message);
-    }
-}
-        }
-// Listen for connection restoration to sync again
-window.addEventListener('online', syncData);
+
+        window.addEventListener('online', syncData);
 
         function updateOrdersUI() {
             const completed = allUserOrders.filter(o => o.status === 'completed').length;
             document.getElementById('profile-rides-count').innerText = completed;
             
-            // RATING CHECK
             allUserOrders.forEach(o => {
-                if(o.status === 'completed' && !o.userRating && !localStorage.getItem(`rated_${o.id}`)) {
+                if (o.status === 'completed' && !o.userRating && !localStorage.getItem(`rated_${o.id}`)) {
                     openRating(o);
                 }
             });
 
             renderOrders();
-            if(currentTrackingOrderId) {
-                const trackOrder = allUserOrders.find(o=>o.id===currentTrackingOrderId);
-                if(trackOrder) renderLiveTripDetails(trackOrder);
+
+            if (currentTrackingOrderId) {
+                const trackOrder = allUserOrders.find(o => o.id === currentTrackingOrderId);
+                if (trackOrder) renderLiveTripDetails(trackOrder);
             }
         }
 
         function updateUserDisplayNames(name) {
-            document.getElementById('user-display-name').innerText = name.split(' ')[0];
+            const first = name.split(' ')[0];
+            document.getElementById('user-display-name').innerText = first;
             const headerName = document.getElementById('header-user-name');
-            if(headerName) headerName.innerText = name.split(' ')[0];
+            if (headerName) headerName.innerText = first;
         }
 
         // --- AUTH ---
         window.loginWithEmail = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
-            if(!email || !password) return alert("Please enter email and password.");
+            if (!email || !password) return alert("Please enter email and password.");
             try {
-                const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-                await signInWithEmailAndPassword(auth, email, password);
+                const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch(loginErr) {
+                    if (loginErr.code === 'auth/user-not-found' || loginErr.code === 'auth/invalid-credential') {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                    } else throw loginErr;
+                }
             } catch(e) {
-                alert("Login failed: " + e.message);
-            }
-        }
-
-        window.registerWithEmail = async () => {
-            const email = document.getElementById('register-email').value.trim();
-            const password = document.getElementById('register-password').value;
-            if(!email || !password) return alert("Please enter email and password.");
-            try {
-                const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-                await createUserWithEmailAndPassword(auth, email, password);
-                // After registration, show profile step
-                document.getElementById('auth-step-1').classList.add('hidden');
-                document.getElementById('auth-step-3').classList.remove('hidden');
-            } catch(e) {
-                alert("Registration failed: " + e.message);
+                alert("Auth failed: " + e.message);
             }
         }
 
@@ -807,63 +947,32 @@ window.addEventListener('online', syncData);
             }
         }
 
-        // Sanitize input to prevent XSS
         function sanitizeInput(str) {
             const temp = document.createElement('div');
             temp.textContent = str;
             return temp.innerHTML;
         }
     
-window.saveUserProfile = async () => {
-    const nameInput = document.getElementById('user-name-input').value.trim();
-    const phoneInput = document.getElementById('user-phone-input').value.trim();
-    const safeName = sanitizeInput(nameInput);
-    const safePhone = sanitizeInput(phoneInput);
-
-    if (!safeName) {
-        alert("Name is required");
-        return;
-    }
-    if (!/^\d{10}$/.test(safePhone)) {
-        alert("Valid 10-digit phone number required");
-        return;
-    }
-    await setDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',auth.currentUser.uid), { 
-        name: safeName, 
-        email: auth.currentUser.email,
-        phone: safePhone,
-        registrationComplete: true,
-        createdAt: serverTimestamp() 
-    });
-    location.reload();
-}
-
-window.completeRegistration = async () => {
-    const nameInput = document.getElementById('user-name-input');
-    const name = nameInput.value.trim();
-
-    if (!name) {
-        alert('Please enter your name');
-        nameInput.focus();
-        return;
-    }
-
-    try {
-        await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', user.uid), {
-            uid: user.uid,
-            name: name,
-            email: user.email || '',
-            registrationComplete: true,
-            createdAt: serverTimestamp()
-        });
-        alert('Profile created successfully!');
-        setTimeout(() => location.reload(), 1500);
-    } catch (error) {
-        console.error('Profile creation error:', error);
-        alert('Failed to create profile: ' + error.message);
-    }
-};
-
+        window.saveUserProfile = async () => {
+            const nameInput = document.getElementById('user-name-input').value.trim();
+            const phoneInput = document.getElementById('user-phone-input').value.trim();
+            const safeName = sanitizeInput(nameInput);
+            const safePhone = sanitizeInput(phoneInput);
+            if (!safeName) return alert("Name is required");
+            if (!/^\d{10}$/.test(safePhone)) return alert("Valid 10-digit phone number required");
+            try {
+                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', auth.currentUser.uid), { 
+                    name: safeName, 
+                    email: auth.currentUser.email || '',
+                    phone: safePhone,
+                    registrationComplete: true,
+                    createdAt: serverTimestamp() 
+                });
+                location.reload();
+            } catch(e) {
+                alert("Failed to save profile: " + e.message);
+            }
+        }
 
         window.handleLogout = async () => { if(confirm("Logout?")) { await signOut(auth); location.reload(); } }
         window.resetAuth = () => location.reload();
@@ -873,9 +982,7 @@ window.completeRegistration = async () => {
             if(!newNameRaw) return;
             const newName = sanitizeInput(newNameRaw);
             if(navigator.onLine) {
-                 await updateDoc(doc(db,'artifacts',APP_ID,'public','data','user_profiles',user.uid), {name: newName});
-            } else {
-                alert("Saved locally. Will update server when online.");
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', user.uid), {name: newName});
             }
             userData.name = newName;
             localStorage.setItem('user_profile', JSON.stringify(userData));
@@ -883,23 +990,20 @@ window.completeRegistration = async () => {
             document.getElementById('name-edit-container').classList.add('hidden');
             updateUserDisplayNames(newName);
         }
-        // --- NEW FEATURES LOGIC ---
+
+        // --- COUPONS ---
         window.applyCoupon = async () => {
             const code = document.getElementById('coupon-code').value.toUpperCase();
             if(!code) return;
             try {
-                // Fetch live coupon from database
                 const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'coupons', code));
                 if(snap.exists()) {
                     const couponData = snap.data();
-                    // Optional: Check expiry date if you want
                     const today = new Date().toISOString().split('T')[0];
-                    if (couponData.expiry && couponData.expiry < today) {
-                        return alert("This coupon has expired.");
-                    }
+                    if (couponData.expiry && couponData.expiry < today) return alert("This coupon has expired.");
                     state.discount = couponData.discount; 
                     activeCoupon = code;
-                    document.getElementById('coupon-msg').innerText = `✅ Coupon Applied: ₹${couponData.discount} OFF`;
+                    document.getElementById('coupon-msg').innerText = `✅ Applied: ₹${couponData.discount} OFF`;
                     document.getElementById('coupon-msg').classList.remove('hidden');
                     document.getElementById('discount-label').classList.remove('hidden');
                     calculateEstimate();
@@ -907,15 +1011,15 @@ window.completeRegistration = async () => {
                     alert("Invalid Coupon Code");
                 }
             } catch (e) {
-                console.error("Coupon error:", e);
                 alert("Could not verify coupon.");
             }
         }
 
+        // --- RATING ---
         window.openRating = (o) => {
             rateOrderId = o.id;
             document.getElementById('rate-driver-name').innerText = o.driverName || "Driver";
-            document.getElementById('rating-modal').classList.remove('hidden');
+            document.getElementById('rating-modal').style.display = 'flex';
         }
         let currentRating = 0;
         window.setRate = (n) => {
@@ -925,115 +1029,87 @@ window.completeRegistration = async () => {
         window.submitRating = async () => {
             if(!currentRating) return alert("Please select stars");
             if(navigator.onLine) {
-                 await updateDoc(doc(db,'artifacts',APP_ID,'public','data','bookings',rateOrderId), {
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', rateOrderId), {
                     userRating: currentRating,
                     ratingComment: document.getElementById('rate-comment').value
                 });
-            } else {
-                alert("Rating saved offline. Will sync when online.");
             }
             localStorage.setItem(`rated_${rateOrderId}`, true);
-            document.getElementById('rating-modal').classList.add('hidden');
+            document.getElementById('rating-modal').style.display = 'none';
         }
 
-        window.openSupport = (oid) => { ticketOrderId=oid; document.getElementById('support-modal').classList.remove('hidden'); }
+        // --- SUPPORT ---
+        window.openSupport = (oid) => { ticketOrderId = oid; document.getElementById('support-modal').style.display = 'flex'; }
         window.submitTicket = async () => {
             const issue = document.getElementById('ticket-type').value;
             const desc = document.getElementById('ticket-desc').value;
             if(!desc) return alert("Please describe the issue");
-            
             if(navigator.onLine) {
                 await addDoc(collection(db, 'artifacts', APP_ID, 'support_tickets'), {
                     userId: user.uid, userEmail: user.email,
-                    orderId: ticketOrderId, issue: issue, description: desc,
+                    orderId: ticketOrderId, issue, description: desc,
                     status: 'open', createdAt: serverTimestamp()
                 });
                 alert("Ticket Raised!");
             } else {
                 alert("You are offline. Please try again when connected.");
             }
-            document.getElementById('support-modal').classList.add('hidden');
+            document.getElementById('support-modal').style.display = 'none';
         }
 
-        // --- CHAT LOGIC ---
+        // --- CHAT ---
         window.openChat = () => {
-            document.getElementById('chat-modal').classList.remove('hidden');
-            if(!localStorage.getItem('chat_started')) {
-                setTimeout(() => {
-                    const messages = document.getElementById('chat-messages');
-                    messages.innerHTML += `
-                        <div class="flex gap-3 animate-fade-in">
-                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 text-xs font-bold">N</div>
-                            <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[80%]">
-                                <p class="text-xs font-medium text-slate-700">Thanks for connecting! Our support team will link your chat shortly.</p>
-                                <span class="text-[9px] text-slate-400 block mt-1 text-right">Just now</span>
-                            </div>
-                        </div>`;
-                    localStorage.setItem('chat_started', 'true');
-                }, 1000);
-            }
+            document.getElementById('chat-modal').style.display = 'flex';
         }
-
         window.sendChatMessage = () => {
             const input = document.getElementById('chat-input');
             const msg = input.value.trim();
             if(!msg) return;
-            
             const messages = document.getElementById('chat-messages');
             const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            messages.innerHTML += `
-                <div class="flex justify-end animate-slide-up">
-                    <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]">
-                        <p class="text-xs font-medium">${msg}</p>
-                        <span class="text-[9px] text-blue-200 block mt-1 text-right">${time}</span>
-                    </div>
-                </div>`;
-            
+            messages.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]"><p class="text-xs font-medium">${msg}</p><span class="text-[9px] text-blue-200 block mt-1 text-right">${time}</span></div></div>`;
             input.value = '';
             messages.scrollTop = messages.scrollHeight;
-
             setTimeout(() => {
-                messages.innerHTML += `
-                    <div class="flex gap-3 animate-fade-in">
-                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 text-xs font-bold">N</div>
-                        <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[80%]">
-                            <p class="text-xs font-medium text-slate-700">We've received your message. An agent will join shortly.</p>
-                            <span class="text-[9px] text-slate-400 block mt-1 text-right">Just now</span>
-                        </div>
-                    </div>`;
+                messages.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 text-xs font-bold">N</div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[80%]"><p class="text-xs font-medium text-slate-700">We've received your message. An agent will join shortly.</p><span class="text-[9px] text-slate-400 block mt-1 text-right">Just now</span></div></div>`;
                 messages.scrollTop = messages.scrollHeight;
             }, 1500);
         }
 
-        // --- CORE UI LOGIC ---
+        // --- CORE BOOKING LOGIC ---
         window.switchBookingType = (t) => {
             state.bookingType = t;
             state.passengers = 1;
-            const shared = t==='shared';
-            document.getElementById('tab-shared').className = shared ? "flex-1 py-2.5 text-xs font-bold rounded-lg bg-white text-blue-600 shadow-lg transition-all transform scale-100" : "flex-1 py-2.5 text-xs font-bold rounded-lg text-blue-100 hover:text-white transition-all hover:bg-white/10";
-            document.getElementById('tab-full').className = !shared ? "flex-1 py-2.5 text-xs font-bold rounded-lg bg-white text-blue-600 shadow-lg transition-all transform scale-100" : "flex-1 py-2.5 text-xs font-bold rounded-lg text-blue-100 hover:text-white transition-all hover:bg-white/10";
-            
+            document.getElementById('passenger-count').innerText = 1;
+            const shared = t === 'shared';
+            document.getElementById('tab-shared').className = shared ? "flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all" : "flex-1 py-3 text-xs font-bold rounded-xl text-blue-100 hover:text-white transition-all hover:bg-white/10";
+            document.getElementById('tab-full').className = !shared ? "flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all" : "flex-1 py-3 text-xs font-bold rounded-xl text-blue-100 hover:text-white transition-all hover:bg-white/10";
             document.getElementById('shared-options').classList.toggle('hidden', !shared);
             document.getElementById('full-options').classList.toggle('hidden', shared);
-            document.getElementById('passenger-count').innerText = 1;
-            
             populateLocations();
-            if(!shared) window.selectService('cab');
+            if(!shared) selectService('cab');
             calculateEstimate();
         }
 
         window.selectService = (s) => {
             state.service = s;
-            document.querySelectorAll('.service-option').forEach(el => el.classList.remove('active','active-red'));
-            const el = document.getElementById(`srv-${s}`);
-            if(s==='cab') { el.classList.add('active'); document.getElementById('cab-type-selector').classList.remove('hidden'); document.getElementById('ambulance-config').classList.add('hidden'); }
-            else { el.classList.add('active-red'); document.getElementById('cab-type-selector').classList.add('hidden'); document.getElementById('ambulance-config').classList.remove('hidden'); }
+            document.querySelectorAll('.service-option').forEach(el => el.classList.remove('active', 'active-red'));
+            if(s === 'cab') { 
+                document.getElementById('srv-cab').classList.add('active'); 
+                document.getElementById('cab-type-selector').classList.remove('hidden'); 
+                document.getElementById('ambulance-config').classList.add('hidden'); 
+            } else { 
+                document.getElementById('srv-ambulance').classList.add('active-red'); 
+                document.getElementById('cab-type-selector').classList.add('hidden'); 
+                document.getElementById('ambulance-config').classList.remove('hidden'); 
+            }
+            lucide.createIcons();
             calculateEstimate();
         }
 
         window.populateLocations = () => {
-            const f = document.getElementById('from-loc'); const t = document.getElementById('to-loc');
+            const f = document.getElementById('from-loc'); 
+            const t = document.getElementById('to-loc');
             const oldF = f.value; const oldT = t.value;
             const opts = state.bookingType === 'shared' ? LOCATIONS_SHARED : LOCATIONS_FULL;
             const html = opts.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
@@ -1043,31 +1119,32 @@ window.completeRegistration = async () => {
             handleLocationChange('from');
         }
 
-        window.changePassengers = (d) => { let n = state.passengers + d; if(n>=1 && n<=6) { state.passengers=n; document.getElementById('passenger-count').innerText=n; calculateEstimate(); } }
+        window.changePassengers = (d) => { 
+            let n = state.passengers + d; 
+            if(n>=1 && n<=6) { 
+                state.passengers = n; 
+                document.getElementById('passenger-count').innerText = n; 
+                calculateEstimate(); 
+            } 
+        }
         
         window.handleLocationChange = (side) => {
-            const f = document.getElementById('from-loc').value;
-            const t = document.getElementById('to-loc').value;
-            
-            if(state.bookingType==='shared') {
-                if(f===t) { 
-                    if(side==='from') t.value = f==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
-                    else f.value = t==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
+            const fEl = document.getElementById('from-loc');
+            const tEl = document.getElementById('to-loc');
+            const f = fEl.value; const t = tEl.value;
+            if(state.bookingType === 'shared') {
+                if(f === t) { 
+                    if(side==='from') tEl.value = f==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
+                    else fEl.value = t==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
                 }
             } else {
-                 if (side === 'from') {
-                    if (f === "Karimnagar") { 
-                        if (t === "Karimnagar") t.value = "JBS-Hyderabad"; 
-                    } else if (HYD_GROUP.includes(f)) { 
-                        t.value = "Karimnagar"; 
-                    }
-                 } else {
-                    if (t === "Karimnagar") { 
-                        if (f === "Karimnagar") f.value = "JBS-Hyderabad"; 
-                    } else if (HYD_GROUP.includes(t)) { 
-                        f.value = "Karimnagar"; 
-                    }
-                 }
+                if(side === 'from') {
+                    if(f === "Karimnagar" && t === "Karimnagar") tEl.value = "JBS-Hyderabad"; 
+                    else if(HYD_GROUP.includes(f)) tEl.value = "Karimnagar"; 
+                } else {
+                    if(t === "Karimnagar" && f === "Karimnagar") fEl.value = "JBS-Hyderabad"; 
+                    else if(HYD_GROUP.includes(t)) fEl.value = "Karimnagar"; 
+                }
             }
             calculateEstimate();
         }
@@ -1076,33 +1153,25 @@ window.completeRegistration = async () => {
             let total = 0;
             const from = document.getElementById('from-loc').value;
             const to = document.getElementById('to-loc').value;
-            
             const isCity = from.includes('City') || to.includes('City');
             const isAirport = from.includes('Airport') || to.includes('Airport');
 
             if (state.bookingType === 'shared') {
-                const seat = document.querySelector('input[name="seat-type"]:checked').value;
-                const ac = document.querySelector('input[name="shared-ac"]:checked').value;
-                total = PRICES.SHARED[`SEATER_${seat}`][ac] * state.passengers;
+                total = PRICES.SHARED[`SEATER_${state.seatType}`][state.sharedAC] * state.passengers;
             } else {
                 if (state.service === 'ambulance') {
-                    const variant = document.querySelector('input[name="amb-type"]:checked').value;
-                    total = PRICES.AMBULANCE[variant]['oneWay'];
+                    total = PRICES.AMBULANCE[state.ambType]['oneWay'];
                 } else {
-                    const variant = document.querySelector('input[name="cab-variant"]:checked').value;
-                    const ac = document.querySelector('input[name="cab-ac"]:checked').value;
-                    
                     if(isAirport) {
-                        total = variant === 'suv' ? 6000 : 4500;
+                        total = state.cabVariant === 'suv' ? 6000 : 4500;
                     } else {
-                        total = PRICES.FULL_CAB[variant.toUpperCase()][ac];
+                        total = PRICES.FULL_CAB[state.cabVariant.toUpperCase()][state.cabAC];
                         if(isCity) total += 500;
                     }
                 }
             }
             if (state.discount) total = Math.max(0, total - state.discount);
             
-            document.getElementById('total-price-mobile').innerText = total.toLocaleString();
             document.getElementById('price-display').innerText = total.toLocaleString();
             updateFleetUI();
             updateDetailedAvailability(); 
@@ -1130,27 +1199,22 @@ window.completeRegistration = async () => {
                 count = routeDrivers.filter(d => d.vehicleType === 'Ambulance').length;
                 txt.innerText = count > 0 ? `${count} Ambulances` : "Dispatch HQ";
             } else {
-                // This is for Full Cab (not ambulance)
-                // NEW: Strict Check - Must be empty (filledSeats === 0)
                 count = routeDrivers.filter(d => {
-                     const vt = (d.vehicleType || '').toLowerCase();
-                     const isCab = vt.includes('7 seater') || vt.includes('5 seater') || vt.includes('sedan') || vt.includes('suv') || vt.includes('ertiga') || vt.includes('innova');
-                     return isCab && (d.filledSeats || 0) === 0;
+                    const vt = (d.vehicleType || '').toLowerCase();
+                    const isCab = vt.includes('7 seater') || vt.includes('5 seater') || vt.includes('sedan') || vt.includes('suv') || vt.includes('ertiga') || vt.includes('innova');
+                    return isCab && (d.filledSeats || 0) === 0;
                 }).length;
                 txt.innerText = count > 0 ? `${count} Cabs Available` : "Checking...";
             }
             
-            badge.classList.remove('hidden');
+            badge.style.display = 'flex';
         }
 
         window.forceSelectAlt = (type) => {
             if(state.bookingType === 'shared') {
-                const radio = document.querySelector(`input[name="seat-type"][value="${type}"]`);
-                if(radio) { radio.checked = true; calculateEstimate(); }
+                selectSeatType(type);
             } else if(state.service === 'cab') {
-                const variant = type === '7' ? 'suv' : 'sedan';
-                const radio = document.querySelector(`input[name="cab-variant"][value="${variant}"]`);
-                if(radio) { radio.checked = true; calculateEstimate(); }
+                selectCabVariant(type === '7' ? 'suv' : 'sedan');
             }
         }
 
@@ -1160,121 +1224,102 @@ window.completeRegistration = async () => {
             
             const from = document.getElementById('from-loc').value.toLowerCase();
             
-            // 1. FILTER DRIVERS BY ROUTE
             let routeDrivers = activeDrivers.filter(d => {
                 const dr = (d.prefRoute || '').toLowerCase();
-                const tripFrom = from;
-                let locMatch = false;
-                if (dr === 'karimnagar' && tripFrom.includes('karimnagar')) locMatch = true;
-                else if (dr === 'jbs' && (tripFrom.includes('jbs') || tripFrom.includes('secunderabad'))) locMatch = true;
-                else if (dr === 'rgi airport' && (tripFrom.includes('airport') || tripFrom.includes('rgi'))) locMatch = true;
-                else if (dr === 'hyderabad' && !tripFrom.includes('karimnagar')) locMatch = true;
-                return locMatch;
+                if (dr === 'karimnagar' && from.includes('karimnagar')) return true;
+                if (dr === 'jbs' && (from.includes('jbs') || from.includes('secunderabad'))) return true;
+                if (dr === 'rgi airport' && (from.includes('airport') || from.includes('rgi'))) return true;
+                if (dr === 'hyderabad' && !from.includes('karimnagar')) return true;
+                return false;
             });
 
             if (routeDrivers.length === 0) {
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-red-50 text-red-500 mb-4 block border border-red-100";
                 msgEl.innerText = "⚠️ No drivers currently active on this route.";
+                msgEl.classList.remove('hidden');
                 return;
             }
 
-            // 2. DETERMINE USER'S SELECTION
-            let currentSeat = '5';
-            let isAmbulance = state.service === 'ambulance';
-            
-            if (state.bookingType === 'shared') {
-                currentSeat = document.querySelector('input[name="seat-type"]:checked').value;
-            } else if (state.service === 'cab') {
-                currentSeat = document.querySelector('input[name="cab-variant"]:checked').value === 'suv' ? '7' : '5';
-            }
+            let currentSeat = state.bookingType === 'shared' ? state.seatType : (state.cabVariant === 'suv' ? '7' : '5');
+            const isAmbulance = state.service === 'ambulance';
 
-            // 3. HELPER TO COUNT VEHICLES
             const countDrivers = (seatType) => {
                 return routeDrivers.filter(d => {
                     if (isAmbulance) return d.vehicleType === 'Ambulance';
-                    
                     const vType = (d.vehicleType || '').toLowerCase();
-                    let typeMatch = false;
-                    
-                    // Strict matching for vehicle types
-                    if (seatType === '7') typeMatch = vType.includes('7 seater') || vType.includes('innova') || vType.includes('suv') || vType.includes('ertiga');
-                    else typeMatch = vType.includes('5 seater') || vType.includes('sedan') || vType.includes('etios') || vType.includes('dzire');
-                    
+                    let typeMatch = seatType === '7' 
+                        ? (vType.includes('7 seater') || vType.includes('innova') || vType.includes('suv') || vType.includes('ertiga'))
+                        : (vType.includes('5 seater') || vType.includes('sedan') || vType.includes('etios') || vType.includes('dzire'));
                     if (!typeMatch) return false;
-
-                    // NEW LOGIC FOR AVAILABILITY
-                    if (state.bookingType === 'shared') {
-                        // For Shared: Need enough empty seats
-                        return (d.seatsAvailable || 0) >= state.passengers;
-                    }
-                    
-                    if (state.bookingType === 'full' && !isAmbulance) {
-                        // For Full Cab: MUST BE COMPLETELY EMPTY (filledSeats == 0)
-                        return (d.filledSeats || 0) === 0;
-                    }
-
+                    if (state.bookingType === 'shared') return (d.seatsAvailable || 0) >= state.passengers;
+                    if (state.bookingType === 'full') return (d.filledSeats || 0) === 0;
                     return true;
                 }).length;
             };
 
-            // 4. CHECK AVAILABILITY
             const exactCount = countDrivers(currentSeat);
             const altSeat = currentSeat === '7' ? '5' : '7';
             const altCount = countDrivers(altSeat);
 
-            // 5. RENDER LOGIC (PRIORITY: EXACT MATCH > ALTERNATIVE > NONE)
             if (exactCount > 0) {
-                // Scenario A: Exact match found
                 const vehicleName = currentSeat === '7' ? 'Innova/SUV' : 'Sedan';
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-green-50 text-green-600 mb-4 block border border-green-100 shadow-sm";
-                msgEl.innerHTML = `<i data-lucide="check-circle" class="h-3 w-3 inline mr-1"></i> ${exactCount} ${vehicleName} driver${exactCount>1?'s':''} available`;
-                lucide.createIcons();
+                msgEl.innerHTML = `✅ ${exactCount} ${vehicleName} driver${exactCount>1?'s':''} available`;
             } else if (altCount > 0) {
-                // Scenario B: Exact match NOT found, but Alternative IS found
                 const wantedName = currentSeat === '7' ? "Innova/SUV" : "Sedan";
                 const altName = altSeat === '7' ? "Innova/SUV" : "Sedan";
-                const altNameShort = altSeat === '7' ? "7 Seater" : "Sedan";
-                
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-orange-50 text-orange-700 mb-4 block border border-orange-100 shadow-sm";
-                msgEl.innerHTML = `
-                    <div class="flex flex-col gap-1">
-                        <span>⚠️ ${wantedName} unavailable.</span>
-                        <span class="text-blue-600 underline cursor-pointer hover:text-blue-800" onclick="forceSelectAlt('${altSeat}')">But ${altCount} ${altName} available. Switch?</span>
-                    </div>`;
+                msgEl.innerHTML = `<div class="flex flex-col gap-1"><span>⚠️ ${wantedName} unavailable.</span><span class="text-blue-600 underline cursor-pointer" onclick="forceSelectAlt('${altSeat}')">But ${altCount} ${altName} available. Switch?</span></div>`;
             } else {
-                // Scenario C: Neither found
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-red-50 text-red-500 mb-4 block border border-red-100";
-                msgEl.innerHTML = `<i data-lucide="x-circle" class="h-3 w-3 inline mr-1"></i> No drivers available right now.`;
-                lucide.createIcons();
+                msgEl.innerHTML = `❌ No drivers available right now.`;
             }
+            msgEl.classList.remove('hidden');
         }
 
+        // =====================================================
+        // FIX 3: BOOKING ID — Format: NT + YYYYMMDD + 4-char alphanum
+        // Example: NT20260223A7B9
+        // =====================================================
         function generateOrderId() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, '0');
-            const yy = String(now.getFullYear()).slice(-2);
+            const yyyy = now.getFullYear();
             const mm = pad(now.getMonth() + 1);
             const dd = pad(now.getDate());
-            const hh = pad(now.getHours());
-            const min = pad(now.getMinutes());
-            const seq = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-            return `${yy}${mm}${dd}${hh}${min}${seq}`;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let suffix = '';
+            for(let i = 0; i < 4; i++) {
+                suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return `NT${yyyy}${mm}${dd}${suffix}`;
         }
 
         window.initiateBookingProcess = () => {
-            if(!navigator.onLine) {
-                alert("You are offline. Please connect to internet to book.");
-                return;
+            if(!user) { alert("Please login first."); return; }
+            if(!navigator.onLine) { alert("You are offline. Please connect to book."); return; }
+            const active = allUserOrders.find(o => ['pending', 'assigned'].includes(o.status));
+            if(active) { 
+                document.getElementById('duplicate-booking-modal').style.display = 'flex'; 
+                return; 
             }
-            const active = allUserOrders.find(o => ['pending','assigned'].includes(o.status));
-            if(active) { document.getElementById('duplicate-booking-modal').classList.remove('hidden'); return; }
             executeBooking(false);
         }
-        document.getElementById('confirm-duplicate-btn').onclick = () => { document.getElementById('duplicate-booking-modal').classList.add('hidden'); executeBooking(false); }
-        document.getElementById('confirm-fallback-btn').onclick = () => { document.getElementById('fallback-booking-modal').classList.add('hidden'); if(fallbackDriver) executeBooking(true, fallbackDriver); }
 
-        async function executeBooking(forceAny, specificDriver=null) {
-            document.getElementById('card-searching-overlay').classList.remove('hidden');
+        document.getElementById('confirm-duplicate-btn').onclick = () => { 
+            document.getElementById('duplicate-booking-modal').style.display = 'none'; 
+            executeBooking(false); 
+        }
+        document.getElementById('confirm-fallback-btn').onclick = () => { 
+            document.getElementById('fallback-booking-modal').style.display = 'none'; 
+            if(fallbackDriver) executeBooking(true, fallbackDriver); 
+        }
+
+        async function executeBooking(forceAny, specificDriver = null) {
+            // Show overlay
+            const overlay = document.getElementById('card-searching-overlay');
+            overlay.style.display = 'flex';
+            lucide.createIcons();
             
             const fromVal = document.getElementById('from-loc').value;
             const toVal = document.getElementById('to-loc').value;
@@ -1283,82 +1328,93 @@ window.completeRegistration = async () => {
             let displayTo = toVal;
             if(state.bookingType === 'full') {
                 if(state.service === 'cab') {
-                    const pAddr = document.getElementById('pickup-addr').value; const dAddr = document.getElementById('drop-addr').value;
-                    if(pAddr) displayFrom = `${pAddr} (${fromVal})`; if(dAddr) displayTo = `${dAddr} (${toVal})`;
+                    const pAddr = document.getElementById('pickup-addr').value; 
+                    const dAddr = document.getElementById('drop-addr').value;
+                    if(pAddr) displayFrom = `${pAddr} (${fromVal})`; 
+                    if(dAddr) displayTo = `${dAddr} (${toVal})`;
                 } else {
-                    const pAddr = document.getElementById('amb-pickup-addr').value; const dAddr = document.getElementById('amb-drop-addr').value;
-                    if(pAddr) displayFrom = pAddr; if(dAddr) displayTo = dAddr;
+                    const pAddr = document.getElementById('amb-pickup-addr').value; 
+                    const dAddr = document.getElementById('amb-drop-addr').value;
+                    if(pAddr) displayFrom = pAddr; 
+                    if(dAddr) displayTo = dAddr;
                 }
             }
 
             let driver = specificDriver;
             const requiredSeats = state.passengers;
             const requiredVehicle = state.bookingType === 'shared' 
-                ? `SHARED_${document.querySelector('input[name="seat-type"]:checked').value}` 
-                : (state.service==='cab' ? (document.querySelector('input[name="cab-variant"]:checked').value==='suv'?'CAB_7':'CAB_5') : 'AMBULANCE');
+                ? `SHARED_${state.seatType}` 
+                : (state.service === 'cab' ? (state.cabVariant === 'suv' ? 'CAB_7' : 'CAB_5') : 'AMBULANCE');
 
-                // TODO: Move driver assignment to a Firebase Cloud Function for atomicity and race condition prevention.
-                // Driver Matching Logic (Only works if activeDrivers is populated)
-                if(!driver && state.bookingType==='shared') {
-                      const candidates = activeDrivers.filter(d => {
-                          const dr = (d.prefRoute || '').toLowerCase();
-                          const tripFrom = fromVal.toLowerCase();
-                          let locMatch = false;
-                          if (dr === 'karimnagar' && tripFrom.includes('karimnagar')) locMatch = true;
-                          else if (dr === 'jbs' && (tripFrom.includes('jbs') || tripFrom.includes('secunderabad'))) locMatch = true;
-                          else if (dr === 'rgi airport' && (tripFrom.includes('airport') || tripFrom.includes('rgi'))) locMatch = true;
-                          else if (dr === 'hyderabad' && !tripFrom.includes('karimnagar')) locMatch = true; 
-                          if (!locMatch) return false;
-                          if (d.seatsAvailable < requiredSeats) return false;
-                          if (requiredVehicle === 'SHARED_7') return d.vehicleType.includes('7 Seater') || d.vehicleType.includes('Innova');
-                          if (requiredVehicle === 'SHARED_5') return d.vehicleType.includes('5 Seater') || d.vehicleType.includes('Sedan');
-                          return false;
-                      });
-                      if(candidates.length > 0) driver = candidates[0];
-                }
+            // Driver matching
+            if(!driver && state.bookingType === 'shared') {
+                const candidates = activeDrivers.filter(d => {
+                    const dr = (d.prefRoute || '').toLowerCase();
+                    const tripFrom = fromVal.toLowerCase();
+                    let locMatch = false;
+                    if (dr === 'karimnagar' && tripFrom.includes('karimnagar')) locMatch = true;
+                    else if (dr === 'jbs' && (tripFrom.includes('jbs') || tripFrom.includes('secunderabad'))) locMatch = true;
+                    else if (dr === 'rgi airport' && (tripFrom.includes('airport') || tripFrom.includes('rgi'))) locMatch = true;
+                    else if (dr === 'hyderabad' && !tripFrom.includes('karimnagar')) locMatch = true; 
+                    if (!locMatch) return false;
+                    if (d.seatsAvailable < requiredSeats) return false;
+                    if (requiredVehicle === 'SHARED_7') return d.vehicleType.includes('7 Seater') || d.vehicleType.includes('Innova');
+                    if (requiredVehicle === 'SHARED_5') return d.vehicleType.includes('5 Seater') || d.vehicleType.includes('Sedan');
+                    return false;
+                });
+                if(candidates.length > 0) driver = candidates[0];
+            }
 
-            // Fallback Logic
+            // Fallback logic
             if (!driver && !forceAny && state.bookingType === 'shared') {
                 let altDriver = activeDrivers.find(d => {
-                     const dr = (d.prefRoute||'').toLowerCase(); const tf = fromVal.toLowerCase();
-                     const locMatch = (dr==='karimnagar'&&tf.includes('karimnagar')) || (dr==='jbs'&&tf.includes('jbs')) || (dr.includes('hyd') && !tf.includes('karimnagar'));
-                     return locMatch && d.seatsAvailable >= requiredSeats && !d.vehicleType.includes('Ambulance');
+                    const dr = (d.prefRoute||'').toLowerCase(); 
+                    const tf = fromVal.toLowerCase();
+                    const locMatch = (dr==='karimnagar'&&tf.includes('karimnagar')) || (dr==='jbs'&&tf.includes('jbs')) || (dr.includes('hyd')&&!tf.includes('karimnagar'));
+                    return locMatch && d.seatsAvailable >= requiredSeats && !d.vehicleType.includes('Ambulance');
                 });
-                
                 if (altDriver) {
                     fallbackDriver = altDriver;
-                    document.getElementById('fallback-msg').innerText = `Your exact vehicle preference is busy, but a ${altDriver.vehicleType} is available on your route. Book this instead?`;
-                    document.getElementById('card-searching-overlay').classList.add('hidden');
-                    document.getElementById('fallback-booking-modal').classList.remove('hidden');
+                    document.getElementById('fallback-msg').innerText = `Your exact vehicle preference is busy, but a ${altDriver.vehicleType} is available. Book this instead?`;
+                    overlay.style.display = 'none';
+                    document.getElementById('fallback-booking-modal').style.display = 'flex';
                     return;
                 }
             }
 
+            // FIX 3: Use new NT-prefixed booking ID
             const oid = generateOrderId();
             
+            // FIX 4: Generate OTP before saving — so it shows INSTANTLY
+            const otp = Math.floor(1000 + Math.random() * 9000);
+
             let serviceName = "Ride";
             if (state.bookingType === 'shared') {
-                serviceName = `Shared (${state.passengers} Seats)`;
+                serviceName = `Shared (${state.passengers} Seat${state.passengers>1?'s':''})`;
             } else if (state.service === 'cab') {
-                const variant = document.querySelector('input[name="cab-variant"]:checked').value === 'suv' ? 'SUV' : 'Sedan';
-                serviceName = `Private Cab (${variant})`;
+                serviceName = `Private Cab (${state.cabVariant === 'suv' ? 'SUV' : 'Sedan'})`;
             } else {
                 serviceName = "Ambulance";
             }
             
+            const totalPrice = document.getElementById('price-display').innerText;
+            
             let payload = {
-                orderId: oid, // NEW: REQUIRED BY CLOUD FUNCTION!
-                userId: user.uid, name: userData.name, email: user.email,
-                from: displayFrom, to: displayTo, 
-                price: document.getElementById('total-price-mobile').innerText,
+                orderId: oid,
+                userId: user.uid, 
+                name: userData.name, 
+                email: user.email || '',
+                from: displayFrom, 
+                to: displayTo, 
+                price: totalPrice,
                 date: document.getElementById('travel-date').value,
                 serviceName: serviceName,
                 passengers: state.passengers,
-                otp: Math.floor(1000 + Math.random()*9000), createdAt: serverTimestamp(),
+                otp: otp,   // FIX 4: OTP included in local payload BEFORE Firestore write
+                createdAt: serverTimestamp(),
                 status: 'pending',
                 routeKey: fromVal === "JBS-Hyderabad" ? "JBS" : (fromVal === "Karimnagar" ? "Karimnagar" : (fromVal === "Airport-RGI" ? "RGI Airport" : "Hyderabad"))
             };
-
 
             try {
                 if (driver) {
@@ -1371,28 +1427,34 @@ window.completeRegistration = async () => {
                     payload.driverImage = driver.photoUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
                     payload.driverRating = driver.rating || 5.0;
 
-                    // FREE TIER WORKAROUND: Write directly to database instead of Cloud Function
                     await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', oid), payload);
-                    // Update the trip seats directly from the customer's phone
+                    
                     const newFilledSeats = (driver.filledSeats || 0) + state.passengers;
-                    const newAvailableSeats = Math.max(0, driver.totalSeats - newFilledSeats);
+                    const newAvailableSeats = Math.max(0, (driver.totalSeats || 7) - newFilledSeats);
                     await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driver.id), {
                         filledSeats: newFilledSeats,
                         seatsAvailable: newAvailableSeats,
                         bookedSeats: (driver.bookedSeats || 0) + state.passengers
                     });
                 } else {
-                    await setDoc(doc(db,'artifacts',APP_ID,'public','data','bookings',oid), payload);
+                    await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', oid), payload);
                 }
 
-                document.getElementById('card-searching-overlay').classList.add('hidden');
+                overlay.style.display = 'none';
                 currentTrackingOrderId = oid;
-                // Add to local list immediately so it shows up in "My Rides" without network fetch
-                allUserOrders.unshift({...payload, id: oid}); 
+                
+                // FIX 4: Build local copy with JS timestamp so OTP shows immediately
+                const localPayload = { 
+                    ...payload, 
+                    id: oid, 
+                    otp: otp,  // ensure otp is in local copy
+                    createdAt: { seconds: Math.floor(Date.now() / 1000) } 
+                };
+                allUserOrders.unshift(localPayload);
                 localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
                 
                 switchView('tracking');
-                renderLiveTripDetails(payload); 
+                renderLiveTripDetails(localPayload); // Pass local payload — OTP shows instantly!
                 
                 if(!driver && state.bookingType !== 'shared') {
                     const waText = `New Booking Pending!\nID: ${oid}\nFrom: ${displayFrom}\nTo: ${displayTo}`;
@@ -1404,71 +1466,106 @@ window.completeRegistration = async () => {
             } catch(e) {
                 console.error("Booking Error:", e);
                 let msg = "Booking failed. Please check your connection.";
-                if(e.code === 'permission-denied') msg = "Permission Error: Please refresh.";
+                if(e.code === 'permission-denied') msg = "Permission Error: Please refresh and try again.";
                 alert(msg);
-                document.getElementById('card-searching-overlay').classList.add('hidden');
+                overlay.style.display = 'none';
             }
         }
 
-        // --- TRACKING VIEW LOGIC ---
+        // =====================================================
+        // FIX 4: renderLiveTripDetails — OTP always shows if present
+        // =====================================================
         function renderLiveTripDetails(order) {
             const container = document.getElementById('tracking-content');
             const isActive = ['assigned', 'started'].includes(order.status);
             
             let statusBadge = isActive ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700';
-            if(order.status==='completed') statusBadge='bg-green-100 text-green-700';
-            if(order.status==='cancelled') statusBadge='bg-red-100 text-red-600';
+            if(order.status === 'completed') statusBadge = 'bg-green-100 text-green-700';
+            if(order.status === 'cancelled') statusBadge = 'bg-red-100 text-red-600';
 
             let driverHtml = '';
             if(isActive || order.status === 'completed') {
                 driverHtml = `
-                <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 text-left animate-fade-in shadow-sm">
-                    <p class="text-[10px] font-bold text-blue-500 uppercase mb-3 flex items-center gap-1"><i data-lucide="check-circle" class="h-3 w-3"></i> Driver Assigned</p>
+                <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 text-left shadow-sm">
+                    <p class="text-[10px] font-bold text-blue-500 uppercase mb-3">✅ Driver Assigned</p>
                     <div class="flex items-start gap-4 mb-4">
                         <img src="${order.driverImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-white">
                         <div class="flex-1">
                             <h4 class="font-black text-slate-900 text-xl leading-tight">${order.driverName}</h4>
-                            <div class="flex items-center gap-2 mt-1"><span class="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-[10px] font-bold text-slate-600"><i data-lucide="star" class="h-3 w-3 inline mr-0.5 text-yellow-500 fill-current"></i> ${order.driverRating||'4.8'}</span></div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-[10px] font-bold text-slate-600">⭐ ${order.driverRating || '4.8'}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="bg-white p-3 rounded-xl border border-blue-100 mb-4 flex items-center justify-between shadow-sm">
                         <div><p class="text-[10px] text-slate-400 font-bold uppercase">Vehicle</p><p class="text-sm font-bold text-slate-900">${order.driverVehicle}</p></div>
                         <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">Plate No</p><p class="text-sm font-bold text-slate-900 font-mono tracking-wider">${order.driverPlate}</p></div>
                     </div>
-                    ${isActive ? `<a href="tel:${order.driverPhone}" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition hover:bg-blue-700 active:scale-95"><i data-lucide="phone" class="h-4 w-4"></i> Call Driver</a>` : ''}
+                    ${isActive ? `<a href="tel:${order.driverPhone}" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition">📞 Call Driver</a>` : ''}
                 </div>`;
-            } else if(order.status==='pending') {
-                driverHtml = `<div class="bg-yellow-50 p-6 rounded-2xl mb-6 text-center animate-pulse border border-yellow-100"><i data-lucide="loader-2" class="h-8 w-8 text-yellow-600 animate-spin mx-auto mb-2"></i><p class="font-bold text-slate-800">Finding Driver...</p><p class="text-xs text-slate-500 mt-1">Please wait while we connect you.</p></div>`;
+            } else if(order.status === 'pending') {
+                driverHtml = `<div class="bg-yellow-50 p-6 rounded-2xl mb-6 text-center border border-yellow-100"><div class="text-3xl mb-2 animate-spin inline-block">⏳</div><p class="font-bold text-slate-800">Finding Driver...</p><p class="text-xs text-slate-500 mt-1">Please wait while we connect you.</p></div>`;
             }
 
-            const otpHtml = (isActive && order.otp) ? `<div class="bg-slate-900 text-white p-4 rounded-2xl mb-6 text-center shadow-lg"><p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Ride OTP</p><p class="text-4xl font-black tracking-[0.3em]">${order.otp}</p></div>` : '';
+            // FIX 4: Show OTP immediately for ANY assigned/started status
+            // Also show for pending if OTP is available (pre-generated)
+            const showOTP = order.otp && (isActive || order.status === 'pending');
+            const otpHtml = showOTP ? `
+                <div class="otp-box mb-6">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Your Ride OTP</p>
+                    <div class="otp-digits">${order.otp}</div>
+                    <p class="text-[10px] text-slate-500 mt-2">Share this with your driver to start the ride</p>
+                </div>` : '';
 
             container.innerHTML = `
                 <div class="text-center mb-6">
                     <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${statusBadge}">${order.status}</span>
-                    <h2 class="text-xl font-black text-slate-900">Order #${order.id}</h2>
+                    <h2 class="text-xl font-black text-slate-900">Order #${order.id || order.orderId}</h2>
+                    <p class="text-xs text-slate-400 font-bold mt-1">${order.date || ''}</p>
                 </div>
                 ${otpHtml}
                 ${driverHtml}
                 <div class="space-y-3 mb-6">
-                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="text-xs font-bold text-slate-500">From</span><span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${order.from.split('(')[0]}</span></div>
-                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="text-xs font-bold text-slate-500">To</span><span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${order.to.split('(')[0]}</span></div>
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs font-bold text-slate-500 flex items-center gap-1">📍 From</span>
+                        <span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${(order.from||'').split('(')[0]}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs font-bold text-slate-500 flex items-center gap-1">🏁 To</span>
+                        <span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${(order.to||'').split('(')[0]}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="text-xs font-bold text-slate-500">Service</span>
+                        <span class="text-sm font-bold text-slate-900">${order.serviceName || 'Ride'}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                        <span class="text-xs font-bold text-slate-500">Total Fare</span>
+                        <span class="text-lg font-black text-slate-900">₹${order.price}</span>
+                    </div>
                 </div>
                 <div class="space-y-3">
-                    ${['pending','assigned'].includes(order.status) ? `<button onclick="confirmCancel('${order.id}')" class="w-full py-3.5 border-2 border-red-50 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition">Cancel Order</button>` : ''}
-                    <button onclick="switchView('orders')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Go to My Rides</button>
-                    ${!navigator.onLine ? `<p class="text-center text-[10px] text-red-400 font-bold uppercase">Update status: Offline</p>` : `<button onclick="syncData()" class="w-full text-xs font-bold text-blue-600">Refesh Status</button>`}
+                    ${['pending','assigned'].includes(order.status) ? `<button onclick="confirmCancel('${order.id || order.orderId}')" class="w-full py-3.5 border-2 border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition">Cancel Order</button>` : ''}
+                    <button onclick="switchView('orders')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">View All Rides</button>
+                    <button onclick="syncData().then(()=>{ const o=allUserOrders.find(x=>x.id==='${order.id || order.orderId}'); if(o) renderLiveTripDetails(o); })" class="w-full text-xs font-bold text-blue-500 py-2">🔄 Refresh Status</button>
                 </div>
             `;
             lucide.createIcons();
         }
 
-        // --- ORDERS & HISTORY GROUPING ---
+        // =====================================================
+        // FIX 2: renderOrders — handles missing/null createdAt
+        // =====================================================
         function renderOrders() {
             const container = document.getElementById('orders-list-container');
-            if (allUserOrders.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 opacity-50"><i data-lucide="wind" class="h-12 w-12 mx-auto mb-2"></i><p class="font-bold">No rides yet</p></div>`;
-                lucide.createIcons();
+            
+            if (!allUserOrders || allUserOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 opacity-60">
+                        <div class="text-5xl mb-4">🚖</div>
+                        <p class="font-bold text-slate-500 text-lg">No rides yet</p>
+                        <p class="text-xs text-slate-400 mt-1">Your booking history will appear here</p>
+                        <button onclick="switchView('booking')" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm">Book a Ride</button>
+                    </div>`;
                 return;
             }
 
@@ -1476,130 +1573,161 @@ window.completeRegistration = async () => {
             let lastDate = '';
 
             allUserOrders.forEach(o => {
-                let dateHeader = 'Unknown Date';
-                if (o.createdAt) {
+                // FIX 2: Safe date handling — createdAt can be null on fresh bookings
+                let dateHeader = 'Today';
+                let timeStr = '';
+                
+                if (o.createdAt && o.createdAt.seconds) {
                     const d = new Date(o.createdAt.seconds * 1000);
                     const today = new Date();
-                    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-
+                    const yesterday = new Date(today); 
+                    yesterday.setDate(today.getDate() - 1);
                     if (d.toDateString() === today.toDateString()) dateHeader = "Today";
                     else if (d.toDateString() === yesterday.toDateString()) dateHeader = "Yesterday";
-                    else dateHeader = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                    else dateHeader = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    timeStr = d.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
                 }
 
                 if (dateHeader !== lastDate) {
-                    html += `<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 pt-2 pb-1 sticky top-0 bg-[#F8FAFC] z-10">${dateHeader}</h3>`;
+                    html += `<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 pt-2 pb-1">${dateHeader}</h3>`;
                     lastDate = dateHeader;
                 }
 
-                let statusBadge = o.status==='assigned'?'text-blue-700 bg-blue-100':(o.status==='pending'?'text-yellow-700 bg-yellow-100':(o.status==='cancelled'?'text-red-700 bg-red-100':'text-green-700 bg-green-100'));
-                
-                const timeStr = o.createdAt ? new Date(o.createdAt.seconds * 1000).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : '';
+                const statusColors = {
+                    assigned: 'text-blue-700 bg-blue-100',
+                    pending: 'text-yellow-700 bg-yellow-100',
+                    cancelled: 'text-red-700 bg-red-100',
+                    completed: 'text-green-700 bg-green-100',
+                    started: 'text-purple-700 bg-purple-100'
+                };
+                const statusBadge = statusColors[o.status] || 'text-slate-700 bg-slate-100';
+                const orderId = o.id || o.orderId || 'Unknown';
 
                 html += `
-                <div onclick="openOrder('${o.id}')" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition group relative overflow-hidden">
+                <div onclick="openOrder('${orderId}')" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition relative overflow-hidden">
                     <div class="flex justify-between items-start mb-3">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider ${statusBadge} px-2 py-0.5 rounded-lg mb-1 inline-block">${o.status}</span>
                             <h4 class="font-bold text-slate-900 text-base leading-tight mt-1">${o.serviceName || 'Taxi Ride'}</h4>
+                            <p class="text-[10px] text-slate-400 font-bold mt-0.5">#${orderId}</p>
                         </div>
                         <div class="text-right">
-                             <span class="font-black text-slate-900 text-lg block">₹${o.price}</span>
-                             <span class="text-[10px] font-bold text-slate-400">${timeStr}</span>
+                            <span class="font-black text-slate-900 text-lg block">₹${o.price}</span>
+                            <span class="text-[10px] font-bold text-slate-400">${timeStr}</span>
                         </div>
                     </div>
-                    
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3 text-xs font-bold text-slate-700">
-                        <span class="truncate max-w-[45%]">${o.from.split('(')[0]}</span>
-                        <i data-lucide="arrow-right" class="h-3 w-3 text-slate-400"></i>
-                        <span class="truncate max-w-[45%]">${o.to.split('(')[0]}</span>
+                        <span class="truncate max-w-[45%]">${(o.from||'').split('(')[0]}</span>
+                        <span class="text-slate-400">→</span>
+                        <span class="truncate max-w-[45%]">${(o.to||'').split('(')[0]}</span>
                     </div>
-                    
-                    ${o.status==='cancelled' && o.cancelReason ? `<div class="mt-3 pt-3 border-t border-slate-50 text-[10px] text-red-500 font-bold">Cancelled: ${o.cancelReason}</div>` : ''}
+                    ${o.status === 'cancelled' && o.cancelReason ? `<div class="mt-3 pt-3 border-t border-slate-50 text-[10px] text-red-500 font-bold">Cancelled: ${o.cancelReason}</div>` : ''}
                 </div>`;
             });
 
             container.innerHTML = html;
-            lucide.createIcons();
         }
 
         window.openOrder = (id) => {
-            const o = allUserOrders.find(x=>x.id===id);
-            if(['pending','assigned'].includes(o.status)) {
+            const o = allUserOrders.find(x => (x.id === id || x.orderId === id));
+            if(!o) return;
+            
+            if(['pending','assigned','started'].includes(o.status)) {
                 currentTrackingOrderId = id;
                 renderLiveTripDetails(o);
                 switchView('tracking');
             } else {
                 const content = document.getElementById('modal-content');
-                const timeStr = o.createdAt ? new Date(o.createdAt.seconds * 1000).toLocaleString() : '';
+                const timeStr = o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toLocaleString('en-IN') : o.date || '';
                 
                 content.innerHTML = `
                     <div class="text-center mb-6">
-                        <h3 class="font-black text-xl text-slate-900">Order #${o.id}</h3>
+                        <h3 class="font-black text-xl text-slate-900">Order #${id}</h3>
                         <p class="text-xs font-bold text-slate-400 uppercase mt-1">${timeStr}</p>
                     </div>
-                    
                     ${o.driverName ? `
                     <div class="bg-slate-50 p-4 rounded-2xl mb-6 flex items-center gap-4">
-                        <img src="${o.driverImage}" class="w-12 h-12 rounded-xl bg-white object-cover">
+                        <img src="${o.driverImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-12 h-12 rounded-xl bg-white object-cover">
                         <div><p class="font-bold text-slate-900 text-sm">${o.driverName}</p><p class="text-xs text-slate-500">${o.driverVehicle} • ${o.driverPlate}</p></div>
                     </div>` : ''}
-
                     <div class="space-y-4 mb-8 bg-white border border-slate-100 p-5 rounded-3xl shadow-sm">
                         <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">Service</span><span class="font-bold text-slate-900 text-right">${o.serviceName}</span></div>
                         <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">From</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.from}</span></div>
                         <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">To</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.to}</span></div>
-                        <div class="pt-3 border-t border-slate-100 flex justify-between items-center"><span class="text-slate-500 font-bold">Total Paid</span><span class="font-black text-xl text-slate-900">₹${o.price}</span></div>
+                        <div class="pt-3 border-t border-slate-100 flex justify-between items-center"><span class="text-slate-500 font-bold">Total Fare</span><span class="font-black text-xl text-slate-900">₹${o.price}</span></div>
                     </div>
-                    
-                    <button onclick="openSupport('${o.id}')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Report Issue</button>
-                `;
-                document.getElementById('order-modal').classList.remove('hidden');
+                    <button onclick="openSupport('${id}')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Report Issue</button>`;
+                document.getElementById('order-modal').style.display = 'flex';
+                lucide.createIcons();
             }
         }
         
-        window.confirmCancel = (id) => { cancelTargetId=id; document.getElementById('cancel-modal').classList.remove('hidden'); document.getElementById('cancel-reason').value=""; }
+        window.confirmCancel = (id) => { 
+            cancelTargetId = id; 
+            document.getElementById('cancel-modal').style.display = 'flex'; 
+            document.getElementById('cancel-reason').value = ""; 
+        }
+
         document.getElementById('confirm-cancel-btn').onclick = async () => {
-             const r = document.getElementById('cancel-reason').value;
-             if(!r) return alert("Select a reason");
-             try {
+            const r = document.getElementById('cancel-reason').value;
+            if(!r) return alert("Select a reason");
+            try {
                 if(navigator.onLine) {
-                    await updateDoc(doc(db,'artifacts',APP_ID,'public','data','bookings',cancelTargetId), {status:'cancelled', cancelReason:r});
-                } else {
-                    alert("Cancellation queued. Will process when online.");
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', cancelTargetId), {
+                        status: 'cancelled', 
+                        cancelReason: r
+                    });
                 }
-                document.getElementById('cancel-modal').classList.add('hidden');
-                document.getElementById('order-modal').classList.add('hidden');
-                if(currentTrackingOrderId === cancelTargetId) switchView('orders');
-             } catch(e) {
-                 console.error(e);
-             }
+                // Update local state
+                const idx = allUserOrders.findIndex(o => (o.id === cancelTargetId || o.orderId === cancelTargetId));
+                if(idx !== -1) { 
+                    allUserOrders[idx].status = 'cancelled'; 
+                    allUserOrders[idx].cancelReason = r;
+                }
+                localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
+                document.getElementById('cancel-modal').style.display = 'none';
+                document.getElementById('order-modal').style.display = 'none';
+                if(currentTrackingOrderId === cancelTargetId) {
+                    renderOrders();
+                    switchView('orders');
+                }
+            } catch(e) { console.error(e); }
         }
 
         window.switchView = (v) => {
-            ['booking','orders','profile','tracking'].forEach(view => document.getElementById(`view-${view}`).classList.add('hidden'));
+            ['booking','orders','profile','tracking'].forEach(view => {
+                document.getElementById(`view-${view}`).classList.add('hidden');
+            });
             document.getElementById(`view-${v}`).classList.remove('hidden');
 
-            document.querySelectorAll('#mobile-nav button').forEach(b => b.classList.remove('text-blue-600'));
+            // Mobile nav highlighting
+            document.querySelectorAll('#mobile-nav button').forEach(b => {
+                b.classList.remove('text-blue-600');
+                b.classList.add('text-slate-400');
+            });
             const mobNav = document.getElementById(`nav-${v}`);
-            if(mobNav) mobNav.classList.replace('text-slate-400', 'text-blue-600');
-
-            if(v==='booking') {
-                 document.getElementById('d-nav-booking').classList.replace('text-slate-500','text-blue-600'); document.getElementById('d-nav-booking').classList.replace('border-transparent','border-blue-600');
-                 document.getElementById('d-nav-orders').classList.replace('text-blue-600','text-slate-500'); document.getElementById('d-nav-orders').classList.replace('border-blue-600','border-transparent');
-            } else if(v==='orders') {
-                 document.getElementById('d-nav-orders').classList.replace('text-slate-500','text-blue-600'); document.getElementById('d-nav-orders').classList.replace('border-transparent','border-blue-600');
-                 document.getElementById('d-nav-booking').classList.replace('text-blue-600','text-slate-500'); document.getElementById('d-nav-booking').classList.replace('border-blue-600','border-transparent');
+            if(mobNav) { 
+                mobNav.classList.remove('text-slate-400'); 
+                mobNav.classList.add('text-blue-600'); 
             }
+
+            // Desktop nav highlighting
+            if(v === 'booking') {
+                document.getElementById('d-nav-booking').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
+                document.getElementById('d-nav-orders').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
+            } else if(v === 'orders') {
+                document.getElementById('d-nav-orders').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
+                document.getElementById('d-nav-booking').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
+            }
+
+            if(v === 'orders') { renderOrders(); syncData(); }
         }
 
+        // Make syncData globally accessible for button
+        window.syncData = syncData;
+
         lucide.createIcons();
-        populateLocations(); 
+        populateLocations();
     </script>
-    <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-</script>
 </body>
 </html>
