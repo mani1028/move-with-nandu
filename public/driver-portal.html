@@ -861,36 +861,16 @@
                 const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
 
                 window.loginWithGoogle = function() {
-                        const provider = new GoogleAuthProvider();
-                        if (isPWKApp()) {
-                                // PWK app: use popup for Google login
-                                signInWithPopup(auth, provider)
-                                    .then((result) => {
-                                        if (result && result.user) {
-                                            // User is signed in
-                                            // Check if user exists in Firestore, if not, register
-                                            const userRef = doc(db, 'artifacts', APP_ID, 'drivers', result.user.uid);
-                                            getDoc(userRef).then((docSnap) => {
-                                                if (!docSnap.exists()) {
-                                                    // New user, show registration UI or auto-register as needed
-                                                    // showRegistrationModal(result.user);
-                                                    alert('Registration required. Please complete your profile.');
-                                                } else {
-                                                    // Existing user, proceed to dashboard
-                                                    // showDashboard();
-                                                    location.reload();
-                                                }
-                                            });
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        console.error('Google Login Error:', error);
-                                        alert('Login failed: ' + (error.message || error.code));
-                                    });
-                        } else {
-                                // Web: use redirect for Google login
-                                signInWithRedirect(auth, provider);
+                        // Check if running in a webview (in-app browser)
+                        if (isWebView()) {
+                                alert('⚠️ Google login is not available in webviews.\n\nPlease:\n1. Copy the app link\n2. Open it in Chrome or your default browser\n3. Sign in there\n\nThis is a Google security requirement for OAuth logins.');
+                                return;
                         }
+                        
+                        const provider = new GoogleAuthProvider();
+                        
+                        // Use redirect for web browsers
+                        signInWithRedirect(auth, provider);
                 };
 
                 // On page load, handle redirect result for non-PWK users
