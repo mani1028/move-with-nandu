@@ -65,6 +65,8 @@
         .dark .otp-input:focus { border-color: #3B82F6; background: #1e293b; }
         .animation-delay-300 { animation-delay: 300ms; }
         .origin-left { transform-origin: left; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+        .shake-error { animation: shake 0.5s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
@@ -331,7 +333,10 @@
                 </div>
                 <!-- Location/Route -->
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Current Hub (Start Location)</label>
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1">Current Hub (Start Location)</label>
+                    </div>
+                    <div id="location-detect-hint" class="text-[10px] text-slate-400 px-1 min-h-[16px]"></div>
                     <div class="grid grid-cols-1 gap-2">
                         <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-brand-500 transition-colors">
                             <input type="radio" name="route_pref" value="Karimnagar" class="w-5 h-5 text-brand-600 focus:ring-brand-500">
@@ -350,6 +355,16 @@
                             <div><span class="block font-bold text-sm dark:text-white">Hyderabad City</span><span class="text-[10px] text-slate-400">General Pickup</span></div>
                         </label>
                     </div>
+                </div>
+                <!-- STRICT RULES WARNING BOX -->
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
+                    <p class="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">⚠️ Strict Rules Apply</p>
+                    <ul class="text-[10px] text-red-500 dark:text-red-400 space-y-0.5 list-disc list-inside">
+                        <li>Route selection is <strong>mandatory</strong> to receive jobs</li>
+                        <li>Changing route cancels all unstarted assigned trips</li>
+                        <li>Cannot change route while a trip is IN PROGRESS</li>
+                        <li>AC preference filters out non-AC job requests</li>
+                    </ul>
                 </div>
                 <button onclick="saveSettings()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg active:scale-95 transition">Save Preferences</button>
             </div>
@@ -1093,12 +1108,20 @@
                 syncDriverState();
             }, (error) => console.log("Active Jobs Sync Error:", error.message));
 
-            // FIX #3: Only show jobs to online drivers - filter in query by checking driver is online
-            // (The online/offline toggle already gates who gets market jobs by writing trips doc)
+            // STRICT FIX: Only subscribe to market jobs if driver is ONLINE
+            if (!driverProfile || driverProfile.status !== 'online') {
+                availableMarketJobs = [];
+                updateCombinedJobList();
+                return; // Don't subscribe to market jobs when offline
+            }
+
             let baseMarketQuery = [where('status', '==', 'pending')];
-            if (driverProfile && driverProfile.prefRoute) baseMarketQuery.push(where('routeKey', '==', driverProfile.prefRoute));
-            
-            // FIX #1: Ambulance drivers only see ambulance jobs; others don't see ambulance jobs
+            // STRICT: Filter by driver's preferred route
+            if (driverProfile && driverProfile.prefRoute) {
+                baseMarketQuery.push(where('routeKey', '==', driverProfile.prefRoute));
+            }
+
+            // Ambulance drivers only see ambulance jobs; others never see ambulance jobs
             const isAmbulanceDriver = driverProfile && (driverProfile.vehicleType || '').toLowerCase().includes('ambulance');
             if (isAmbulanceDriver) {
                 baseMarketQuery.push(where('vehicleType', '==', 'Ambulance'));
@@ -1106,19 +1129,21 @@
 
             const qMarket = query(jobsRef, ...baseMarketQuery);
             marketJobsUnsubscribe = onSnapshot(qMarket, (snapshot) => {
+                // Always re-check: if driver went offline while snapshot arrived, clear jobs
+                if (!driverProfile || driverProfile.status !== 'online') {
+                    availableMarketJobs = [];
+                    updateCombinedJobList();
+                    return;
+                }
                 availableMarketJobs = [];
                 snapshot.forEach(docSnap => {
                     const job = { id: docSnap.id, ...docSnap.data() };
-
-                    // FIX #3: Don't show new jobs if driver is offline
-                    if (!driverProfile || driverProfile.status !== 'online') return;
-
-                    // FIX #1: Non-ambulance drivers should NOT see ambulance bookings
+                    // Never show ambulance jobs to non-ambulance drivers
                     if (!isAmbulanceDriver && (job.vehicleType || '').toLowerCase().includes('ambulance')) return;
-
-                    if (driverProfile && driverProfile.prefAc !== undefined) {
+                    // STRICT AC PREFERENCE: if driver prefers AC, skip non-AC jobs
+                    if (driverProfile.prefAc === true) {
                         const jobIsAc = (job.vehicleType || '').toLowerCase().includes('ac') && !(job.vehicleType || '').toLowerCase().includes('non');
-                        if (jobIsAc && !driverProfile.prefAc) return;
+                        if (!jobIsAc) return;
                     }
                     availableMarketJobs.push(job);
                 });
@@ -1249,7 +1274,7 @@
                         <div class="flex justify-between"><span class="text-xs text-slate-400">Trip ID</span><span class="text-xs font-bold dark:text-white">#${job.id.slice(-6).toUpperCase()}</span></div>
                         <div class="flex justify-between"><span class="text-xs text-slate-400">Route</span><span class="text-xs font-bold dark:text-white">${(job.from||'').split(',')[0]} → ${(job.to||'').split(',')[0]}</span></div>
                         <div class="flex justify-between"><span class="text-xs text-slate-400">Date</span><span class="text-xs font-bold dark:text-white">${dt}</span></div>
-                        <div class="flex justify-between"><span class="text-xs text-slate-400">Status</span><span class="text-xs font-bold ${job.status==='completed'?'text-green-600':'text-red-500'}">${job.status?.toUpperCase()}</span></div>
+                        <div class="flex justify-between"><span class="text-xs text-slate-400">Status</span><span class="text-xs font-bold ${job.status==='completed'?'text-green-600':'text-red-500'}">${job.status ? job.status.toUpperCase() : ""}</span></div>
                         <div class="flex justify-between"><span class="text-xs text-slate-400">Type</span><span class="text-xs font-bold ${isFullCab?'text-purple-600':'text-brand-600'}">${isFullCab ? '🚗 FULL CAB' : '👥 SHARED'}</span></div>
                         <div class="flex justify-between"><span class="text-xs text-slate-400">Amount</span><span class="text-sm font-black text-green-600">₹${job.price||0}</span></div>
                     </div>
@@ -1398,30 +1423,155 @@
             if(modBar) modBar.style.width = `${(Math.min(booked,capacity)/capacity)*100}%`;
         };
 
-        window.openSettingsModal = () => document.getElementById('settings-modal').classList.remove('hidden');
+        // HUB COORDINATES for auto-detection (Fix #5)
+        const HUB_LOCATIONS = [
+            { name: 'Karimnagar', lat: 18.4386, lng: 79.1288, aliases: ['karimnagar', 'karim'] },
+            { name: 'RGI Airport', lat: 17.2403, lng: 78.4294, aliases: ['shamshabad', 'rgi', 'airport', 'hyderabad airport'] },
+            { name: 'JBS', lat: 17.4448, lng: 78.4983, aliases: ['jbs', 'secunderabad', 'jubilee'] },
+            { name: 'Hyderabad', lat: 17.3850, lng: 78.4867, aliases: ['hyderabad', 'hyd', 'ameerpet', 'mehdipatnam'] }
+        ];
+
+        function getDistanceKm(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2-lat1) * Math.PI/180;
+            const dLng = (lng2-lng1) * Math.PI/180;
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function detectNearestHub(lat, lng) {
+            let nearest = HUB_LOCATIONS[0];
+            let minDist = Infinity;
+            HUB_LOCATIONS.forEach(hub => {
+                const d = getDistanceKm(lat, lng, hub.lat, hub.lng);
+                if (d < minDist) { minDist = d; nearest = hub; }
+            });
+            return { hub: nearest, distKm: Math.round(minDist) };
+        }
+
+        window.openSettingsModal = () => {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            // FIX #5: Auto-detect location and suggest nearest hub
+            const locationHint = document.getElementById('location-detect-hint');
+            if (locationHint) {
+                locationHint.innerHTML = '<span class="text-blue-500 animate-pulse">📍 Detecting your location...</span>';
+            }
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        const { hub, distKm } = detectNearestHub(latitude, longitude);
+                        if (locationHint) {
+                            locationHint.innerHTML = `<span class="text-green-600 font-bold">📍 You are near: <strong>${hub.name}</strong> (~${distKm} km away)</span>`;
+                        }
+                        // Auto-select the nearest hub radio button (highlight, but don't force-change if already set)
+                        const radioEl = document.querySelector('input[name="route_pref"][value="' + hub.name + '"]');
+                        if (radioEl) {
+                            // If no route currently selected OR current selection differs, suggest the nearest
+                            const currentChecked = document.querySelector('input[name="route_pref"]:checked');
+                            if (!currentChecked || currentChecked.value !== hub.name) {
+                                // Flash the nearest hub radio to draw attention
+                                const label = radioEl.closest('label');
+                                if (label) {
+                                    label.style.borderColor = '#22c55e';
+                                    label.style.backgroundColor = 'rgba(34,197,94,0.08)';
+                                    // Add a "Nearest" badge
+                                    const existingBadge = label.querySelector('.nearest-badge');
+                                    if (!existingBadge) {
+                                        const badge = document.createElement('span');
+                                        badge.className = 'nearest-badge ml-auto text-[9px] font-black bg-green-500 text-white px-1.5 py-0.5 rounded-full';
+                                        badge.textContent = '📍 NEAREST';
+                                        label.appendChild(badge);
+                                    }
+                                    setTimeout(() => {
+                                        label.style.borderColor = '';
+                                        label.style.backgroundColor = '';
+                                    }, 5000);
+                                }
+                                // Auto-select nearest hub
+                                radioEl.checked = true;
+                            }
+                        }
+                    },
+                    (err) => {
+                        if (locationHint) locationHint.innerHTML = '<span class="text-slate-400 text-[10px]">Location unavailable. Select manually.</span>';
+                    },
+                    { timeout: 5000, maximumAge: 60000 }
+                );
+            } else {
+                if (locationHint) locationHint.innerHTML = '<span class="text-slate-400 text-[10px]">GPS not supported. Select manually.</span>';
+            }
+        };
         window.closeSettingsModal = () => document.getElementById('settings-modal').classList.add('hidden');
 
         window.saveSettings = async () => {
             const ac = document.getElementById('setting-ac').checked;
             const routeEl = document.querySelector('input[name="route_pref"]:checked');
-            const newRoute = routeEl ? sanitizeInput(routeEl.value) : driverProfile.prefRoute;
+
+            // STRICT RULE #4: Route selection is MANDATORY
+            if (!routeEl) {
+                showToast("❌ You MUST select a route/hub before saving!", "error");
+                // Highlight the route section
+                const _rEl = document.querySelector('[name="route_pref"]'); const routeSection = _rEl ? _rEl.closest('.space-y-2') : null;
+                if (routeSection) {
+                    routeSection.style.outline = '2px solid #ef4444';
+                    routeSection.style.borderRadius = '12px';
+                    setTimeout(() => { routeSection.style.outline = ''; }, 2000);
+                }
+                return;
+            }
+            const newRoute = sanitizeInput(routeEl.value);
+
+            // STRICT RULE #4: If driver has started trips, they CANNOT change route at all
+            const startedTrips = myActiveJobs.filter(j => j.status === 'started');
+            if (startedTrips.length > 0 && newRoute !== driverProfile.prefRoute) {
+                showToast("❌ Cannot change location while trips are IN PROGRESS. Complete current trips first.", "error");
+                // Revert radio to old value
+                const oldRouteEl = document.querySelector(`input[name="route_pref"][value="${driverProfile.prefRoute}"]`);
+                if (oldRouteEl) oldRouteEl.checked = true;
+                return;
+            }
+
             const assignedCustomers = myActiveJobs.filter(j => ['assigned', 'verified'].includes(j.status));
             if (newRoute !== driverProfile.prefRoute && assignedCustomers.length > 0) {
-                const confirmChange = confirm(`You have ${assignedCustomers.length} assigned customer(s). Changing your location will CANCEL these trips. Do you want to proceed?`);
-                if (!confirmChange) return;
+                const confirmChange = confirm(`⚠️ STRICT RULE: You have ${assignedCustomers.length} assigned customer(s).
+
+Changing your location will IMMEDIATELY CANCEL these trips and refund them.
+
+Are you absolutely sure you want to proceed?`);
+                if (!confirmChange) {
+                    // Revert radio
+                    const oldRouteEl = document.querySelector(`input[name="route_pref"][value="${driverProfile.prefRoute}"]`);
+                    if (oldRouteEl) oldRouteEl.checked = true;
+                    return;
+                }
                 try {
-                    await Promise.all(assignedCustomers.map(job => updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { status: 'cancelled', cancelReason: 'Driver changed location settings' })));
-                    showToast("Existing trips cancelled due to location change", "warning");
+                    await Promise.all(assignedCustomers.map(job => updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), {
+                        status: 'cancelled', cancelReason: 'Driver changed location — auto cancelled', cancelledBy: 'system'
+                    })));
+                    showToast(`${assignedCustomers.length} trip(s) cancelled due to location change`, "warning");
                 } catch (e) { console.error("Error cancelling trips:", e); return showToast("Failed to cancel existing trips", "error"); }
             }
+
+            // STRICT AC: If driver turns ON AC preference, warn they'll see fewer jobs
+            if (ac && !driverProfile.prefAc) {
+                showToast("⚡ AC Mode ON: You will only receive AC vehicle requests.", "info");
+            }
+
             try {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { prefAc: ac, prefRoute: newRoute });
+                await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                    prefAc: ac, prefRoute: newRoute, prefUpdatedAt: serverTimestamp()
+                });
                 driverProfile.prefAc = ac;
                 driverProfile.prefRoute = newRoute;
                 document.getElementById('home-pref-route').innerText = newRoute;
                 document.getElementById('home-pref-ac').innerText = ac ? "AC Only" : "Any Type";
                 closeSettingsModal();
-                showToast("Preferences Updated", "success");
+                showToast("✅ Preferences Saved & Applied", "success");
+                // Re-subscribe to jobs with new preferences
+                if (activeJobsUnsubscribe) activeJobsUnsubscribe();
+                if (marketJobsUnsubscribe) marketJobsUnsubscribe();
+                availableMarketJobs = [];
                 listenToJobs();
             } catch(e) { console.error(e); showToast("Failed to save settings", "error"); }
         };
@@ -1497,6 +1647,7 @@
                     label.className = "text-[10px] font-bold text-green-500 uppercase";
                     card.classList.remove('hidden');
                     if (window.Android) Android.driverOnline(driverProfile.phone || driverId);
+                    startKeepAlive(); // FIX #6: keep driver online in background
                     showToast("You are now ONLINE", "success");
                     // Re-listen to get market jobs now that we're online
                     listenToJobs();
@@ -1576,6 +1727,7 @@
                 availableMarketJobs = [];
                 updateCombinedJobList();
                 if (window.Android) Android.driverOffline(driverProfile.phone || driverId);
+                stopKeepAlive(); // FIX #6
                 showToast("Logged out & seats cleared", "success");
             } catch(e) { console.error(e); showToast("Error going offline", "error"); }
         }
@@ -1782,21 +1934,106 @@
 
         window.submitOtp = async () => {
             if(!pendingVerifyJobId) return;
+            // Collect the 4 digits from the OTP inputs
+            const inputs = document.querySelectorAll('#otp-inputs .otp-input');
+            const enteredPin = Array.from(inputs).map(i => i.value.trim()).join('');
+            if (enteredPin.length < 4) { showToast("Please enter all 4 digits", "warning"); return; }
+
+            const btn = document.getElementById('btn-verify-submit');
+            if (btn) { btn.disabled = true; btn.innerText = "Verifying..."; }
+
             try {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingVerifyJobId), { status: 'verified' });
-                showToast("Passenger Verified", "success");
-                document.getElementById('otp-modal').classList.add('hidden');
-                pendingVerifyJobId = null;
-            } catch(e) { console.error(e); showToast("Error verifying", "error"); }
+                // Fetch the booking doc to get the actual OTP
+                const bookingRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', pendingVerifyJobId);
+                const bookingSnap = await getDoc(bookingRef);
+                if (!bookingSnap.exists()) {
+                    showToast("Booking not found", "error");
+                    if (btn) { btn.disabled = false; btn.innerText = "Verify PIN"; }
+                    return;
+                }
+                const bookingData = bookingSnap.data();
+                const correctOtp = String(bookingData.otp || bookingData.pin || bookingData.verificationPin || '').trim();
+
+                if (!correctOtp) {
+                    // No OTP stored — allow verification (legacy bookings)
+                    showToast("⚠️ No PIN set for this booking. Verifying anyway.", "warning");
+                    await updateDoc(bookingRef, { status: 'verified', verifiedAt: serverTimestamp() });
+                    showToast("Passenger Verified ✅", "success");
+                    document.getElementById('otp-modal').classList.add('hidden');
+                    pendingVerifyJobId = null;
+                } else if (enteredPin === correctOtp) {
+                    await updateDoc(bookingRef, { status: 'verified', verifiedAt: serverTimestamp() });
+                    showToast("Passenger Verified ✅", "success");
+                    document.getElementById('otp-modal').classList.add('hidden');
+                    pendingVerifyJobId = null;
+                } else {
+                    // Wrong PIN — shake the inputs and clear them
+                    const inputContainer = document.getElementById('otp-inputs');
+                    if (inputContainer) {
+                        inputContainer.style.animation = 'none';
+                        inputContainer.offsetHeight; // reflow
+                        inputContainer.style.animation = '';
+                        inputContainer.classList.add('shake-error');
+                        setTimeout(() => inputContainer.classList.remove('shake-error'), 600);
+                    }
+                    Array.from(inputs).forEach(i => { i.value = ''; i.style.borderColor = '#ef4444'; });
+                    setTimeout(() => Array.from(inputs).forEach(i => i.style.borderColor = ''), 1500);
+                    inputs[0].focus();
+                    showToast("❌ Wrong PIN! Ask passenger again.", "error");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Error verifying PIN: " + e.message, "error");
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = "Verify PIN"; }
+            }
         };
 
         window.confirmStartRide = async () => {
             document.getElementById('start-confirm-modal').classList.add('hidden');
             const jobsToStart = myActiveJobs.filter(j => j.status === 'verified');
             if(jobsToStart.length === 0) return;
+
+            // FIX #3: Check if vehicle is full before allowing start
+            const capacity = getTotalCapacity();
+            const bookedSeats = myActiveJobs.filter(j => ['assigned','verified','started'].includes(j.status)).reduce((sum, j) => {
+                if (j.bookingType === 'full') return sum + capacity;
+                return sum + (parseInt(j.passengers)||1);
+            }, 0);
+            const manualSeatsCount = driverProfile ? (driverProfile.manualFilledSeats || 0) : 0;
+            const totalFilled = bookedSeats + manualSeatsCount;
+
+            if (totalFilled < capacity) {
+                const emptySeats = capacity - totalFilled;
+                // Show a dialog asking driver to confirm or add manual passengers
+                const modal = document.createElement('div');
+                modal.id = 'seat-warning-modal';
+                modal.className = 'fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in';
+                modal.innerHTML = `
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-zoom-in">
+                        <div class="text-center mb-5">
+                            <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            </div>
+                            <h3 class="text-lg font-black dark:text-white">Vehicle Not Full</h3>
+                            <p class="text-sm text-slate-500 mt-1">${emptySeats} seat(s) still empty out of ${capacity} total.</p>
+                        </div>
+                        <div class="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl mb-5 border border-orange-100 dark:border-orange-800">
+                            <p class="text-xs text-orange-700 dark:text-orange-400 font-bold text-center">You must fill all ${capacity} seats before starting.<br>Use "Manage Seats" to add manual passengers if needed.</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="document.getElementById('seat-warning-modal').remove()" class="py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl">Cancel</button>
+                            <button onclick="document.getElementById('seat-warning-modal').remove(); openSeatModal();" class="py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg">+ Add Persons</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                return;
+            }
+
             try {
                 await Promise.all(jobsToStart.map(job => updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', job.id), { status: 'started', startTime: serverTimestamp() })));
-                showToast("Trip Started!", "success");
+                showToast("Trip Started! ✅", "success");
             } catch(e) { console.error(e); showToast("Error starting trip", "error"); }
         };
 
@@ -2005,11 +2242,110 @@
         function androidGoOffline(phone) { if (window.Android && phone) Android.driverOffline(phone); }
 
         window.onDriverForcedOffline = function(reason) {
+            // FIX #6: If driver has active/started trips, DO NOT allow force-offline
+            const activeStarted = myActiveJobs.filter(j => ['started'].includes(j.status));
+            if (activeStarted.length > 0) {
+                console.warn("Blocked force-offline: trip in progress. Reason:", reason);
+                // Re-assert online status silently
+                if (driverId && driverProfile && driverProfile.status === 'online') {
+                    updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { status: 'online' }).catch(() => {});
+                }
+                return;
+            }
             alert("You are offline (" + reason.replace('_',' ') + ")");
             const toggle = document.getElementById('status-toggle');
             if (toggle) toggle.checked = false;
             const label = document.getElementById('status-label');
             if (label) { label.textContent = 'Offline'; label.className = "text-[10px] font-bold text-red-500 uppercase"; }
+        };
+
+        // FIX #6: Keep driver online when app goes to background/recent apps
+        // This prevents the OS from marking driver offline when app is minimized
+        let _keepAliveInterval = null;
+
+        function startKeepAlive() {
+            if (_keepAliveInterval) return;
+            _keepAliveInterval = setInterval(async () => {
+                if (!driverId || !driverProfile || driverProfile.status !== 'online') {
+                    stopKeepAlive();
+                    return;
+                }
+                // Re-assert driver is online in Firestore (ping)
+                try {
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                        lastPing: serverTimestamp(),
+                        status: 'online'
+                    });
+                } catch(e) { /* silent */ }
+            }, 30000); // ping every 30s
+        }
+
+        function stopKeepAlive() {
+            if (_keepAliveInterval) { clearInterval(_keepAliveInterval); _keepAliveInterval = null; }
+        }
+
+        // When app goes to background (swipe to recent apps or home)
+        document.addEventListener('visibilitychange', async () => {
+            if (!driverId || !driverProfile) return;
+            if (document.visibilityState === 'hidden') {
+                // App going to background
+                const activeStarted = myActiveJobs.filter(j => ['started', 'assigned', 'verified'].includes(j.status));
+                if (activeStarted.length > 0 && driverProfile.status === 'online') {
+                    // Trip is running — keep online status. Tell Android layer too.
+                    if (window.Android && typeof window.Android.driverOnline === 'function') {
+                        Android.driverOnline(driverProfile.phone || driverId);
+                    }
+                    // Keep-alive ping to Firestore
+                    try {
+                        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), {
+                            status: 'online', lastPing: serverTimestamp(), tripRunning: true
+                        });
+                    } catch(e) { /* silent */ }
+                }
+            } else if (document.visibilityState === 'visible') {
+                // App came back to foreground — restore UI state
+                if (driverProfile && driverProfile.status === 'online') {
+                    const toggle = document.getElementById('status-toggle');
+                    if (toggle) toggle.checked = true;
+                    const label = document.getElementById('status-label');
+                    if (label) { label.textContent = 'Online'; label.className = 'text-[10px] font-bold text-green-500 uppercase'; }
+                    // Re-sync seat UI
+                    updateSeatUI();
+                    syncDriverState();
+                }
+            }
+        });
+
+        // Also handle pagehide (physical home button, task switcher)
+        window.addEventListener('pagehide', async (e) => {
+            if (!driverId || !driverProfile) return;
+            const activeStarted = myActiveJobs.filter(j => ['started', 'assigned', 'verified'].includes(j.status));
+            if (activeStarted.length > 0 && driverProfile.status === 'online') {
+                // Use sendBeacon if available for reliability
+                if (navigator.sendBeacon) {
+                    // Can't call Firestore directly, but we can use Android bridge
+                }
+                if (window.Android && typeof window.Android.driverOnline === 'function') {
+                    Android.driverOnline(driverProfile.phone || driverId);
+                }
+            }
+        });
+
+        // Expose to Android: called by native code when app resumes
+        window.onAppResume = function() {
+            if (!driverId || !driverProfile) return;
+            if (driverProfile.status === 'online') {
+                const toggle = document.getElementById('status-toggle');
+                if (toggle) toggle.checked = true;
+                const label = document.getElementById('status-label');
+                if (label) { label.textContent = 'Online'; label.className = 'text-[10px] font-bold text-green-500 uppercase'; }
+                const card = document.getElementById('trip-status-card');
+                if (card) card.classList.remove('hidden');
+                // Re-assert online in Firestore
+                updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', driverId), { status: 'online', lastPing: serverTimestamp() }).catch(() => {});
+                updateSeatUI();
+                syncDriverState();
+            }
         };
     </script>
 </body>
