@@ -1164,6 +1164,7 @@
                 const safeName = sanitizeInput(name);
                 const safePhone = sanitizeInput(phone);
                 await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', cred.user.uid), {
+                    uid: cred.user.uid,
                     name: safeName,
                     email: email,
                     phone: safePhone,
@@ -1209,6 +1210,7 @@
             if (!/^\d{10}$/.test(safePhone)) return alert("Valid 10-digit phone number required");
             try {
                 await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', auth.currentUser.uid), { 
+                    uid: auth.currentUser.uid,
                     name: safeName, 
                     email: auth.currentUser.email || '',
                     phone: safePhone,
