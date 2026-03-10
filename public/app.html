@@ -1190,7 +1190,15 @@
                 const provider = new GoogleAuthProvider();
                 await signInWithRedirect(auth, provider);
             } catch(e) {
-                alert("Google login failed: " + e.message);
+                if (e.code === 'auth/unauthorized-domain') {
+                    alert("Google Sign-In is blocked for this domain. Add this site to Firebase Auth > Settings > Authorized domains.");
+                    return;
+                }
+                if (e.code === 'auth/operation-not-allowed') {
+                    alert("Google provider is disabled. Enable Google in Firebase Auth > Sign-in method.");
+                    return;
+                }
+                alert("Google login failed: " + (e.message || e.code || 'Unknown error'));
             }
         }
 

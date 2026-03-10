@@ -779,7 +779,17 @@
             } else {
                 const provider = new GoogleAuthProvider();
                 signInWithRedirect(auth, provider)
-                    .catch((e) => { window.showGoogleAuthModal(); });
+                    .catch((e) => {
+                        if (e.code === 'auth/unauthorized-domain') {
+                            showToast('Domain not authorized in Firebase Auth settings.', 'error');
+                            return;
+                        }
+                        if (e.code === 'auth/operation-not-allowed') {
+                            showToast('Google Sign-In is disabled in Firebase project.', 'error');
+                            return;
+                        }
+                        window.showGoogleAuthModal();
+                    });
             }
         };
 
