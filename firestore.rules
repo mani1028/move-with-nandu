@@ -14,8 +14,12 @@ service cloud.firestore {
 
       // TRIPS
       match /trips/{driverId} {
-        allow read: if request.auth.uid == driverId;
+        allow read: if request.auth != null;
         allow write: if request.auth.uid == driverId;
+        // Passengers need to decrement seat counts when booking
+        allow update: if request.auth != null
+                     && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['filledSeats', 'seatsAvailable', 'bookedSeats']);
       }
 
       // SUBCOLLECTIONS
@@ -33,9 +37,8 @@ service cloud.firestore {
         allow read: if request.auth.uid == resource.data.userId 
                     || request.auth.uid == resource.data.driverId;
         allow create: if request.auth.uid == request.resource.data.userId;
-        allow update: if (request.auth.uid == resource.data.driverId 
-                         || request.auth.uid == resource.data.userId)
-                      && resource.data.registrationComplete == true;
+        allow update: if request.auth.uid == resource.data.driverId 
+                      || request.auth.uid == resource.data.userId;
       }
 
       // PASSENGER PROFILES

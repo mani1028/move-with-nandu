@@ -766,8 +766,9 @@
         function isWebView() { return /wv|WebView|FBAN|FBAV|Instagram|Line|Twitter/i.test(navigator.userAgent); }
         if (isWebView() && !isPWKApp()) { alert("Please open this page in Chrome for secure login."); }
 
-        import { firebaseConfig } from './firebase-config.js';
+        import { firebaseConfig, cleanupStaleFirebaseAuthStorage } from './firebase-config.js';
         const app = initializeApp(firebaseConfig);
+        cleanupStaleFirebaseAuthStorage();
         const auth = getAuth(app);
         const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
