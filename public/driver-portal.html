@@ -1733,6 +1733,7 @@ Are you absolutely sure you want to proceed?`);
         }
 
         window.logout = async function() {
+            stopKeepAlive(); // ✅ Cleanup interval to prevent memory leak
             if(confirm("Are you sure you want to log out?")) {
                 let driverPhoneNumber = null;
                 if (auth.currentUser && auth.currentUser.phoneNumber) driverPhoneNumber = auth.currentUser.phoneNumber;

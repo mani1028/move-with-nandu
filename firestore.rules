@@ -1,35 +1,49 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    match /artifacts/travel-nandu-v1 {
-      // Allow drivers to read/write their own profile (ID can be UID or Phone)
-      match /drivers/{identifier} {
-        allow read, write: if isSignedIn();
+    match /artifacts/{appId} {
+      // DRIVERS - Strict UID validation
+      match /drivers/{driverId} {
+        allow read: if request.auth.uid == driverId;
+        allow create: if request.auth.uid == request.resource.data.uid 
+                     && request.resource.data.registrationComplete == true;
+        allow update: if request.auth.uid == driverId 
+                     && resource.data.registrationComplete == true;
+        allow delete: if false;
       }
 
-      // Allow drivers to sync their live trip document
+      // TRIPS
       match /trips/{driverId} {
-        allow read, write: if isSignedIn();
+        allow read: if request.auth.uid == driverId;
+        allow write: if request.auth.uid == driverId;
       }
 
-      // Allow drivers to see available jobs and their assigned jobs
-      match /public/data/bookings/{bookingId} {
-        allow read: if isSignedIn();
-        allow update: if isSignedIn() && 
-          (resource.data.status == 'pending' || resource.data.driverId == request.auth.uid);
-      }
-
-      // Allow drivers to manage their own wallet and expenses
+      // SUBCOLLECTIONS
       match /drivers/{driverId}/expenses/{expenseId} {
-        allow read, write: if isSignedIn();
+        allow read, create, update, delete: if request.auth.uid == driverId;
       }
+
       match /drivers/{driverId}/wallet_txns/{txnId} {
-        allow read: if isSignedIn();
-        allow create: if isSignedIn();
+        allow read, create: if request.auth.uid == driverId;
+        allow delete: if false;
+      }
+
+      // BOOKINGS
+      match /public/data/bookings/{bookingId} {
+        allow read: if request.auth.uid == resource.data.userId 
+                    || request.auth.uid == resource.data.driverId;
+        allow create: if request.auth.uid == request.resource.data.userId;
+        allow update: if (request.auth.uid == resource.data.driverId 
+                         || request.auth.uid == resource.data.userId)
+                      && resource.data.registrationComplete == true;
+      }
+
+      // PASSENGER PROFILES
+      match /public/data/user_profiles/{userId} {
+        allow read: if request.auth.uid == userId;
+        allow create: if request.auth.uid == request.resource.data.uid 
+                     && request.resource.data.registrationComplete == true;
+        allow update: if request.auth.uid == userId;
       }
     }
   }
