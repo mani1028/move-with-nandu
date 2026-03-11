@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "C:/Python313/python.exe",
+  "python.analysis.autoImportCompletions": true,
+  "pyre.pythonPath": "C:/Python313/python.exe",
+  "pyre.searchPath": [
+    "C:/Python313/Lib/site-packages",
+    "C:/Users/HP/AppData/Roaming/Python/Python313/site-packages"
+  ]
+}

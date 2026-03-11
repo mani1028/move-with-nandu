@@ -1,0 +1,15 @@
+{
+  "site_root": ".",
+  "source_directories": [
+    {
+      "import_root": ".",
+      "source": "backend"
+    }
+  ],
+  "search_path": [
+    "C:/Python313/Lib/site-packages",
+    "C:/Users/HP/AppData/Roaming/Python/Python313/site-packages"
+  ],
+  "python_version": "3.13",
+  "platform": "windows"
+}

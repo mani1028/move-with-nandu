@@ -27,14 +27,14 @@
 <!-- ===================== LOGIN SCREEN ===================== -->
 <div id="admin-login-screen" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center">
     <div class="bg-white p-8 rounded-2xl w-full max-w-sm text-center shadow-2xl">
-        <div class="w-16 h-16 bg-blue-600 rounded-xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
+        <div class="w-16 h-16 bg-orange-600 rounded-xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30">
             <i data-lucide="shield-check" class="h-8 w-8 text-white"></i>
         </div>
         <h2 class="text-2xl font-black text-slate-900 mb-1">Admin Portal</h2>
         <p class="text-slate-500 text-sm mb-6">Nandu Travels — Super Admin</p>
         <div class="space-y-3 mb-4">
-            <input type="email" id="admin-email" placeholder="admin@nandutravels.com" class="w-full bg-slate-100 border border-slate-200 p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-blue-500 transition">
-            <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-slate-100 border border-slate-200 p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="email" id="admin-email" placeholder="admin@nandutravels.com" class="w-full bg-slate-100 border border-slate-200 p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-orange-500 transition">
+            <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-slate-100 border border-slate-200 p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-orange-500 transition">
         </div>
         <div id="login-error" class="text-red-500 text-xs font-bold mb-3 hidden"></div>
         <button onclick="checkAdmin()" id="login-btn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg">Login to Dashboard</button>
@@ -44,12 +44,12 @@
 <!-- ===================== SIDEBAR ===================== -->
 <aside class="w-64 bg-slate-900 text-white flex flex-col shrink-0">
     <div class="p-6 border-b border-slate-800">
-        <h1 class="text-xl font-black tracking-tight">Nandu<span class="text-blue-500">Admin</span></h1>
+        <h1 class="text-xl font-black tracking-tight">Nandu<span class="text-orange-500">Admin</span></h1>
         <p class="text-xs text-slate-500 mt-1">Super Admin Console</p>
     </div>
     <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
         <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Operations</div>
-        <button onclick="switchTab('live')" id="nav-live" class="nav-btn active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold transition text-sm"><i data-lucide="activity" class="h-4 w-4 shrink-0"></i> Live Bookings <span id="nav-live-badge" class="ml-auto bg-white/20 text-white text-[10px] px-1.5 rounded-full hidden"></span></button>
+        <button onclick="switchTab('live')" id="nav-live" class="nav-btn active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-orange-600 text-white font-semibold transition text-sm"><i data-lucide="activity" class="h-4 w-4 shrink-0"></i> Live Bookings <span id="nav-live-badge" class="ml-auto bg-white/20 text-white text-[10px] px-1.5 rounded-full hidden"></span></button>
         <button onclick="switchTab('monitor')" id="nav-monitor" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="monitor-play" class="h-4 w-4 shrink-0"></i> Master Monitor</button>
         <button onclick="switchTab('drivers')" id="nav-drivers" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="car" class="h-4 w-4 shrink-0"></i> Drivers & Docs</button>
         <button onclick="switchTab('customers')" id="nav-customers" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="users" class="h-4 w-4 shrink-0"></i> Customers</button>
@@ -57,6 +57,7 @@
         <button onclick="switchTab('coupons')" id="nav-coupons" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="ticket" class="h-4 w-4 shrink-0"></i> Coupons</button>
         <button onclick="switchTab('support')" id="nav-support" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="life-buoy" class="h-4 w-4 shrink-0"></i> Help Desk <span id="nav-support-badge" class="ml-auto bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden"></span></button>
         <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="bar-chart-3" class="h-4 w-4 shrink-0"></i> Analytics</button>
+        <button onclick="switchTab('admins')" id="nav-admins" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="shield" class="h-4 w-4 shrink-0"></i> Admin Team</button>
         <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="settings-2" class="h-4 w-4 shrink-0"></i> Settings</button>
         <div class="mt-4 pt-4 border-t border-slate-800">
             <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-900/20 font-medium transition text-sm"><i data-lucide="log-out" class="h-4 w-4 shrink-0"></i> Logout</button>
@@ -383,6 +384,67 @@
             </div>
         </div>
 
+        <!-- ========== VIEW: ADMIN MANAGEMENT ========== -->
+        <div id="view-admins" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-800">Admin Team Management</h3>
+                    <p class="text-sm text-slate-500">Create, update, and manage admin accounts</p>
+                </div>
+                <button onclick="openAdminCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition flex items-center gap-2"><i data-lucide="plus" class="h-4 w-4"></i> Add Admin</button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto custom-scroll">
+                    <table class="w-full text-sm text-left min-w-[700px]">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Name</th>
+                                <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Phone</th>
+                                <th class="px-4 py-3">Created</th>
+                                <th class="px-4 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admins-table-body" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Create/Update Modal -->
+        <div id="admin-modal" class="fixed inset-0 bg-black/50 modal-overlay hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-2xl w-full max-w-md p-6 mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold" id="admin-modal-title">Create Admin</h3>
+                    <button onclick="closeModal('admin-modal')" class="text-slate-400 hover:text-slate-900"><i data-lucide="x" class="h-5 w-5"></i></button>
+                </div>
+                <div class="space-y-3 mb-4">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Name</label>
+                        <input type="text" id="admin-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. John Doe">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Email</label>
+                        <input type="email" id="admin-email-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="admin@example.com">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Phone (Optional)</label>
+                        <input type="tel" id="admin-phone-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="+91 98765 43210">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Password</label>
+                        <input type="password" id="admin-password-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Strong password">
+                    </div>
+                </div>
+                <div id="admin-modal-error" class="text-red-500 text-xs font-bold mb-3 hidden"></div>
+                <div class="flex gap-3">
+                    <button onclick="closeModal('admin-modal')" class="flex-1 py-3 bg-slate-100 font-bold rounded-xl text-slate-600">Cancel</button>
+                    <button onclick="saveAdmin()" id="admin-save-btn" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700">Create</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== VIEW: SETTINGS ========== -->
         <div id="view-settings" class="hidden space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -542,30 +604,39 @@
 <div id="toast-container" class="fixed bottom-5 right-5 z-[200] space-y-2"></div>
 
 <!-- ===================== SCRIPT ===================== -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, query, orderBy, setDoc, serverTimestamp, addDoc, deleteDoc, getDoc, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<script>
+    const API = 'http://localhost:8000';
 
-        import { firebaseConfig, cleanupStaleFirebaseAuthStorage } from './firebase-config.js';
-
-    const app = initializeApp(firebaseConfig);
-        cleanupStaleFirebaseAuthStorage();
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const APP_ID = 'travel-nandu-v1';
-
-    // State
     let drivers = [], bookingsCache = [], customers = [], coupons = [], supportTickets = [], broadcasts = [];
     let cancelTargetId = null, docTargetId = null, supportTargetId = null;
     let revChart = null, srvChart = null;
     let seatEditId = null, seatEditMax = 7, seatEditCurrent = 0;
+    let pollTimer = null;
 
-    // ==================== UTILITIES ====================
+    function getToken() { return localStorage.getItem('nandu_admin_token'); }
+    function setToken(t) { localStorage.setItem('nandu_admin_token', t); }
+    function clearToken() { localStorage.removeItem('nandu_admin_token'); }
+
+    async function apiFetch(path, options = {}) {
+        const token = getToken();
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const res = await fetch(API + path, { ...options, headers });
+        if (!res.ok) {
+            let msg = 'Request failed';
+            try {
+                const data = await res.json();
+                msg = data.detail || msg;
+            } catch (e) {}
+            throw new Error(msg);
+        }
+        return res.json();
+    }
+
     window.showToast = (msg, type = 'success') => {
         const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600', warn: 'bg-orange-500' };
         const t = document.createElement('div');
-        t.className = `toast ${colors[type]||colors.info} text-white px-4 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-2`;
+        t.className = `toast ${colors[type] || colors.info} text-white px-4 py-3 rounded-xl shadow-xl text-sm font-bold flex items-center gap-2`;
         t.innerHTML = `<span>${msg}</span>`;
         document.getElementById('toast-container').appendChild(t);
         setTimeout(() => t.remove(), 3500);
@@ -580,167 +651,205 @@
 
     function fmtDate(ts) {
         if (!ts) return '-';
-        const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+        const d = new Date(ts);
         return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
     }
 
     function fmtTime(ts) {
         if (!ts) return '-';
-        const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+        const d = new Date(ts);
         return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
     }
 
     function fmtDateTime(ts) {
         if (!ts) return '-';
-        const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+        const d = new Date(ts);
         return d.toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function isToday(ts) {
         if (!ts) return false;
-        const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
-        const now = new Date();
-        return d.toDateString() === now.toDateString();
+        const d = new Date(ts);
+        return d.toDateString() === new Date().toDateString();
+    }
+
+    function normalizeBooking(b) {
+        const serviceName = b.service_type === 'ambulance'
+            ? 'Ambulance'
+            : (b.booking_type === 'shared' ? 'Shared Seat' : 'Full Cab');
+        const rawPrice = parseInt((String(b.price || '0')).replace(/[^0-9]/g, '')) || 0;
+        return {
+            ...b,
+            name: b.user_name || 'Guest',
+            mobile: b.user_phone || '-',
+            from: b.from_loc || '-',
+            to: b.to_loc || '-',
+            driverName: b.driver_name || '',
+            createdAt: b.created_at || null,
+            dateObj: b.created_at ? new Date(b.created_at) : new Date(0),
+            serviceName,
+            rawPrice
+        };
     }
 
     window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
 
-    // ==================== AUTH ====================
     window.checkAdmin = async () => {
         const email = document.getElementById('admin-email').value.trim();
         const pass = document.getElementById('admin-pass').value;
         const btn = document.getElementById('login-btn');
         const err = document.getElementById('login-error');
         err.classList.add('hidden');
-        if (!email || !pass) { err.innerText = 'Please enter email and password.'; err.classList.remove('hidden'); return; }
-        btn.innerText = 'Verifying…'; btn.disabled = true;
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (e) {
-            err.innerText = '❌ ' + (e.code === 'auth/invalid-credential' ? 'Invalid email or password.' : e.message);
+        if (!email || !pass) {
+            err.innerText = 'Please enter email and password.';
             err.classList.remove('hidden');
-            btn.innerText = 'Login to Dashboard'; btn.disabled = false;
+            return;
+        }
+        btn.innerText = 'Verifying...';
+        btn.disabled = true;
+        try {
+            const data = await apiFetch('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password: pass })
+            });
+            if (!data.user || data.user.role !== 'admin') {
+                throw new Error('Admin access required');
+            }
+            setToken(data.access_token);
+            document.getElementById('admin-login-screen').style.display = 'none';
+            const disp = document.getElementById('admin-user-display');
+            disp.innerText = data.user.name || data.user.email || email;
+            disp.classList.remove('hidden');
+            init();
+        } catch (e) {
+            err.innerText = '❌ ' + e.message;
+            err.classList.remove('hidden');
+            btn.innerText = 'Login to Dashboard';
+            btn.disabled = false;
         }
     };
 
     window.logout = async () => {
-        await signOut(auth);
+        clearToken();
+        if (pollTimer) clearInterval(pollTimer);
         location.reload();
     };
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
+    async function bootstrapAuth() {
+        const token = getToken();
+        if (!token) {
+            document.getElementById('admin-login-screen').style.display = 'flex';
+            return;
+        }
+        try {
+            const me = await apiFetch('/api/auth/me');
+            if (me.role !== 'admin') throw new Error('Admin access required');
             document.getElementById('admin-login-screen').style.display = 'none';
             const disp = document.getElementById('admin-user-display');
-            disp.innerText = user.email;
+            disp.innerText = me.name || me.email || 'Admin';
             disp.classList.remove('hidden');
             init();
-        } else {
+        } catch (e) {
+            clearToken();
             document.getElementById('admin-login-screen').style.display = 'flex';
         }
-    });
+    }
 
-    // ==================== INIT LISTENERS ====================
+    async function loadDashboardData() {
+        const [stats, bookings, driverList, userList, couponList, ticketList, settings, broadcastList] = await Promise.all([
+            apiFetch('/api/admin/stats').catch(() => ({ pending: 0, active: 0, total_drivers: 0, online_drivers: 0, total_users: 0, open_tickets: 0 })),
+            apiFetch('/api/admin/bookings').catch(() => []),
+            apiFetch('/api/admin/drivers').catch(() => []),
+            apiFetch('/api/admin/users').catch(() => []),
+            apiFetch('/api/admin/coupons').catch(() => []),
+            apiFetch('/api/admin/support').catch(() => []),
+            apiFetch('/api/admin/settings').catch(() => ({})),
+            apiFetch('/api/admin/broadcasts').catch(() => [])
+        ]);
+
+        bookingsCache = bookings.map(normalizeBooking);
+        drivers = driverList.map(d => ({
+            ...d,
+            vehicleNo: d.plate,
+            vehicleType: d.vehicle_type,
+            isVerified: !!d.is_verified,
+            isBlocked: d.status === 'blocked',
+            seatsTotal: Number(d.seats_total || 0),
+            filledSeats: Number(d.filled_seats || 0),
+            licenseUrl: d.license_url || '',
+            aadharUrl: d.aadhar_url || '',
+            rcUrl: d.rc_url || '',
+            insuranceUrl: d.insurance_url || '',
+            docStatus: d.doc_status || 'pending'
+        }));
+        customers = userList.map(u => ({ ...u, mobile: u.phone, joinedAt: u.created_at }));
+        coupons = couponList.map(c => ({ ...c, minFare: c.min_fare }));
+        supportTickets = ticketList.map(t => ({
+            ...t,
+            category: t.issue_type,
+            issue: t.description,
+            userName: t.user_name,
+            mobile: '-',
+            createdAt: t.created_at,
+            adminNote: t.admin_reply
+        }));
+        broadcasts = broadcastList.map(b => ({ ...b, createdAt: b.created_at }));
+
+        document.getElementById('stat-pending').innerText = stats.pending || 0;
+        document.getElementById('stat-active').innerText = stats.active || 0;
+        document.getElementById('stat-online-drivers').innerText = stats.online_drivers || 0;
+        document.getElementById('stat-total-drivers').innerText = stats.total_drivers || 0;
+        document.getElementById('stat-total-users').innerText = stats.total_users || 0;
+        document.getElementById('stat-tickets').innerText = stats.open_tickets || 0;
+
+        const todayRev = bookingsCache.filter(b => b.status === 'completed' && isToday(b.createdAt)).reduce((acc, b) => acc + b.rawPrice, 0);
+        const todayComp = bookingsCache.filter(b => b.status === 'completed' && isToday(b.createdAt)).length;
+        const todayCan = bookingsCache.filter(b => b.status === 'cancelled' && isToday(b.createdAt)).length;
+        document.getElementById('today-revenue').innerText = todayRev.toLocaleString('en-IN');
+        document.getElementById('today-completed').innerText = todayComp;
+        document.getElementById('today-cancelled').innerText = todayCan;
+
+        const liveBadge = document.getElementById('nav-live-badge');
+        if ((stats.pending || 0) > 0) {
+            liveBadge.innerText = stats.pending;
+            liveBadge.classList.remove('hidden');
+        } else {
+            liveBadge.classList.add('hidden');
+        }
+
+        const supportBadge = document.getElementById('nav-support-badge');
+        if ((stats.open_tickets || 0) > 0) {
+            supportBadge.innerText = stats.open_tickets;
+            supportBadge.classList.remove('hidden');
+        } else {
+            supportBadge.classList.add('hidden');
+        }
+
+        const surge = parseFloat(settings.surge_multiplier || 1).toFixed(1);
+        document.getElementById('surge-slider').value = surge;
+        document.getElementById('surge-value').innerText = `${surge}x`;
+        document.getElementById('toggle-auto-assign').checked = String(settings.auto_assign).toLowerCase() === 'true';
+        document.getElementById('toggle-accept-bookings').checked = String(settings.accept_bookings).toLowerCase() === 'true';
+        document.getElementById('toggle-maintenance').checked = String(settings.maintenance).toLowerCase() === 'true';
+
+        renderLiveFeed();
+        renderMonitor();
+        renderDrivers();
+        renderCoupons();
+        renderSupport();
+        renderBroadcasts();
+        if (!document.getElementById('view-customers').classList.contains('hidden')) renderCustomers();
+        if (!document.getElementById('view-analytics').classList.contains('hidden')) renderAnalytics();
+    }
+
     function init() {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         document.getElementById('dash-start').valueAsDate = firstDay;
         document.getElementById('dash-end').valueAsDate = today;
-
-        // 1. BOOKINGS
-        onSnapshot(
-            query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), orderBy('createdAt', 'desc'), limit(200)),
-            (snap) => {
-                bookingsCache = [];
-                let pending = 0, active = 0, todayRev = 0, todayComp = 0, todayCan = 0;
-                snap.forEach(d => {
-                    const b = { id: d.id, ...d.data() };
-                    b.dateObj = b.createdAt ? new Date(b.createdAt.seconds * 1000) : new Date(0);
-                    b.rawPrice = parseInt((String(b.price || '0')).replace(/[^0-9]/g, '')) || 0;
-                    bookingsCache.push(b);
-                    if (b.status === 'pending') pending++;
-                    if (['assigned', 'started'].includes(b.status)) active++;
-                    if (isToday(b.createdAt)) {
-                        if (b.status === 'completed') { todayRev += b.rawPrice; todayComp++; }
-                        if (b.status === 'cancelled') todayCan++;
-                    }
-                });
-                document.getElementById('stat-pending').innerText = pending;
-                document.getElementById('stat-active').innerText = active;
-                document.getElementById('today-revenue').innerText = todayRev.toLocaleString('en-IN');
-                document.getElementById('today-completed').innerText = todayComp;
-                document.getElementById('today-cancelled').innerText = todayCan;
-                // Pending badge
-                const badge = document.getElementById('nav-live-badge');
-                if (pending > 0) { badge.innerText = pending; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
-                renderLiveFeed(); renderMonitor(); renderAnalytics();
-            }
-        );
-
-        // 2. DRIVERS
-        onSnapshot(query(collection(db, 'artifacts', APP_ID, 'drivers'), limit(200)), (snap) => {
-            drivers = [];
-            snap.forEach(d => drivers.push({ id: d.id, ...d.data() }));
-            document.getElementById('stat-online-drivers').innerText = drivers.filter(d => d.status === 'online').length;
-            document.getElementById('stat-total-drivers').innerText = drivers.length;
-            renderDrivers();
-        });
-
-        // 3. USERS
-        onSnapshot(query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles'), limit(500)), (snap) => {
-            customers = [];
-            snap.forEach(d => {
-                const data = d.data();
-                if (!data.mobile) data.mobile = d.id;
-                customers.push({ id: d.id, ...data });
-            });
-            document.getElementById('stat-total-users').innerText = customers.length;
-            if (document.getElementById('view-customers') && !document.getElementById('view-customers').classList.contains('hidden')) renderCustomers();
-        });
-
-        // 4. COUPONS
-        onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'coupons'), (snap) => {
-            coupons = [];
-            snap.forEach(d => coupons.push({ id: d.id, ...d.data() }));
-            renderCoupons();
-        });
-
-        // 5. SUPPORT TICKETS
-        onSnapshot(
-            query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'support'), orderBy('createdAt', 'desc'), limit(100)),
-            (snap) => {
-                supportTickets = [];
-                snap.forEach(d => supportTickets.push({ id: d.id, ...d.data() }));
-                const open = supportTickets.filter(t => t.status !== 'resolved').length;
-                document.getElementById('stat-tickets').innerText = open;
-                const badge = document.getElementById('nav-support-badge');
-                if (open > 0) { badge.innerText = open; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
-                renderSupport();
-            }
-        );
-
-        // 6. SETTINGS
-        onSnapshot(doc(db, 'artifacts', APP_ID, 'settings', 'config'), (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                const val = parseFloat(data.surgeMultiplier || 1).toFixed(1);
-                document.getElementById('surge-slider').value = val;
-                document.getElementById('surge-value').innerText = val + 'x';
-                if (data.autoAssign !== undefined) document.getElementById('toggle-auto-assign').checked = data.autoAssign;
-                if (data.acceptBookings !== undefined) document.getElementById('toggle-accept-bookings').checked = data.acceptBookings;
-                if (data.maintenance !== undefined) document.getElementById('toggle-maintenance').checked = data.maintenance;
-            }
-        });
-
-        // 7. BROADCASTS
-        onSnapshot(
-            query(collection(db, 'artifacts', APP_ID, 'public', 'broadcasts'), orderBy('createdAt', 'desc'), limit(10)),
-            (snap) => {
-                broadcasts = [];
-                snap.forEach(d => broadcasts.push({ id: d.id, ...d.data() }));
-                renderBroadcasts();
-            }
-        );
+        loadDashboardData().catch((e) => showToast(e.message, 'error'));
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(() => loadDashboardData().catch(() => {}), 8000);
     }
 
     // ==================== RENDERERS ====================
@@ -807,7 +916,7 @@
         const html = data.map(d => {
             const statusColor = d.status === 'online' ? 'bg-green-100 text-green-700' : d.isBlocked ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500';
             const isSeven = (d.vehicleType || '').toLowerCase().includes('7') || (d.vehicleType || '').toLowerCase().includes('innova');
-            const totalSeats = isSeven ? 7 : 5;
+            const totalSeats = d.seatsTotal || (isSeven ? 7 : 5);
             const filled = d.filledSeats || 0;
             const rating = d.rating ? `⭐ ${parseFloat(d.rating).toFixed(1)}` : '⭐ N/A';
             const ratingColor = d.rating && d.rating < 3.5 ? 'text-red-600 font-bold' : 'text-slate-600';
@@ -850,7 +959,7 @@
         if (search) data = data.filter(c => (c.name || '').toLowerCase().includes(search) || (c.mobile || '').includes(search));
 
         const html = data.map(c => {
-            const bookingCount = bookingsCache.filter(b => b.mobile === c.mobile || b.userId === c.id).length;
+            const bookingCount = bookingsCache.filter(b => b.mobile === c.mobile || b.user_id === c.id).length;
             const dateStr = c.createdAt ? fmtDate(c.createdAt) : c.joinedAt ? fmtDate(c.joinedAt) : '—';
             const phone = (c.mobile || '').replace(/\D/g, '');
             return `<tr class="border-b border-slate-50 hover:bg-slate-50">
@@ -875,7 +984,7 @@
             const exp = new Date(c.expiry);
             const isExpired = exp < today;
             return `<tr class="border-b border-slate-50 hover:bg-slate-50">
-                <td class="px-4 py-3 font-black text-slate-900 font-mono">${sanitize(c.id)}</td>
+                <td class="px-4 py-3 font-black text-slate-900 font-mono">${sanitize(c.code || c.id)}</td>
                 <td class="px-4 py-3 font-bold text-blue-600">₹${c.discount || 0} off</td>
                 <td class="px-4 py-3 text-xs text-slate-500">${c.minFare ? '₹' + c.minFare + ' min' : '—'}</td>
                 <td class="px-4 py-3 text-xs text-slate-500">${c.expiry || '—'}</td>
@@ -1005,20 +1114,23 @@
         const exp = document.getElementById('cpn-expiry').value;
         if (!code || !amt || !exp) return showToast('Fill all coupon fields', 'warn');
         try {
-            await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'coupons', code), {
-                discount: amt, minFare: min, expiry: exp, createdAt: serverTimestamp()
+            await apiFetch('/api/admin/coupons', {
+                method: 'POST',
+                body: JSON.stringify({ code, discount: amt, min_fare: min, expiry: exp })
             });
             showToast(`Coupon ${code} created!`);
             document.getElementById('cpn-code').value = '';
             document.getElementById('cpn-amount').value = '';
             document.getElementById('cpn-min').value = '';
+            await loadDashboardData();
         } catch (e) { showToast('Failed to create coupon: ' + e.message, 'error'); }
     };
 
     window.deleteCoupon = async (id) => {
         if (!confirm(`Delete coupon ${id}?`)) return;
-        await deleteDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'coupons', id));
+        await apiFetch(`/api/admin/coupons/${id}`, { method: 'DELETE' });
         showToast(`Coupon ${id} deleted`, 'info');
+        await loadDashboardData();
     };
 
     window.initForceCancel = (id) => {
@@ -1030,45 +1142,65 @@
     window.confirmForceCancel = async () => {
         if (!cancelTargetId) return;
         const reason = document.getElementById('cancel-reason-input').value || 'Admin Forced';
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', cancelTargetId), {
-            status: 'cancelled', cancelReason: reason, cancelledAt: serverTimestamp(), cancelledBy: 'admin'
+        await apiFetch(`/api/admin/bookings/${cancelTargetId}/cancel`, {
+            method: 'PATCH',
+            body: JSON.stringify({ reason })
         });
         closeModal('force-cancel-modal');
         showToast('Booking cancelled successfully');
+        await loadDashboardData();
     };
 
     window.verifyDriver = async (id, val) => {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', id), { isVerified: val });
+        await apiFetch(`/api/admin/drivers/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ is_verified: val })
+        });
         showToast(val ? 'Driver verified ✓' : 'Verification removed');
+        await loadDashboardData();
     };
 
     window.toggleBlock = async (id, status) => {
         if (!confirm(status ? 'Block this driver?' : 'Unblock this driver?')) return;
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', id), { isBlocked: status });
+        await apiFetch(`/api/admin/drivers/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: status ? 'blocked' : 'offline' })
+        });
         showToast(status ? 'Driver blocked' : 'Driver unblocked', status ? 'warn' : 'success');
+        await loadDashboardData();
     };
 
     window.saveSurge = async () => {
         const val = parseFloat(document.getElementById('surge-slider').value);
-        await setDoc(doc(db, 'artifacts', APP_ID, 'settings', 'config'), { surgeMultiplier: val }, { merge: true });
+        await apiFetch('/api/admin/settings', {
+            method: 'PATCH',
+            body: JSON.stringify({ surge_multiplier: val })
+        });
         showToast(`Surge set to ${val}x`);
     };
 
     window.saveConfig = async () => {
-        await setDoc(doc(db, 'artifacts', APP_ID, 'settings', 'config'), {
-            autoAssign: document.getElementById('toggle-auto-assign').checked,
-            acceptBookings: document.getElementById('toggle-accept-bookings').checked,
-            maintenance: document.getElementById('toggle-maintenance').checked,
-        }, { merge: true });
+        await apiFetch('/api/admin/settings', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                auto_assign: document.getElementById('toggle-auto-assign').checked,
+                accept_bookings: document.getElementById('toggle-accept-bookings').checked,
+                maintenance: document.getElementById('toggle-maintenance').checked
+            })
+        });
         showToast('Configuration saved!');
     };
 
     window.sendBroadcast = async () => {
         const msg = document.getElementById('broadcast-msg').value.trim();
         if (!msg) return showToast('Enter a message first', 'warn');
-        await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'broadcasts'), { message: msg, createdAt: serverTimestamp() });
+        await apiFetch('/api/admin/broadcasts', {
+            method: 'POST',
+            body: JSON.stringify({ message: msg })
+        });
         showToast('Broadcast sent to drivers!');
         document.getElementById('broadcast-msg').value = '';
+        await loadDashboardData();
     };
 
     window.openDocModal = async (driverId) => {
@@ -1095,13 +1227,16 @@
 
     window.updateDocStatus = async (status) => {
         if (!docTargetId) return;
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', docTargetId), {
-            docStatus: status,
-            isVerified: status === 'approved',
-            docReviewedAt: serverTimestamp()
+        await apiFetch(`/api/admin/drivers/${docTargetId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+                doc_status: status,
+                is_verified: status === 'approved'
+            })
         });
         closeModal('doc-modal');
         showToast(status === 'approved' ? 'Documents approved & driver verified!' : 'Documents rejected');
+        await loadDashboardData();
     };
 
     window.openSeatManager = (did, current, max) => {
@@ -1121,12 +1256,13 @@
 
     window.saveSeatUpdate = async () => {
         if (!seatEditId) return;
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'drivers', seatEditId), {
-            filledSeats: seatEditCurrent,
-            seatsAvailable: seatEditMax - seatEditCurrent
+        await apiFetch(`/api/admin/drivers/${seatEditId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ filled_seats: seatEditCurrent })
         });
         closeModal('seat-modal');
-        showToast('Seats updated!');
+        showToast('Seat availability updated');
+        await loadDashboardData();
     };
 
     window.openSupportModal = (id) => {
@@ -1149,21 +1285,148 @@
     window.replyTicket = async () => {
         if (!supportTargetId) return;
         const note = document.getElementById('support-reply-text').value.trim();
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'support', supportTargetId), {
-            adminNote: note, updatedAt: serverTimestamp()
+        await apiFetch(`/api/admin/support/${supportTargetId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ admin_reply: note, status: 'open' })
         });
         closeModal('support-reply-modal');
         showToast('Note saved!');
+        await loadDashboardData();
     };
 
     window.resolveTicket = async () => {
         if (!supportTargetId) return;
         const note = document.getElementById('support-reply-text').value.trim();
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'support', supportTargetId), {
-            status: 'resolved', adminNote: note, resolvedAt: serverTimestamp()
+        await apiFetch(`/api/admin/support/${supportTargetId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ admin_reply: note, status: 'resolved' })
         });
         closeModal('support-reply-modal');
         showToast('Ticket resolved ✓');
+        await loadDashboardData();
+    };
+
+    // ==================== ADMIN MANAGEMENT ====================
+    let admins = [];
+
+    window.loadAdmins = async () => {
+        try {
+            const data = await apiFetch('/api/admin/admins');
+            admins = data;
+            renderAdmins();
+        } catch (e) {
+            console.error('Failed to load admins', e);
+            showToast('Failed to load admins: ' + e.message, 'error');
+        }
+    };
+
+    function renderAdmins() {
+        const html = admins.map(a => {
+            const dateStr = a.created_at ? fmtDate(a.created_at) : '—';
+            return `<tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500">${sanitize(a.id || '—')}</td>
+                <td class="px-4 py-3 font-bold text-slate-800 text-sm">${sanitize(a.name || '—')}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${sanitize(a.email || '—')}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${sanitize(a.phone || '—')}</td>
+                <td class="px-4 py-3 text-xs text-slate-400">${dateStr}</td>
+                <td class="px-4 py-3 text-right flex justify-end gap-2">
+                    <button onclick="openAdminEditModal('${a.id}')" class="text-blue-600 font-bold text-xs hover:bg-blue-50 px-2 py-1 rounded border border-blue-200">Edit</button>
+                    <button onclick="deleteAdmin('${a.id}')" class="text-red-500 font-bold text-xs hover:bg-red-50 px-2 py-1 rounded border border-red-100">Delete</button>
+                </td>
+            </tr>`;
+        }).join('');
+        document.getElementById('admins-table-body').innerHTML = html || `<tr><td colspan="6" class="p-6 text-center text-slate-400">No admins found</td></tr>`;
+        lucide.createIcons();
+    }
+
+    window.openAdminCreateModal = () => {
+        document.getElementById('admin-modal-title').innerText = 'Create New Admin';
+        document.getElementById('admin-name-input').value = '';
+        document.getElementById('admin-email-input').value = '';
+        document.getElementById('admin-phone-input').value = '';
+        document.getElementById('admin-password-input').value = '';
+        document.getElementById('admin-modal-error').classList.add('hidden');
+        document.getElementById('admin-save-btn').innerText = 'Create';
+        document.getElementById('admin-save-btn').onclick = saveAdmin;
+        document.getElementById('admin-modal').classList.remove('hidden');
+        window.adminEditId = null;
+    };
+
+    window.openAdminEditModal = (id) => {
+        const admin = admins.find(a => a.id === id);
+        if (!admin) return;
+        document.getElementById('admin-modal-title').innerText = 'Edit Admin';
+        document.getElementById('admin-name-input').value = admin.name || '';
+        document.getElementById('admin-email-input').value = admin.email || '';
+        document.getElementById('admin-phone-input').value = admin.phone || '';
+        document.getElementById('admin-password-input').value = '';
+        document.getElementById('admin-password-input').placeholder = 'Leave blank to keep current password';
+        document.getElementById('admin-modal-error').classList.add('hidden');
+        document.getElementById('admin-save-btn').innerText = 'Update';
+        document.getElementById('admin-modal').classList.remove('hidden');
+        window.adminEditId = id;
+    };
+
+    window.saveAdmin = async () => {
+        const name = document.getElementById('admin-name-input').value.trim();
+        const email = document.getElementById('admin-email-input').value.trim();
+        const phone = document.getElementById('admin-phone-input').value.trim();
+        const password = document.getElementById('admin-password-input').value.trim();
+        const errEl = document.getElementById('admin-modal-error');
+
+        if (!name || !email) {
+            errEl.innerText = 'Name and email are required';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        if (window.adminEditId) {
+            // Update
+            try {
+                const body = { name, email, phone };
+                if (password) body.password = password;
+                await apiFetch(`/api/admin/admins/${window.adminEditId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(body)
+                });
+                closeModal('admin-modal');
+                showToast('Admin updated successfully');
+                await loadAdmins();
+            } catch (e) {
+                errEl.innerText = e.message;
+                errEl.classList.remove('hidden');
+            }
+        } else {
+            // Create
+            if (!password) {
+                errEl.innerText = 'Password is required for new admin';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            try {
+                await apiFetch('/api/admin/admins', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+                closeModal('admin-modal');
+                showToast('Admin created successfully');
+                await loadAdmins();
+            } catch (e) {
+                errEl.innerText = e.message;
+                errEl.classList.remove('hidden');
+            }
+        }
+    };
+
+    window.deleteAdmin = async (id) => {
+        if (!confirm('Are you sure you want to delete this admin?')) return;
+        try {
+            await apiFetch(`/api/admin/admins/${id}`, { method: 'DELETE' });
+            showToast('Admin deleted');
+            await loadAdmins();
+        } catch (e) {
+            showToast('Failed to delete admin: ' + e.message, 'error');
+        }
     };
 
     // Export CSV
@@ -1194,7 +1457,7 @@
 
     // ==================== TAB SWITCHER ====================
     window.switchTab = (t) => {
-        const tabs = ['live', 'monitor', 'drivers', 'customers', 'coupons', 'support', 'analytics', 'settings'];
+        const tabs = ['live', 'monitor', 'drivers', 'customers', 'coupons', 'support', 'analytics', 'admins', 'settings'];
         tabs.forEach(x => {
             document.getElementById(`view-${x}`).classList.add('hidden');
             const btn = document.getElementById(`nav-${x}`);
@@ -1206,16 +1469,18 @@
         document.getElementById(`view-${t}`).classList.remove('hidden');
         document.getElementById(`nav-${t}`).className = 'nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold transition text-sm shadow-lg';
 
-        const titles = { live: 'Live Bookings', monitor: 'Master Monitor', drivers: 'Driver Fleet', customers: 'Customer Database', coupons: 'Coupon Manager', support: 'Help Desk', analytics: 'Analytics', settings: 'Settings' };
+        const titles = { live: 'Live Bookings', monitor: 'Master Monitor', drivers: 'Driver Fleet', customers: 'Customer Database', coupons: 'Coupon Manager', support: 'Help Desk', analytics: 'Analytics', admins: 'Admin Team', settings: 'Settings' };
         document.getElementById('page-title').innerText = titles[t];
 
         if (t === 'customers') renderCustomers();
         if (t === 'analytics') renderAnalytics();
         if (t === 'support') renderSupport();
+        if (t === 'admins') loadAdmins();
         lucide.createIcons();
     };
 
     lucide.createIcons();
+    bootstrapAuth();
 </script>
 </body>
 </html>

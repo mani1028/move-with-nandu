@@ -1,0 +1,24 @@
+{
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
+  "pythonPath": "C:/Python313/python.exe",
+  "venvPath": ".",
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "extraPaths": [
+    "C:/Users/HP/AppData/Roaming/Python/Python313/site-packages",
+    "C:/Python313/Lib/site-packages"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "warning",
+  "useLibraryCodeForTypes": true,
+  "reportAttributeAccessIssue": "warning",
+  "reportGeneralTypeIssues": false,
+  "reportArgumentType": "warning"
+}

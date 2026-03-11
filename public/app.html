@@ -38,14 +38,14 @@
             cursor: pointer;
             user-select: none;
         }
-        .option-card:hover { border-color: #93c5fd; background: #f0f9ff; }
+        .option-card:hover { border-color: #fbaa3d; background: #fffbf5; }
         .option-card.selected {
-            border-color: #2563eb !important;
-            background: #eff6ff !important;
-            color: #1d4ed8 !important;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            border-color: #ea580c !important;
+            background: #fff7ed !important;
+            color: #b45309 !important;
+            box-shadow: 0 0 0 3px rgba(234,88,12,0.15);
         }
-        .option-card.selected span { color: #1d4ed8 !important; }
+        .option-card.selected span { color: #b45309 !important; }
 
         /* Ambulance card selected = red theme */
         .option-card.selected-red {
@@ -66,14 +66,14 @@
             transition: all 0.15s ease;
             display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
         }
-        .service-option:hover { border-color: #93c5fd; background: #f0f9ff; }
-        .service-option.active { border-color: #2563eb; background: #eff6ff; }
-        .service-option.active i { color: #2563eb; opacity: 1; }
+        .service-option:hover { border-color: #fbaa3d; background: #fffbf5; }
+        .service-option.active { border-color: #ea580c; background: #fff7ed; }
+        .service-option.active i { color: #ea580c; opacity: 1; }
         .service-option.active-red { border-color: #ef4444; background: #fef2f2; }
         .service-option.active-red i { color: #ef4444; opacity: 1; }
 
         @keyframes radar-ping { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; } }
-        .radar-ring { position: absolute; border-radius: 50%; border: 2px solid #3B82F6; width: 60px; height: 60px; animation: radar-ping 2s infinite; }
+        .radar-ring { position: absolute; border-radius: 50%; border: 2px solid #f97316; width: 60px; height: 60px; animation: radar-ping 2s infinite; }
 
         @media (min-width: 1024px) {
             .main-content-bg {
@@ -83,11 +83,11 @@
         }
         
         .focus-ring { transition: box-shadow 0.2s; }
-        .focus-ring:focus-within { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        .focus-ring:focus-within { box-shadow: 0 0 0 3px rgba(234,88,12,0.2); }
 
         .chat-float {
             position: fixed; bottom: 85px; right: 20px;
-            background-color: #2563EB; color: white;
+            background-color: #ea580c; color: white;
             border-radius: 50%; width: 56px; height: 56px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -119,8 +119,11 @@
             font-variant-numeric: tabular-nums;
         }
     </style>
+
+    <!-- Google Sign-In Script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
-<body class="text-slate-900 selection:bg-blue-100 selection:text-blue-700 h-screen overflow-hidden flex flex-col bg-slate-50">
+<body class="text-slate-900 selection:bg-orange-100 selection:text-orange-700 h-screen overflow-hidden flex flex-col bg-slate-50">
 
     <!-- OFFLINE INDICATOR -->
     <div id="offline-banner" class="fixed top-0 left-0 w-full bg-slate-800 text-white text-[10px] font-bold text-center py-2 z-[200] flex items-center justify-center gap-2">
@@ -129,19 +132,19 @@
     </div>
 
     <!-- LOADING SPLASH -->
-    <div id="splash-screen" class="fixed inset-0 bg-blue-600 z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="bg-white p-4 rounded-2xl shadow-xl mb-4 animate-bounce"><i data-lucide="car" class="h-10 w-10 text-blue-600"></i></div>
+    <div id="splash-screen" class="fixed inset-0 bg-orange-600 z-[100] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="bg-white p-4 rounded-2xl shadow-xl mb-4 animate-bounce"><i data-lucide="car" class="h-10 w-10 text-orange-600"></i></div>
         <h1 class="text-white text-2xl font-black tracking-tight">Nandu Travels</h1>
-        <p class="text-blue-100 text-sm font-medium">Loading App...</p>
+        <p class="text-orange-100 text-sm font-medium">Loading App...</p>
     </div>
 
     <!-- AUTH MODAL -->
-    <div id="auth-screen" class="fixed inset-0 z-[90] hidden overflow-y-auto" style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #1d4ed8 100%);">
+    <div id="auth-screen" class="fixed inset-0 z-[90] hidden overflow-y-auto flex flex-col" style="background: linear-gradient(135deg, #7c2d12 0%, #ea580c 50%, #b45309 100%)">
         
         <!-- Background decoration -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-blue-300/10 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-orange-300/10 rounded-full blur-3xl"></div>
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/3 rounded-full blur-3xl"></div>
         </div>
 
@@ -150,10 +153,10 @@
             <!-- Brand Header -->
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-2xl mb-4">
-                    <i data-lucide="car" class="h-8 w-8 text-blue-600"></i>
+                    <i data-lucide="car" class="h-8 w-8 text-orange-600"></i>
                 </div>
                 <h1 class="text-white text-2xl font-black tracking-tight">Nandu Travels</h1>
-                <p class="text-blue-200 text-sm font-medium mt-1">Your trusted ride partner</p>
+                <p class="text-orange-200 text-sm font-medium mt-1">Your trusted ride partner</p>
             </div>
 
             <!-- Auth Card -->
@@ -164,7 +167,7 @@
                     <!-- Tab Switcher -->
                     <div class="flex border-b border-slate-100">
                         <button id="tab-login-btn" onclick="switchAuthTab('login')"
-                            class="flex-1 py-4 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition-all">
+                            class="flex-1 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-600 transition-all">
                             Login
                         </button>
                         <button id="tab-register-btn" onclick="switchAuthTab('register')"
@@ -173,21 +176,33 @@
                         </button>
                     </div>
 
-                    <div class="p-6 space-y-4">
+                    <div class="p-5 space-y-3">
+                        
+                        <!-- Top Google Auth -->
+                        <div id="google-btn-container" class="w-full flex justify-center min-h-[40px]">
+                            <!-- Google Sign-In button will be rendered here -->
+                        </div>
+                        <div id="google-error" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-medium"></div>
+
+                        <!-- Divider -->
+                        <div class="relative py-1 my-1">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
+                            <div class="relative flex justify-center text-[10px] uppercase font-bold"><span class="bg-white px-3 text-slate-400">or</span></div>
+                        </div>
 
                         <!-- LOGIN FORM -->
                         <div id="login-form">
-                            <div class="space-y-3 mb-4">
+                            <div class="space-y-2.5 mb-3">
                                 <div class="relative">
-                                    <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="mail" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="email" id="login-email"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Email address">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="lock" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="password" id="login-password"
-                                        class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Password"
                                         onkeydown="if(event.key==='Enter') loginWithEmail()">
                                     <button type="button" onclick="togglePassword('login-password', this)"
@@ -198,43 +213,43 @@
                             </div>
 
                             <!-- Error msg -->
-                            <p id="login-error" class="hidden text-xs text-red-500 font-bold text-center mb-3 bg-red-50 py-2 px-3 rounded-xl"></p>
+                            <p id="login-error" class="hidden text-xs text-red-500 font-bold text-center mb-2 bg-red-50 py-1.5 px-3 rounded-xl"></p>
 
                             <button onclick="loginWithEmail()" id="btn-login"
-                                class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition text-sm flex items-center justify-center gap-2">
+                                class="w-full py-3 bg-orange-600 text-white font-bold rounded-xl shadow-lg hover:bg-orange-700 active:scale-95 transition text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="log-in" class="h-4 w-4"></i> Login to My Account
                             </button>
 
-                            <p class="text-center text-xs text-slate-400 font-medium mt-3">
-                                No account? <button onclick="switchAuthTab('register')" class="text-blue-600 font-bold hover:underline">Sign up free →</button>
+                            <p class="text-center text-[11px] text-slate-400 font-medium mt-3">
+                                No account? <button onclick="switchAuthTab('register')" class="text-orange-600 font-bold hover:underline">Sign up free →</button>
                             </p>
                         </div>
 
                         <!-- REGISTER FORM -->
                         <div id="register-form" class="hidden">
-                            <div class="space-y-3 mb-4">
+                            <div class="space-y-2.5 mb-3">
                                 <div class="relative">
-                                    <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="user" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="text" id="reg-name"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Full name">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="phone" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="phone" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="tel" id="reg-phone" maxlength="10"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="10-digit mobile number">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="mail" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="email" id="reg-email"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Email address">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="lock" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
                                     <input type="password" id="reg-password"
-                                        class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-blue-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Create password (min 6 chars)"
                                         onkeydown="if(event.key==='Enter') registerWithEmail()">
                                     <button type="button" onclick="togglePassword('reg-password', this)"
@@ -245,29 +260,18 @@
                             </div>
 
                             <!-- Error msg -->
-                            <p id="register-error" class="hidden text-xs text-red-500 font-bold text-center mb-3 bg-red-50 py-2 px-3 rounded-xl"></p>
+                            <p id="register-error" class="hidden text-xs text-red-500 font-bold text-center mb-2 bg-red-50 py-1.5 px-3 rounded-xl"></p>
 
                             <button onclick="registerWithEmail()" id="btn-register"
-                                class="w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition text-sm flex items-center justify-center gap-2">
+                                class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="user-plus" class="h-4 w-4"></i> Create My Account
                             </button>
 
-                            <p class="text-center text-xs text-slate-400 font-medium mt-3">
-                                Already have an account? <button onclick="switchAuthTab('login')" class="text-blue-600 font-bold hover:underline">Login →</button>
+                            <p class="text-center text-[11px] text-slate-400 font-medium mt-3">
+                                Already have an account? <button onclick="switchAuthTab('login')" class="text-orange-600 font-bold hover:underline">Login →</button>
                             </p>
                         </div>
-
-                        <!-- Divider + Google -->
-                        <div class="relative py-1">
-                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
-                            <div class="relative flex justify-center text-[10px] uppercase font-bold"><span class="bg-white px-3 text-slate-400">or</span></div>
-                        </div>
-                        <button onclick="loginWithGoogle()"
-                            class="w-full py-3 bg-white border-2 border-slate-100 text-slate-700 font-bold rounded-xl hover:border-slate-200 hover:bg-slate-50 active:scale-95 transition text-sm flex items-center justify-center gap-2 shadow-sm">
-                            <svg class="w-4 h-4" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.2 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.6 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.8l6.2 5.2C40.8 35.7 44 30.3 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
-                            Continue with Google
-                        </button>
-
+                        
                     </div>
                 </div>
 
@@ -304,7 +308,7 @@
             </div><!-- /auth card -->
 
             <!-- Footer link -->
-            <a href="index.html" class="mt-6 text-blue-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition">
+            <a href="index.html" class="mt-6 text-orange-200 hover:text-white text-xs font-bold flex items-center gap-1.5 transition">
                 <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i> Back to Website
             </a>
 
@@ -312,24 +316,24 @@
     </div>
 
     <!-- DESKTOP NAVBAR -->
-    <nav class="hidden lg:flex bg-white/90 backdrop-blur-md border-b border-slate-200 h-20 items-center justify-between px-8 z-30 shrink-0">
+    <nav id="desktop-nav" class="hidden lg:flex bg-white/90 backdrop-blur-md border-b border-slate-200 h-20 items-center justify-between px-8 z-30 shrink-0">
         <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='index.html'">
-            <div class="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform"><i data-lucide="car" class="h-5 w-5 text-white"></i></div>
-            <h1 class="font-extrabold text-xl text-slate-900 tracking-tight">Travel With <span class="text-blue-600">Nandu</span></h1>
+            <div class="bg-orange-600 p-2 rounded-xl shadow-lg shadow-orange-200 group-hover:scale-105 transition-transform"><i data-lucide="car" class="h-5 w-5 text-white"></i></div>
+            <h1 class="font-extrabold text-xl text-slate-900 tracking-tight">Travel With <span class="text-orange-600">Nandu</span></h1>
         </div>
         <div class="flex items-center gap-8">
-            <button onclick="switchView('booking')" id="d-nav-booking" class="font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600"><i data-lucide="map-pin" class="h-4 w-4"></i> Book</button>
+            <button onclick="switchView('booking')" id="d-nav-booking" class="font-bold text-orange-600 transition flex items-center gap-2 py-2 border-b-2 border-orange-600"><i data-lucide="map-pin" class="h-4 w-4"></i> Book</button>
             <button onclick="switchView('orders')" id="d-nav-orders" class="font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent"><i data-lucide="list" class="h-4 w-4"></i> My Rides</button>
             <div class="h-6 w-px bg-slate-200 mx-2"></div>
             <button onclick="switchView('profile')" class="flex items-center gap-3 font-bold text-slate-900 hover:bg-slate-50 pl-3 pr-4 py-2 rounded-full border border-slate-200 transition shadow-sm">
-                <div class="bg-blue-100 p-1.5 rounded-full"><i data-lucide="user" class="h-4 w-4 text-blue-600"></i></div>
+                <div class="bg-orange-100 p-1.5 rounded-full"><i data-lucide="user" class="h-4 w-4 text-orange-600"></i></div>
                 <span id="header-user-name" class="text-sm">Guest</span>
             </button>
         </div>
     </nav>
 
     <!-- MAIN CONTENT AREA -->
-    <div class="flex-1 flex flex-col h-full relative overflow-hidden main-content-bg w-full min-w-0 items-center">
+    <div id="app-shell" class="flex-1 flex flex-col h-full relative overflow-hidden main-content-bg w-full min-w-0 items-center">
         
         <!-- MOBILE HEADER -->
         <header class="lg:hidden w-full bg-white/90 backdrop-blur-md border-b border-slate-100 h-16 flex items-center justify-between px-4 z-40 sticky top-0 shrink-0">
@@ -339,7 +343,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div id="m-connection-status" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                <button onclick="switchView('profile')" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:text-blue-600"><i data-lucide="user" class="h-4 w-4"></i></button>
+                <button onclick="switchView('profile')" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:text-orange-600"><i data-lucide="user" class="h-4 w-4"></i></button>
             </div>
         </header>
 
@@ -359,14 +363,14 @@
                     <div id="card-searching-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm z-50 hidden flex-col items-center justify-center" style="display:none">
                         <div class="relative w-24 h-24 flex items-center justify-center mb-6">
                             <div class="radar-ring"></div><div class="radar-ring" style="animation-delay: 0.5s"></div>
-                            <div class="relative z-10 bg-blue-600 p-4 rounded-full shadow-xl"><i data-lucide="search" class="h-8 w-8 text-white animate-pulse"></i></div>
+                            <div class="relative z-10 bg-orange-600 p-4 rounded-full shadow-xl"><i data-lucide="search" class="h-8 w-8 text-white animate-pulse"></i></div>
                         </div>
                         <h3 class="font-bold text-slate-900 text-lg">Finding Drivers</h3>
                         <p class="text-slate-500 text-sm font-medium">Please wait a moment...</p>
                     </div>
 
                     <!-- Header -->
-                    <div class="bg-blue-600 p-6 text-white relative overflow-hidden">
+                    <div class="bg-orange-600 p-6 text-white relative overflow-hidden">
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                         <div class="relative z-10">
                             <div class="flex justify-between items-start">
@@ -378,8 +382,8 @@
                             </div>
                             
                             <div class="flex bg-white/20 p-1.5 rounded-2xl mt-4 backdrop-blur-md">
-                                <button onclick="switchBookingType('shared')" id="tab-shared" class="flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all">Shared Seat</button>
-                                <button onclick="switchBookingType('full')" id="tab-full" class="flex-1 py-3 text-xs font-bold rounded-xl text-blue-100 hover:text-white transition-all hover:bg-white/10">Full Cab / Amb</button>
+                                <button onclick="switchBookingType('shared')" id="tab-shared" class="flex-1 py-3 text-xs font-bold rounded-xl bg-white text-orange-600 shadow-lg transition-all">Shared Seat</button>
+                                <button onclick="switchBookingType('full')" id="tab-full" class="flex-1 py-3 text-xs font-bold rounded-xl text-orange-100 hover:text-white transition-all hover:bg-white/10">Full Cab / Ambulance</button>
                             </div>
                         </div>
                     </div>
@@ -401,7 +405,7 @@
                         <div class="space-y-4">
                             <div class="relative focus-ring rounded-2xl">
                                 <label class="absolute left-10 top-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">From</label>
-                                <i data-lucide="map-pin" class="absolute left-3 top-4 h-5 w-5 text-blue-500"></i>
+                                <i data-lucide="map-pin" class="absolute left-3 top-4 h-5 w-5 text-orange-500"></i>
                                 <select id="from-loc" onchange="handleLocationChange('from')" class="w-full pl-10 pt-6 pb-2 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:bg-white transition appearance-none text-slate-800 cursor-pointer h-16">
                                     <option value="Karimnagar">Karimnagar</option><option value="JBS-Hyderabad">JBS-Hyderabad</option>
                                 </select>
@@ -532,7 +536,10 @@
                                 </div>
                                 <button onclick="applyCoupon()" class="bg-slate-900 text-white px-4 rounded-xl text-xs font-bold hover:bg-slate-800">Apply</button>
                             </div>
-                            <div id="coupon-msg" class="hidden text-[10px] font-bold text-green-600 text-center"></div>
+                            <div id="coupon-msg" class="hidden text-[10px] font-bold text-green-600 text-center flex items-center justify-center gap-2">
+                                <span></span>
+                                <button onclick="removeCoupon()" class="text-[10px] font-bold text-red-500 hover:text-red-700 underline">✕ Remove</button>
+                            </div>
 
                             <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl">
                                 <div><p class="text-[10px] font-bold text-slate-400 uppercase">Total Fare</p><p class="text-xs text-green-600 font-bold hidden" id="discount-label">Discount Applied</p></div>
@@ -542,13 +549,13 @@
 
                         <!-- Date -->
                         <div class="flex gap-4 items-stretch pt-2">
-                            <div class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:border-blue-100 transition cursor-pointer">
+                            <div class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white hover:border-orange-100 transition cursor-pointer">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1 tracking-widest">Date</label>
                                 <input type="date" id="travel-date" class="w-full bg-transparent text-sm font-bold outline-none text-slate-700 cursor-pointer" required>
                             </div>
                         </div>
 
-                        <button onclick="initiateBookingProcess()" id="submit-btn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 hover:bg-blue-700 flex justify-center items-center gap-2 text-lg transition">
+                        <button onclick="initiateBookingProcess()" id="submit-btn" class="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-xl shadow-orange-500/30 hover:bg-orange-700 flex justify-center items-center gap-2 text-lg transition">
                             Confirm Booking <i data-lucide="arrow-right" class="h-5 w-5 stroke-[3]"></i>
                         </button>
                     </div>
@@ -569,14 +576,14 @@
             <!-- VIEW 4: PROFILE PAGE -->
             <div id="view-profile" class="hidden w-full max-w-xl pb-24">
                 <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[80vh] flex flex-col">
-                    <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-blue-50 to-white z-0"></div>
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
-                    <div class="absolute top-20 -left-10 w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-50"></div>
+                    <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-orange-50 to-white z-0"></div>
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-50"></div>
+                    <div class="absolute top-20 -left-10 w-32 h-32 bg-yellow-100 rounded-full blur-3xl opacity-50"></div>
 
                     <div class="relative z-10 flex flex-col items-center mt-4">
                         <div class="relative group">
                             <div class="w-32 h-32 rounded-full p-1.5 bg-white shadow-xl mb-4 relative z-10">
-                                <img id="profile-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=e0e7ff" alt="Avatar" class="w-full h-full rounded-full object-cover bg-blue-50">
+                                <img id="profile-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=ffedd5" alt="Avatar" class="w-full h-full rounded-full object-cover bg-orange-50">
                             </div>
                         </div>
                         <div class="text-center mb-8">
@@ -585,7 +592,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-4 w-full mb-8">
                             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg flex flex-col items-center justify-center gap-1">
-                                <div class="bg-blue-50 p-2 rounded-xl mb-1"><i data-lucide="car" class="h-5 w-5 text-blue-600"></i></div>
+                                <div class="bg-orange-50 p-2 rounded-xl mb-1"><i data-lucide="car" class="h-5 w-5 text-orange-600"></i></div>
                                 <div class="text-3xl font-black text-slate-900" id="profile-rides-count">0</div>
                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Rides</div>
                             </div>
@@ -597,10 +604,28 @@
                         </div>
                         <div class="w-full space-y-3">
                             <button onclick="enableNameEdit()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-blue-600 flex items-center justify-center shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors"><i data-lucide="pencil" class="h-5 w-5"></i></div>
-                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Edit Name</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Display Name</p></div>
+                                <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors"><i data-lucide="pencil" class="h-5 w-5"></i></div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900 text-sm">Edit Name</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Display Name</p>
+                                </div>
                                 <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
                             </button>
+                            <!-- NEW: Explicit Email Field -->
+                            <div class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent">
+                                <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm"><i data-lucide="mail" class="h-5 w-5"></i></div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900 text-sm" id="profile-email-display">...</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Email Address</p>
+                                </div>
+                            </div>
+                            <div class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent">
+                                <div class="w-12 h-12 rounded-2xl bg-white text-blue-600 flex items-center justify-center shadow-sm"><i data-lucide="calendar" class="h-5 w-5"></i></div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900 text-sm" id="profile-joined-date">Today</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Member Since</p>
+                                </div>
+                            </div>
                             <div id="name-edit-container" class="hidden w-full px-1 mb-2">
                                 <div class="flex gap-2 bg-white p-2 rounded-2xl border border-blue-200 shadow-lg">
                                     <input type="text" id="edit-profile-name-input" class="flex-1 bg-transparent px-4 py-2 text-sm font-bold outline-none text-slate-900 placeholder-slate-300" placeholder="Enter new name">
@@ -644,7 +669,7 @@
     </nav>
     
     <!-- Chat Float -->
-    <button onclick="openChat()" class="chat-float hover:scale-110 transition"><i data-lucide="message-square" class="h-7 w-7 fill-current"></i></button>
+    <button id="chat-float-btn" onclick="openChat()" class="chat-float hover:scale-110 transition"><i data-lucide="message-square" class="h-7 w-7 fill-current"></i></button>
 
     <!-- Chat Modal -->
     <div id="chat-modal" class="fixed inset-0 bg-black/60 z-[160] hidden items-end md:items-center justify-center p-4" style="display:none">
@@ -817,266 +842,234 @@
         }
     </script>
 
-    <!-- MAIN APP LOGIC -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, query, where, serverTimestamp, limit, addDoc, getDocs, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { firebaseConfig, cleanupStaleFirebaseAuthStorage } from './firebase-config.js';
+    <!-- MAIN APP LOGIC — Python API Backend -->
+    <script>
+        // ── API CONFIG ────────────────────────────────────────────────────────
+        const API = (window.API_BASE && window.API_BASE.trim())
+            || (location.origin && location.origin !== 'null' ? location.origin : 'http://localhost:8000');
 
-        const app = initializeApp(firebaseConfig);
-        cleanupStaleFirebaseAuthStorage();
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        enableIndexedDbPersistence(db).catch((err) => {
-            console.log("Persistence:", err.code);
-        });
-        
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'travel-nandu-v1';
+        function getToken() { return localStorage.getItem('nandu_token'); }
+        function setToken(t) { localStorage.setItem('nandu_token', t); }
+        function clearToken() { localStorage.removeItem('nandu_token'); localStorage.removeItem('nandu_user'); localStorage.removeItem('userOrders'); localStorage.removeItem('activeDrivers'); }
 
-        function isStandalonePWA() {
-            return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        }
-
-        function isInAppWebView() {
-            return /wv|WebView|FBAN|FBAV|Instagram|Line|Twitter|MiuiBrowser/i.test(navigator.userAgent);
-        }
-
-        function openCurrentPageInExternalBrowser() {
-            const currentUrl = window.location.href;
-            if (window.Android && typeof window.Android.openInBrowser === 'function') {
-                window.Android.openInBrowser(currentUrl);
-                return true;
+        async function apiFetch(path, options = {}) {
+            const token = getToken();
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+            const res = await fetch(API + path, { ...options, headers });
+            if (res.status === 401 && !options.ignore401) { clearToken(); location.reload(); }
+            if (!res.ok) {
+                let err = 'Request failed';
+                try { const d = await res.json(); err = d.detail || err; } catch(e) {}
+                throw new Error(err);
             }
-            if (window.PWK && typeof window.PWK.openURL === 'function') {
-                window.PWK.openURL(currentUrl);
-                return true;
-            }
-            return false;
+            return res.json();
         }
-        
-        let user = null, userData = null, activeDrivers = [], allUserOrders = [];
 
-        // =====================================================
-        // FIX 1: SELECTION STATE - JS-driven, no hidden radios
-        // =====================================================
-        let state = { 
-            bookingType: 'shared', 
-            service: 'cab', 
-            passengers: 1, 
-            discount: 0,
-            seatType: '7',      // shared seat type
-            sharedAC: 'ac',     // shared AC choice
-            cabVariant: 'sedan', // full cab variant
-            cabAC: 'ac',        // full cab AC
-            ambType: 'non-ac'   // ambulance type
-        };
-        
-        let activeCoupon = null;
-        let fallbackDriver = null, cancelTargetId = null;
-        let currentTrackingOrderId = null;
-        let rateOrderId = null;
-        let ticketOrderId = null;
+        // ── STATE ─────────────────────────────────────────────────────────────
+        let userData = null, allUserOrders = [], activeDrivers = [];
+        let state = { bookingType: 'shared', service: 'cab', passengers: 1, discount: 0,
+                      seatType: '7', sharedAC: 'ac', cabVariant: 'sedan', cabAC: 'ac', ambType: 'non-ac' };
+        let activeCoupon = null, currentTrackingOrderId = null, rateOrderId = null;
+        let ticketOrderId = null, cancelTargetId = null, fallbackDriver = null;
 
-        const PRICES = { 
-            SHARED: { SEATER_7: { 'non-ac': 350, 'ac': 400 }, SEATER_5: { 'non-ac': 450, 'ac': 500 } }, 
-            FULL_CAB: { SEDAN: { 'non-ac': 3000, 'ac': 3500 }, SUV: { 'non-ac': 4000, 'ac': 4500 } }, 
-            AMBULANCE: { 'non-ac': { oneWay: 4000 }, 'ac': { oneWay: 4500 }, 'ventilator': { oneWay: 7000 } } 
+        const PRICES = {
+            SHARED: { SEATER_7: { 'non-ac': 350, 'ac': 400 }, SEATER_5: { 'non-ac': 450, 'ac': 500 } },
+            FULL_CAB: { SEDAN: { 'non-ac': 3000, 'ac': 3500 }, SUV: { 'non-ac': 4000, 'ac': 4500 } },
+            AMBULANCE: { 'non-ac': { oneWay: 4000 }, 'ac': { oneWay: 4500 }, 'ventilator': { oneWay: 7000 } }
         };
         const LOCATIONS_SHARED = [{ val: "Karimnagar", label: "Karimnagar" }, { val: "JBS-Hyderabad", label: "JBS-Hyderabad" }];
         const LOCATIONS_FULL = [{ val: "Karimnagar", label: "Karimnagar" }, { val: "JBS-Hyderabad", label: "JBS-Hyderabad" }, { val: "Hyderabad-City", label: "Hyderabad City" }, { val: "Airport-RGI", label: "Airport RGI" }];
         const HYD_GROUP = ["JBS-Hyderabad", "Hyderabad-City", "Airport-RGI"];
 
-        // =====================================================
-        // FIX 1: SELECTION HELPERS - set .selected class on cards
-        // =====================================================
+        // ── SELECTION HELPERS ─────────────────────────────────────────────────
         function setSelectedCard(groupPrefix, value) {
-            // Find all cards in this group and toggle selected
-            document.querySelectorAll(`[id^="${groupPrefix}"]`).forEach(el => {
-                el.classList.remove('selected', 'selected-red');
-            });
+            document.querySelectorAll(`[id^="${groupPrefix}"]`).forEach(el => el.classList.remove('selected', 'selected-red'));
             const target = document.getElementById(`${groupPrefix}${value}`);
-            if (target) {
-                const isRed = groupPrefix.includes('amb');
-                target.classList.add(isRed ? 'selected-red' : 'selected');
-            }
+            if (target) target.classList.add(groupPrefix.includes('amb') ? 'selected-red' : 'selected');
         }
-
-        window.selectSeatType = (val) => {
-            state.seatType = val;
-            setSelectedCard('card-seat-', val);
-            calculateEstimate();
-        }
-
-        window.selectAC = (val) => {
-            state.sharedAC = val;
-            setSelectedCard('card-ac-', val === 'ac' ? 'ac' : 'nonac');
-            calculateEstimate();
-        }
-
-        window.selectCabVariant = (val) => {
-            state.cabVariant = val;
-            setSelectedCard('card-cab-', val);
-            calculateEstimate();
-        }
-
-        window.selectCabAC = (val) => {
-            state.cabAC = val;
-            setSelectedCard('card-cab-ac-', val === 'ac' ? 'ac' : 'nonac');
-            calculateEstimate();
-        }
-
+        window.selectSeatType = (val) => { state.seatType = val; setSelectedCard('card-seat-', val); calculateEstimate(); }
+        window.selectAC = (val) => { state.sharedAC = val; setSelectedCard('card-ac-', val === 'ac' ? 'ac' : 'nonac'); calculateEstimate(); }
+        window.selectCabVariant = (val) => { state.cabVariant = val; setSelectedCard('card-cab-', val); calculateEstimate(); }
+        window.selectCabAC = (val) => { state.cabAC = val; setSelectedCard('card-cab-ac-', val === 'ac' ? 'ac' : 'nonac'); calculateEstimate(); }
         window.selectAmbType = (val) => {
             state.ambType = val;
-            // For ambulance: basic = non-ac, icu = ventilator
             const cardKey = val === 'non-ac' ? 'basic' : 'icu';
             document.querySelectorAll('[id^="card-amb-"]').forEach(el => el.classList.remove('selected-red'));
-            const target = document.getElementById(`card-amb-${cardKey}`);
-            if (target) target.classList.add('selected-red');
+            const t = document.getElementById(`card-amb-${cardKey}`);
+            if (t) t.classList.add('selected-red');
             calculateEstimate();
         }
 
-        // --- INIT ---
+        // ── AUTH TAB SWITCHING ────────────────────────────────────────────────
+        window.switchAuthTab = (tab) => {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const registerBtn = document.getElementById('tab-register-btn');
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
+                loginBtn.className = 'flex-1 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-600 transition-all';
+                registerBtn.className = 'flex-1 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-all';
+                document.getElementById('login-error').classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden'); registerForm.classList.remove('hidden');
+                loginBtn.className = 'flex-1 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-all';
+                registerBtn.className = 'flex-1 py-4 text-sm font-bold text-orange-600 border-b-2 border-orange-600 transition-all';
+                document.getElementById('register-error').classList.add('hidden');
+            }
+        };
+
+        // ── GOOGLE LIBRARY CHECK ──────────────────────────────────────────────
+        function waitForGoogleLibrary(callback, maxAttempts = 50) {
+            let attempts = 0;
+            const checkGoogle = () => {
+                if (window.google && google.accounts && google.accounts.id) {
+                    callback();
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(checkGoogle, 100);
+                } else {
+                    console.warn('Google Sign-In library failed to load');
+                    callback(); // Proceed anyway
+                }
+            };
+            checkGoogle();
+        }
+
+        // ── INIT ──────────────────────────────────────────────────────────────
         document.getElementById('travel-date').valueAsDate = new Date();
-        
-        // Fade out splash
         setTimeout(() => {
             document.getElementById('splash-screen').style.opacity = '0';
             setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 500);
         }, 800);
 
-        onAuthStateChanged(auth, async (u) => {
-            if (u) {
-                user = u;
-                const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', u.uid));
-                if (snap.exists()) {
-                    userData = snap.data();
-                    localStorage.setItem('user_profile', JSON.stringify(userData));
-                    initUserUI(u);
-                } else {
-                    // No profile yet (e.g. Google sign-in) — show profile completion step
-                    document.getElementById('auth-screen').classList.remove('hidden');
-                    document.getElementById('auth-step-1').classList.add('hidden');
-                    document.getElementById('auth-step-3').classList.remove('hidden');
-                    // Pre-fill name if Google provided one
-                    if (u.displayName) {
-                        const nameEl = document.getElementById('user-name-input');
-                        if (nameEl) nameEl.value = u.displayName;
-                    }
-                    lucide.createIcons();
-                }
+        function setAuthenticatedLayout(isAuthenticated) {
+            const ids = ['desktop-nav', 'app-shell', 'mobile-nav', 'chat-float-btn'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.display = isAuthenticated ? '' : 'none';
+            });
+        }
+
+        setAuthenticatedLayout(false);
+
+        function requiresUserProfileCompletion(user) {
+            return !((user?.phone || '').trim());
+        }
+
+        function showUserProfileCompletionScreen(user = {}) {
+            setAuthenticatedLayout(false);
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.classList.remove('hidden');
+            authScreen.style.display = 'flex';
+            document.getElementById('auth-step-1').classList.add('hidden');
+            document.getElementById('auth-step-3').classList.remove('hidden');
+            document.getElementById('user-name-input').value = user.name || '';
+            document.getElementById('user-phone-input').value = user.phone || '';
+            lucide.createIcons();
+        }
+
+        // Check for stored session
+        const storedUser = localStorage.getItem('nandu_user');
+        if (storedUser && getToken()) {
+            try {
+                userData = JSON.parse(storedUser);
+                if (requiresUserProfileCompletion(userData)) showUserProfileCompletionScreen(userData);
+                else initUserUI();
+            } catch(e) { showAuthScreen(); }
+        } else {
+            // Verify token with server
+            if (getToken()) {
+                apiFetch('/api/users/me').then(u => {
+                    userData = u;
+                    localStorage.setItem('nandu_user', JSON.stringify(u));
+                    if (requiresUserProfileCompletion(userData)) showUserProfileCompletionScreen(userData);
+                    else initUserUI();
+                }).catch(() => showAuthScreen());
             } else {
-                // Not logged in — show login/register screen
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('auth-step-1').classList.remove('hidden');
-                document.getElementById('auth-step-3').classList.add('hidden');
-                // Default to login tab
-                switchAuthTab('login');
-                lucide.createIcons();
+                showAuthScreen();
             }
-        });
-        
-        function initUserUI(u) {
-            document.getElementById('auth-screen').classList.add('hidden');
+        }
+
+        function showAuthScreen() {
+            setAuthenticatedLayout(false);
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.classList.remove('hidden');
+            authScreen.style.display = 'flex';
+            document.getElementById('auth-step-1').classList.remove('hidden');
+            document.getElementById('auth-step-3').classList.add('hidden');
+            switchAuthTab('login');
+            lucide.createIcons();
+            setTimeout(initGoogleSignIn, 100);
+        }
+
+        function initUserUI() {
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.classList.add('hidden');
+            authScreen.style.display = 'none';
+            setAuthenticatedLayout(true);
             updateUserDisplayNames(userData.name);
             document.getElementById('profile-name').innerText = userData.name;
-            document.getElementById('profile-mobile').innerText = u.email || userData.phone || 'No email';
-            const seed = u.email ? u.email.replace(/[^a-zA-Z0-9]/g, '') : 'guest';
+            document.getElementById('profile-mobile').innerText = userData.phone || 'No Phone Set';
+            if (document.getElementById('profile-email-display')) {
+                document.getElementById('profile-email-display').innerText = userData.email || 'No Email Set';
+            }
+            if (userData.created_at) {
+                const date = new Date(userData.created_at);
+                document.getElementById('profile-joined-date').innerText = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+            }
+            const seed = (userData.email || 'guest').replace(/[^a-zA-Z0-9]/g, '');
             const avatarEl = document.getElementById('profile-avatar');
             if (avatarEl) avatarEl.src = `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=e0e7ff&radius=50`;
             document.getElementById('m-connection-status').classList.replace('bg-slate-300', 'bg-green-500');
-            
-            // FIX 2: syncData MUST be called after initUserUI so My Rides loads
             syncData();
-            
             populateLocations();
             calculateEstimate();
             lucide.createIcons();
         }
 
-        // =====================================================
-        // FIX 2: SYNC DATA — now properly called & orders fetched
-        // =====================================================
+        // ── SYNC DATA ─────────────────────────────────────────────────────────
         async function syncData() {
-            if (!user) return;
-
-            // Load from cache immediately
             const cachedOrders = localStorage.getItem('userOrders');
-            if (cachedOrders) {
-                try {
-                    allUserOrders = JSON.parse(cachedOrders);
-                    updateOrdersUI();
-                } catch(e) { allUserOrders = []; }
-            }
-
+            if (cachedOrders) { try { allUserOrders = JSON.parse(cachedOrders); updateOrdersUI(); } catch(e) {} }
             const cachedDrivers = localStorage.getItem('activeDrivers');
-            if (cachedDrivers) {
-                try {
-                    activeDrivers = JSON.parse(cachedDrivers);
-                    updateFleetUI();
-                    updateDetailedAvailability();
-                } catch(e) { activeDrivers = []; }
-            }
-
-            if (!navigator.onLine) return;
-
+            if (cachedDrivers) { try { activeDrivers = JSON.parse(cachedDrivers); updateFleetUI(); updateDetailedAvailability(); } catch(e) {} }
+            if (!navigator.onLine || !getToken()) return;
             try {
-                // Fetch active trips
-                const tripsSnap = await getDocs(query(
-                    collection(db, 'artifacts', APP_ID, 'trips'), 
-                    where('status', '==', 'scheduled')
-                ));
-                activeDrivers = [];
-                tripsSnap.forEach(d => activeDrivers.push({ id: d.id, ...d.data() }));
-                localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
-                updateFleetUI();
-                updateDetailedAvailability();
-            } catch (e) {
-                console.error("Error syncing trips:", e.message);
-            }
-
-            // FIX 2: Fetch orders — using correct collection path
-            try {
-                console.log("Fetching rides for user:", user.uid);
-                const ordersSnap = await getDocs(query(
-                    collection(db, 'artifacts', APP_ID, 'public', 'data', 'bookings'), 
-                    where('userId', '==', user.uid),
-                    limit(20)
-                ));
-                
-                allUserOrders = [];
-                ordersSnap.forEach(d => allUserOrders.push({ id: d.id, ...d.data() }));
-                
-                // Sort by createdAt descending (newest first)
-                allUserOrders.sort((a, b) => {
-                    const aTime = a.createdAt?.seconds || 0;
-                    const bTime = b.createdAt?.seconds || 0;
-                    return bTime - aTime;
-                });
-                
-                console.log("Rides fetched:", allUserOrders.length);
+                const rides = await apiFetch('/api/rides/');
+                allUserOrders = rides.map(r => ({
+                    id: r.id, orderId: r.id, status: r.status,
+                    from: r.from_loc, to: r.to_loc, price: r.price,
+                    serviceName: r.service_type === 'ambulance' ? 'Ambulance' : (r.booking_type === 'shared' ? `Shared (${r.passengers} Seat${r.passengers>1?'s':''})` : `Private Cab`),
+                    passengers: r.passengers, otp: r.otp,
+                    driverName: r.driver_name, driverId: r.driver_id,
+                    date: r.travel_date, cancelReason: r.cancel_reason,
+                    userRating: r.user_rating,
+                    createdAt: r.created_at ? { seconds: Math.floor(new Date(r.created_at).getTime()/1000) } : null
+                }));
+                allUserOrders.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
                 localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
                 updateOrdersUI();
-            } catch (e) {
-                console.error("Error fetching orders:", e.message);
-            }
+            } catch(e) { console.warn('Orders sync failed:', e.message); }
+            try {
+                // The passenger app shouldn't try to fetch driver-specific trip data.
+                // This prevents the 401 Unauthorized console error.
+                activeDrivers = [];
+                localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
+                setTimeout(() => { updateFleetUI(); updateDetailedAvailability(); }, 50);
+            } catch(e) {}
         }
-
         window.addEventListener('online', syncData);
 
         function updateOrdersUI() {
             const completed = allUserOrders.filter(o => o.status === 'completed').length;
             document.getElementById('profile-rides-count').innerText = completed;
-            
             allUserOrders.forEach(o => {
-                if (o.status === 'completed' && !o.userRating && !localStorage.getItem(`rated_${o.id}`)) {
-                    openRating(o);
-                }
+                if (o.status === 'completed' && !o.userRating && !localStorage.getItem(`rated_${o.id}`)) openRating(o);
             });
-
             renderOrders();
-
             if (currentTrackingOrderId) {
                 const trackOrder = allUserOrders.find(o => o.id === currentTrackingOrderId);
                 if (trackOrder) renderLiveTripDetails(trackOrder);
@@ -1090,42 +1083,19 @@
             if (headerName) headerName.innerText = first;
         }
 
-        // --- AUTH TAB SWITCHER ---
-        window.switchAuthTab = (tab) => {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const loginBtn = document.getElementById('tab-login-btn');
-            const registerBtn = document.getElementById('tab-register-btn');
-
-            if (tab === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                loginBtn.className = 'flex-1 py-4 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition-all';
-                registerBtn.className = 'flex-1 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-all';
-                document.getElementById('login-error').classList.add('hidden');
-            } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                loginBtn.className = 'flex-1 py-4 text-sm font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 transition-all';
-                registerBtn.className = 'flex-1 py-4 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition-all';
-                document.getElementById('register-error').classList.add('hidden');
-            }
-        }
+        // ── AUTH ──────────────────────────────────────────────────────────────
 
         window.togglePassword = (inputId, btn) => {
             const input = document.getElementById(inputId);
             const isText = input.type === 'text';
             input.type = isText ? 'password' : 'text';
-            btn.innerHTML = isText
-                ? '<i data-lucide="eye" class="h-4 w-4"></i>'
-                : '<i data-lucide="eye-off" class="h-4 w-4"></i>';
+            btn.innerHTML = isText ? '<i data-lucide="eye" class="h-4 w-4"></i>' : '<i data-lucide="eye-off" class="h-4 w-4"></i>';
             lucide.createIcons();
         }
 
         function showAuthError(elId, msg) {
             const el = document.getElementById(elId);
-            el.textContent = msg;
-            el.classList.remove('hidden');
+            el.textContent = msg; el.classList.remove('hidden');
         }
 
         function setButtonLoading(btnId, loading, label) {
@@ -1133,31 +1103,25 @@
             if (!btn) return;
             btn.disabled = loading;
             btn.innerHTML = loading
-                ? `<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Please wait...`
+                ? `<svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Please wait...`
                 : label;
         }
 
-        // --- AUTH ---
         window.loginWithEmail = async () => {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
             document.getElementById('login-error').classList.add('hidden');
-
             if (!email) return showAuthError('login-error', '⚠️ Please enter your email address.');
             if (!password) return showAuthError('login-error', '⚠️ Please enter your password.');
-
             setButtonLoading('btn-login', true);
             try {
-                const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-                await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle the rest
+                const data = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }), ignore401: true });
+                setToken(data.access_token);
+                userData = data.user;
+                localStorage.setItem('nandu_user', JSON.stringify(data.user));
+                initUserUI();
             } catch(e) {
-                let msg = '⚠️ Login failed. Please try again.';
-                if (e.code === 'auth/user-not-found') msg = '⚠️ No account found. Please sign up first.';
-                else if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') msg = '⚠️ Incorrect password. Please try again.';
-                else if (e.code === 'auth/invalid-email') msg = '⚠️ Invalid email address.';
-                else if (e.code === 'auth/too-many-requests') msg = '⚠️ Too many attempts. Try again later.';
-                showAuthError('login-error', msg);
+                showAuthError('login-error', '⚠️ ' + e.message);
             } finally {
                 setButtonLoading('btn-login', false, '<i data-lucide="log-in" class="h-4 w-4"></i> Login to My Account');
                 lucide.createIcons();
@@ -1170,78 +1134,170 @@
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
             document.getElementById('register-error').classList.add('hidden');
-
             if (!name) return showAuthError('register-error', '⚠️ Please enter your full name.');
             if (!/^\d{10}$/.test(phone)) return showAuthError('register-error', '⚠️ Please enter a valid 10-digit phone number.');
             if (!email) return showAuthError('register-error', '⚠️ Please enter your email address.');
             if (password.length < 6) return showAuthError('register-error', '⚠️ Password must be at least 6 characters.');
-
             setButtonLoading('btn-register', true);
             try {
-                const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-                // Save profile directly since we collected all info upfront
-                const safeName = sanitizeInput(name);
-                const safePhone = sanitizeInput(phone);
-                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', cred.user.uid), {
-                    uid: cred.user.uid,
-                    name: safeName,
-                    email: email,
-                    phone: safePhone,
-                    registrationComplete: true,
-                    createdAt: serverTimestamp()
-                });
-                // onAuthStateChanged picks up the new user and loads dashboard
+                const data = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify({ name, phone, email, password }), ignore401: true });
+                setToken(data.access_token);
+                userData = data.user;
+                localStorage.setItem('nandu_user', JSON.stringify(data.user));
+                initUserUI();
             } catch(e) {
-                let msg = '⚠️ Registration failed. Please try again.';
-                if (e.code === 'auth/email-already-in-use') msg = '⚠️ This email is already registered. Please login.';
-                else if (e.code === 'auth/invalid-email') msg = '⚠️ Invalid email address.';
-                else if (e.code === 'auth/weak-password') msg = '⚠️ Password is too weak. Use at least 6 characters.';
-                showAuthError('register-error', msg);
+                showAuthError('register-error', '⚠️ ' + e.message);
             } finally {
                 setButtonLoading('btn-register', false, '<i data-lucide="user-plus" class="h-4 w-4"></i> Create My Account');
                 lucide.createIcons();
             }
         }
 
-        window.loginWithGoogle = async () => {
+        // Google OAuth Initialization
+        let googleInitialized = false;
+        async function initGoogleSignIn(retryCount = 0) {
+            if (googleInitialized) return;
+            const container = document.getElementById('google-btn-container');
+            const googleErrorDiv = document.getElementById('google-error');
+            
+            if (!container) return;
+            
             try {
-                if (isInAppWebView()) {
-                    const opened = openCurrentPageInExternalBrowser();
-                    alert(opened
-                        ? "Google Sign-In opened in your browser for secure login."
-                        : "Google Sign-In is blocked in this in-app browser. Open this page in Chrome and try again.");
-                    return;
+                if (!window.google || !google.accounts || !google.accounts.id) {
+                    if (retryCount < 10) {
+                        setTimeout(() => initGoogleSignIn(retryCount + 1), 500);
+                        return;
+                    }
+                    throw new Error('❌ Google Sign-In library failed to load.');
                 }
 
-                const { GoogleAuthProvider, signInWithRedirect } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
-                const provider = new GoogleAuthProvider();
-                await signInWithRedirect(auth, provider);
-            } catch(e) {
-                if (e.code === 'auth/unauthorized-domain') {
-                    alert("Google Sign-In is blocked for this domain. Add this site to Firebase Auth > Settings > Authorized domains.");
-                    return;
+                // Temporary loading state
+                container.innerHTML = '<div class="text-sm text-slate-500 font-medium py-2 flex items-center gap-2 animate-pulse"><i data-lucide="loader" class="h-4 w-4 animate-spin"></i> Loading Google...</div>';
+                lucide.createIcons();
+
+                // Check backend configuration
+                const config = await fetch('/api/auth/google/userinfo').then(r => {
+                    if (!r.ok) throw new Error(`Server returned ${r.status}`);
+                    return r.json();
+                });
+
+                if (!config.google_client_id) {
+                    throw new Error('🔧 Google Sign-In is not configured on this server.');
                 }
-                if (e.code === 'auth/operation-not-allowed') {
-                    alert("Google provider is disabled. Enable Google in Firebase Auth > Sign-in method.");
-                    return;
+
+                container.innerHTML = ''; // Clear loading
+                
+                // Initialize Standard Google Identity Services Button
+                google.accounts.id.initialize({
+                    client_id: config.google_client_id,
+                    callback: window.handleGoogleLoginResponse,
+                    auto_select: false
+                });
+
+                // Render the official, fully functional Google button
+                google.accounts.id.renderButton(
+                    container,
+                    { theme: 'outline', size: 'large', type: 'standard', width: container.offsetWidth || 340 }
+                );
+
+                // Try One Tap as a bonus (only shows if conditions like cookies are met)
+                google.accounts.id.prompt();
+                
+                googleInitialized = true;
+                if (googleErrorDiv) googleErrorDiv.classList.add('hidden');
+
+            } catch(error) {
+                console.warn('❌ Google login setup error:', error);
+                container.innerHTML = '';
+                if (googleErrorDiv) {
+                    googleErrorDiv.classList.remove('hidden');
+                    googleErrorDiv.innerHTML = error.message || 'Google Sign-In unavailable. Use email login.';
                 }
-                if (e.code === 'auth/popup-blocked' || e.code === 'auth/web-storage-unsupported') {
-                    const opened = openCurrentPageInExternalBrowser();
-                    alert(opened
-                        ? "Google Sign-In opened in your browser."
-                        : "This environment blocks Google Sign-In. Please use Chrome browser.");
-                    return;
+            }
+        }
+
+        // Handle Google OAuth response
+        window.handleGoogleLoginResponse = async (response) => {
+            const errorDiv = document.getElementById('google-error');
+            const googleBtn = document.getElementById('btn-google-signin');
+            
+            if (!response.credential) {
+                const errMsg = '❌ No credential received from Google. Did you cancel the sign-in?';
+                console.error(errMsg);
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.innerText = errMsg;
                 }
-                if (isStandalonePWA() && e.code === 'auth/operation-not-supported-in-this-environment') {
-                    const opened = openCurrentPageInExternalBrowser();
-                    alert(opened
-                        ? "Google Sign-In opened in browser because PWA mode blocked it."
-                        : "Google Sign-In is blocked in PWA mode here. Open in Chrome browser.");
-                    return;
+                return;
+            }
+
+            try {
+                console.log('📨 Received Google credential, sending to backend...');
+                
+                // Show loading state
+                const container = document.getElementById('google-btn-container');
+                if (container) {
+                    container.innerHTML = '<div class="text-sm text-slate-500 font-medium py-2 flex items-center gap-2 animate-pulse"><i data-lucide="loader" class="h-4 w-4 animate-spin"></i> Signing in...</div>';
+                    lucide.createIcons();
                 }
-                alert("Google login failed: " + (e.message || e.code || 'Unknown error'));
+
+                // Send token to backend for verification
+                const response_text = JSON.stringify({ id_token: response.credential });
+                console.log('📤 Sending POST to /api/auth/google/login');
+                
+                const res = await fetch('/api/auth/google/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: response_text
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(`❌ Backend Error (${res.status}): ${errData.detail || errData.message || 'Unknown error'}`);
+                }
+
+                const data = await res.json();
+                console.log('✅ Login successful! Token received:', data.access_token.substring(0, 20) + '...');
+
+                // Success! Save token and user data
+                setToken(data.access_token);
+                userData = data.user;
+                localStorage.setItem('nandu_user', JSON.stringify(data.user));
+                console.log('✅ User saved:', data.user.email);
+
+                // Check if user needs to complete profile
+                if (!userData.phone) {
+                    console.log('📋 Phone missing, showing profile completion step...');
+                    showUserProfileCompletionScreen(userData);
+                } else {
+                    console.log('✅ Profile complete, initializing UI...');
+                    initUserUI();
+                }
+                
+                // Hide error if shown
+                if (errorDiv) {
+                    errorDiv.classList.add('hidden');
+                    errorDiv.innerHTML = '';
+                }
+                
+            } catch(error) {
+                console.error('❌ Google login processing failed:', error);
+                
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.innerText = error.message || '⚠️ Error processing Google sign-in. Please try again.';
+                }
+                
+                
+                // Reset button state
+                const container = document.getElementById('google-btn-container');
+                if (container) {
+                    googleInitialized = false; // Force re-render
+                    container.innerHTML = '';
+                    initGoogleSignIn();
+                }
             }
         }
 
@@ -1250,135 +1306,121 @@
             temp.textContent = str;
             return temp.innerHTML;
         }
-    
+
         window.saveUserProfile = async () => {
             const nameInput = document.getElementById('user-name-input').value.trim();
             const phoneInput = document.getElementById('user-phone-input').value.trim();
-            const safeName = sanitizeInput(nameInput);
-            const safePhone = sanitizeInput(phoneInput);
-            if (!safeName) return alert("Name is required");
-            if (!/^\d{10}$/.test(safePhone)) return alert("Valid 10-digit phone number required");
+            if (!nameInput) return alert('Name is required');
+            if (!/^\d{10}$/.test(phoneInput)) return alert('Valid 10-digit phone number required');
             try {
-                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', auth.currentUser.uid), { 
-                    uid: auth.currentUser.uid,
-                    name: safeName, 
-                    email: auth.currentUser.email || '',
-                    phone: safePhone,
-                    registrationComplete: true,
-                    createdAt: serverTimestamp() 
-                });
-                location.reload();
-            } catch(e) {
-                alert("Failed to save profile: " + e.message);
-            }
+                const data = await apiFetch('/api/users/me', { method: 'PATCH', body: JSON.stringify({ name: nameInput, phone: phoneInput }) });
+                userData = data; // Replace entire userData object
+                localStorage.setItem('nandu_user', JSON.stringify(userData));
+                document.getElementById('user-phone-input').value = phoneInput;
+                // Don't reload - just show the main UI
+                initUserUI();
+            } catch(e) { alert('Failed to save profile: ' + e.message); }
         }
 
-        window.handleLogout = async () => { if(confirm("Logout?")) { await signOut(auth); location.reload(); } }
+        window.handleLogout = async () => { if (confirm('Logout?')) { clearToken(); location.reload(); } }
         window.resetAuth = () => location.reload();
-        window.enableNameEdit = () => { document.getElementById('name-edit-container').classList.remove('hidden'); document.getElementById('edit-profile-name-input').value = userData.name; }
+        window.enableNameEdit = () => {
+            document.getElementById('name-edit-container').classList.remove('hidden');
+            document.getElementById('edit-profile-name-input').value = userData.name;
+        }
         window.saveNameEdit = async () => {
-            const newNameRaw = document.getElementById('edit-profile-name-input').value.trim();
-            if(!newNameRaw) return;
-            const newName = sanitizeInput(newNameRaw);
-            if(navigator.onLine) {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'user_profiles', user.uid), {name: newName});
-            }
-            userData.name = newName;
-            localStorage.setItem('user_profile', JSON.stringify(userData));
-            document.getElementById('profile-name').innerText = newName;
-            document.getElementById('name-edit-container').classList.add('hidden');
-            updateUserDisplayNames(newName);
+            const newName = document.getElementById('edit-profile-name-input').value.trim();
+            if (!newName) return;
+            try {
+                await apiFetch('/api/users/me', { method: 'PATCH', body: JSON.stringify({ name: newName }) });
+                userData.name = newName;
+                localStorage.setItem('nandu_user', JSON.stringify(userData));
+                document.getElementById('profile-name').innerText = newName;
+                document.getElementById('name-edit-container').classList.add('hidden');
+                updateUserDisplayNames(newName);
+            } catch(e) { alert('Could not save: ' + e.message); }
         }
 
-        // --- COUPONS ---
+        // ── COUPONS ───────────────────────────────────────────────────────────
         window.applyCoupon = async () => {
             const code = document.getElementById('coupon-code').value.toUpperCase();
-            if(!code) return;
+            if (!code) return;
+            const price = parseInt(document.getElementById('price-display').innerText.replace(/,/g,'')) || 0;
             try {
-                const snap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'coupons', code));
-                if(snap.exists()) {
-                    const couponData = snap.data();
-                    const today = new Date().toISOString().split('T')[0];
-                    if (couponData.expiry && couponData.expiry < today) return alert("This coupon has expired.");
-                    state.discount = couponData.discount; 
-                    activeCoupon = code;
-                    document.getElementById('coupon-msg').innerText = `✅ Applied: ₹${couponData.discount} OFF`;
-                    document.getElementById('coupon-msg').classList.remove('hidden');
-                    document.getElementById('discount-label').classList.remove('hidden');
-                    calculateEstimate();
-                } else {
-                    alert("Invalid Coupon Code");
-                }
-            } catch (e) {
-                alert("Could not verify coupon.");
-            }
+                const coupon = await apiFetch(`/api/coupons/validate?code=${code}&fare=${price}`);
+                state.discount = coupon.discount;
+                activeCoupon = code;
+                const msgEl = document.getElementById('coupon-msg');
+                msgEl.querySelector('span').innerText = `✅ Applied: ₹${coupon.discount} OFF`;
+                msgEl.classList.remove('hidden');
+                document.getElementById('discount-label').classList.remove('hidden');
+                calculateEstimate();
+            } catch(e) { alert(e.message || 'Invalid coupon code'); }
         }
 
-        // --- RATING ---
+        window.removeCoupon = () => {
+            activeCoupon = null;
+            state.discount = 0;
+            document.getElementById('coupon-code').value = '';
+            document.getElementById('coupon-msg').classList.add('hidden');
+            document.getElementById('discount-label').classList.add('hidden');
+            calculateEstimate();
+        }
+
+        // ── RATING ────────────────────────────────────────────────────────────
         window.openRating = (o) => {
             rateOrderId = o.id;
-            document.getElementById('rate-driver-name').innerText = o.driverName || "Driver";
+            document.getElementById('rate-driver-name').innerText = o.driverName || 'Driver';
             document.getElementById('rating-modal').style.display = 'flex';
         }
         let currentRating = 0;
         window.setRate = (n) => {
             currentRating = n;
-            for(let i=1; i<=5; i++) document.getElementById(`star-${i}`).style.filter = i <= n ? "none" : "grayscale(1)";
+            for (let i = 1; i <= 5; i++) document.getElementById(`star-${i}`).style.filter = i <= n ? 'none' : 'grayscale(1)';
         }
         window.submitRating = async () => {
-            if(!currentRating) return alert("Please select stars");
-            if(navigator.onLine) {
-                await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', rateOrderId), {
-                    userRating: currentRating,
-                    ratingComment: document.getElementById('rate-comment').value
+            if (!currentRating) return alert('Please select stars');
+            try {
+                await apiFetch(`/api/rides/${rateOrderId}/rate`, {
+                    method: 'POST',
+                    body: JSON.stringify({ rating: currentRating, comment: document.getElementById('rate-comment').value })
                 });
-            }
-            localStorage.setItem(`rated_${rateOrderId}`, true);
-            document.getElementById('rating-modal').style.display = 'none';
+                localStorage.setItem(`rated_${rateOrderId}`, true);
+                document.getElementById('rating-modal').style.display = 'none';
+            } catch(e) { alert(e.message); }
         }
 
-        // --- SUPPORT ---
+        // ── SUPPORT ───────────────────────────────────────────────────────────
         window.openSupport = (oid) => { ticketOrderId = oid; document.getElementById('support-modal').style.display = 'flex'; }
         window.submitTicket = async () => {
             const issue = document.getElementById('ticket-type').value;
             const desc = document.getElementById('ticket-desc').value;
-            if(!desc) return alert("Please describe the issue");
-            if(navigator.onLine) {
-                await addDoc(collection(db, 'artifacts', APP_ID, 'support_tickets'), {
-                    userId: user.uid, userEmail: user.email,
-                    orderId: ticketOrderId, issue, description: desc,
-                    status: 'open', createdAt: serverTimestamp()
-                });
-                alert("Ticket Raised!");
-            } else {
-                alert("You are offline. Please try again when connected.");
-            }
-            document.getElementById('support-modal').style.display = 'none';
+            if (!desc) return alert('Please describe the issue');
+            try {
+                await apiFetch('/api/support/', { method: 'POST', body: JSON.stringify({ issue_type: issue, description: desc, ride_id: ticketOrderId || '' }) });
+                alert('✅ Ticket Raised! We\'ll respond soon.');
+                document.getElementById('support-modal').style.display = 'none';
+            } catch(e) { alert(e.message); }
         }
 
-        // --- CHAT ---
-        window.openChat = () => {
-            document.getElementById('chat-modal').style.display = 'flex';
-        }
+        // ── CHAT ──────────────────────────────────────────────────────────────
+        window.openChat = () => { document.getElementById('chat-modal').style.display = 'flex'; }
         window.sendChatMessage = () => {
             const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            if(!msg) return;
+            const msg = input.value.trim(); if (!msg) return;
             const messages = document.getElementById('chat-messages');
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             messages.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]"><p class="text-xs font-medium">${msg}</p><span class="text-[9px] text-blue-200 block mt-1 text-right">${time}</span></div></div>`;
-            input.value = '';
-            messages.scrollTop = messages.scrollHeight;
+            input.value = ''; messages.scrollTop = messages.scrollHeight;
             setTimeout(() => {
                 messages.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-blue-600 text-xs font-bold">N</div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 max-w-[80%]"><p class="text-xs font-medium text-slate-700">We've received your message. An agent will join shortly.</p><span class="text-[9px] text-slate-400 block mt-1 text-right">Just now</span></div></div>`;
                 messages.scrollTop = messages.scrollHeight;
             }, 1500);
         }
 
-        // --- CORE BOOKING LOGIC ---
+        // ── BOOKING LOGIC ────────────────────────────────────────────────────
         window.switchBookingType = (t) => {
-            state.bookingType = t;
-            state.passengers = 1;
+            state.bookingType = t; state.passengers = 1;
             document.getElementById('passenger-count').innerText = 1;
             const shared = t === 'shared';
             document.getElementById('tab-shared').className = shared ? "flex-1 py-3 text-xs font-bold rounded-xl bg-white text-blue-600 shadow-lg transition-all" : "flex-1 py-3 text-xs font-bold rounded-xl text-blue-100 hover:text-white transition-all hover:bg-white/10";
@@ -1386,101 +1428,77 @@
             document.getElementById('shared-options').classList.toggle('hidden', !shared);
             document.getElementById('full-options').classList.toggle('hidden', shared);
             populateLocations();
-            if(!shared) selectService('cab');
+            if (!shared) selectService('cab');
             calculateEstimate();
         }
 
         window.selectService = (s) => {
             state.service = s;
             document.querySelectorAll('.service-option').forEach(el => el.classList.remove('active', 'active-red'));
-            if(s === 'cab') { 
-                document.getElementById('srv-cab').classList.add('active'); 
-                document.getElementById('cab-type-selector').classList.remove('hidden'); 
-                document.getElementById('ambulance-config').classList.add('hidden'); 
-            } else { 
-                document.getElementById('srv-ambulance').classList.add('active-red'); 
-                document.getElementById('cab-type-selector').classList.add('hidden'); 
-                document.getElementById('ambulance-config').classList.remove('hidden'); 
+            if (s === 'cab') {
+                document.getElementById('srv-cab').classList.add('active');
+                document.getElementById('cab-type-selector').classList.remove('hidden');
+                document.getElementById('ambulance-config').classList.add('hidden');
+            } else {
+                document.getElementById('srv-ambulance').classList.add('active-red');
+                document.getElementById('cab-type-selector').classList.add('hidden');
+                document.getElementById('ambulance-config').classList.remove('hidden');
             }
-            lucide.createIcons();
-            calculateEstimate();
+            lucide.createIcons(); calculateEstimate();
         }
 
         window.populateLocations = () => {
-            const f = document.getElementById('from-loc'); 
-            const t = document.getElementById('to-loc');
+            const f = document.getElementById('from-loc'); const t = document.getElementById('to-loc');
             const oldF = f.value; const oldT = t.value;
             const opts = state.bookingType === 'shared' ? LOCATIONS_SHARED : LOCATIONS_FULL;
             const html = opts.map(o => `<option value="${o.val}">${o.label}</option>`).join('');
             f.innerHTML = html; t.innerHTML = html;
-            if(opts.find(o=>o.val===oldF)) f.value = oldF; else f.value = "Karimnagar";
-            if(opts.find(o=>o.val===oldT)) t.value = oldT; else t.value = "JBS-Hyderabad";
+            if (opts.find(o => o.val === oldF)) f.value = oldF; else f.value = "Karimnagar";
+            if (opts.find(o => o.val === oldT)) t.value = oldT; else t.value = "JBS-Hyderabad";
             handleLocationChange('from');
         }
 
-        window.changePassengers = (d) => { 
-            let n = state.passengers + d; 
-            if(n>=1 && n<=6) { 
-                state.passengers = n; 
-                document.getElementById('passenger-count').innerText = n; 
-                calculateEstimate(); 
-            } 
+        window.changePassengers = (d) => {
+            let n = state.passengers + d;
+            if (n >= 1 && n <= 6) { state.passengers = n; document.getElementById('passenger-count').innerText = n; calculateEstimate(); }
         }
-        
+
         window.handleLocationChange = (side) => {
-            const fEl = document.getElementById('from-loc');
-            const tEl = document.getElementById('to-loc');
+            const fEl = document.getElementById('from-loc'); const tEl = document.getElementById('to-loc');
             const f = fEl.value; const t = tEl.value;
-            if(state.bookingType === 'shared') {
-                if(f === t) { 
-                    if(side==='from') tEl.value = f==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
-                    else fEl.value = t==="Karimnagar"?"JBS-Hyderabad":"Karimnagar"; 
-                }
+            if (state.bookingType === 'shared') {
+                if (f === t) { if (side === 'from') tEl.value = f === "Karimnagar" ? "JBS-Hyderabad" : "Karimnagar"; else fEl.value = t === "Karimnagar" ? "JBS-Hyderabad" : "Karimnagar"; }
             } else {
-                if(side === 'from') {
-                    if(f === "Karimnagar" && t === "Karimnagar") tEl.value = "JBS-Hyderabad"; 
-                    else if(HYD_GROUP.includes(f)) tEl.value = "Karimnagar"; 
-                } else {
-                    if(t === "Karimnagar" && f === "Karimnagar") fEl.value = "JBS-Hyderabad"; 
-                    else if(HYD_GROUP.includes(t)) fEl.value = "Karimnagar"; 
-                }
+                if (side === 'from') { if (f === "Karimnagar" && t === "Karimnagar") tEl.value = "JBS-Hyderabad"; else if (HYD_GROUP.includes(f)) tEl.value = "Karimnagar"; }
+                else { if (t === "Karimnagar" && f === "Karimnagar") fEl.value = "JBS-Hyderabad"; else if (HYD_GROUP.includes(t)) fEl.value = "Karimnagar"; }
             }
             calculateEstimate();
         }
 
         window.calculateEstimate = () => {
             let total = 0;
-            const from = document.getElementById('from-loc').value;
-            const to = document.getElementById('to-loc').value;
-            const isCity = from.includes('City') || to.includes('City');
-            const isAirport = from.includes('Airport') || to.includes('Airport');
-
             if (state.bookingType === 'shared') {
                 total = PRICES.SHARED[`SEATER_${state.seatType}`][state.sharedAC] * state.passengers;
             } else {
                 if (state.service === 'ambulance') {
                     total = PRICES.AMBULANCE[state.ambType]['oneWay'];
                 } else {
-                    if(isAirport) {
-                        total = state.cabVariant === 'suv' ? 6000 : 4500;
-                    } else {
-                        total = PRICES.FULL_CAB[state.cabVariant.toUpperCase()][state.cabAC];
-                        if(isCity) total += 500;
-                    }
+                    total = PRICES.FULL_CAB[state.cabVariant.toUpperCase()][state.cabAC];
+                    const from = document.getElementById('from-loc').value;
+                    const to = document.getElementById('to-loc').value;
+                    if (from.includes('Airport') || to.includes('Airport')) total = state.cabVariant === 'suv' ? 6000 : 4500;
+                    else if (from.includes('City') || to.includes('City')) total += 500;
                 }
             }
             if (state.discount) total = Math.max(0, total - state.discount);
-            
             document.getElementById('price-display').innerText = total.toLocaleString();
-            updateFleetUI();
-            updateDetailedAvailability(); 
+            updateFleetUI(); updateDetailedAvailability();
         }
 
         function updateFleetUI() {
             const from = document.getElementById('from-loc').value.toLowerCase();
             const badge = document.getElementById('live-fleet-status');
             const txt = document.getElementById('fleet-stats-text');
-
             let routeDrivers = activeDrivers.filter(d => {
                 const dr = (d.prefRoute || '').toLowerCase();
                 if (dr === 'karimnagar' && from.includes('karimnagar')) return true;
@@ -1489,544 +1507,279 @@
                 if (dr === 'hyderabad' && !from.includes('karimnagar')) return true;
                 return false;
             });
-
-            let count = 0;
-            if (state.bookingType === 'shared') {
-                count = routeDrivers.filter(d => (d.vehicleType.includes('7 Seater') || d.vehicleType.includes('5 Seater')) && d.seatsAvailable > 0).length;
-                txt.innerText = count > 0 ? `${count} Cabs Nearby` : "Busy Route";
-            } else if (state.service === 'ambulance') {
-                count = routeDrivers.filter(d => d.vehicleType === 'Ambulance').length;
-                txt.innerText = count > 0 ? `${count} Ambulances` : "Dispatch HQ";
-            } else {
-                count = routeDrivers.filter(d => {
-                    const vt = (d.vehicleType || '').toLowerCase();
-                    const isCab = vt.includes('7 seater') || vt.includes('5 seater') || vt.includes('sedan') || vt.includes('suv') || vt.includes('ertiga') || vt.includes('innova');
-                    return isCab && (d.filledSeats || 0) === 0;
-                }).length;
-                txt.innerText = count > 0 ? `${count} Cabs Available` : "Checking...";
-            }
-            
+            let count = routeDrivers.filter(d => d.seatsAvailable > 0).length;
+            txt.innerText = count > 0 ? `${count} Drivers Available` : "Checking...";
             badge.style.display = 'flex';
         }
 
         window.forceSelectAlt = (type) => {
-            if(state.bookingType === 'shared') {
-                selectSeatType(type);
-            } else if(state.service === 'cab') {
-                selectCabVariant(type === '7' ? 'suv' : 'sedan');
-            }
+            if (state.bookingType === 'shared') selectSeatType(type);
+            else if (state.service === 'cab') selectCabVariant(type === '7' ? 'suv' : 'sedan');
         }
 
         window.updateDetailedAvailability = () => {
             const msgEl = document.getElementById('availability-status-line');
-            if(!msgEl) return;
-            
+            if (!msgEl) return;
             const from = document.getElementById('from-loc').value.toLowerCase();
-            
             let routeDrivers = activeDrivers.filter(d => {
                 const dr = (d.prefRoute || '').toLowerCase();
-                if (dr === 'karimnagar' && from.includes('karimnagar')) return true;
-                if (dr === 'jbs' && (from.includes('jbs') || from.includes('secunderabad'))) return true;
-                if (dr === 'rgi airport' && (from.includes('airport') || from.includes('rgi'))) return true;
-                if (dr === 'hyderabad' && !from.includes('karimnagar')) return true;
-                return false;
+                return (dr === 'karimnagar' && from.includes('karimnagar')) ||
+                       (dr === 'jbs' && from.includes('jbs')) ||
+                       (dr === 'rgi airport' && from.includes('airport')) ||
+                       (dr === 'hyderabad' && !from.includes('karimnagar'));
             });
-
             if (routeDrivers.length === 0) {
-                msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-red-50 text-red-500 mb-4 block border border-red-100";
-                msgEl.innerText = "⚠️ No drivers currently active on this route.";
-                msgEl.classList.remove('hidden');
-                return;
+                msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-orange-50 text-orange-600 mb-4 block border border-orange-100";
+                msgEl.innerText = "⏳ Checking driver availability...";
+                msgEl.classList.remove('hidden'); return;
             }
-
-            let currentSeat = state.bookingType === 'shared' ? state.seatType : (state.cabVariant === 'suv' ? '7' : '5');
-            const isAmbulance = state.service === 'ambulance';
-
-            const countDrivers = (seatType) => {
-                return routeDrivers.filter(d => {
-                    if (isAmbulance) return d.vehicleType === 'Ambulance';
-                    const vType = (d.vehicleType || '').toLowerCase();
-                    let typeMatch = seatType === '7' 
-                        ? (vType.includes('7 seater') || vType.includes('innova') || vType.includes('suv') || vType.includes('ertiga'))
-                        : (vType.includes('5 seater') || vType.includes('sedan') || vType.includes('etios') || vType.includes('dzire'));
-                    if (!typeMatch) return false;
-                    if (state.bookingType === 'shared') return (d.seatsAvailable || 0) >= state.passengers;
-                    if (state.bookingType === 'full') return (d.filledSeats || 0) === 0;
-                    return true;
-                }).length;
-            };
-
-            const exactCount = countDrivers(currentSeat);
-            const altSeat = currentSeat === '7' ? '5' : '7';
-            const altCount = countDrivers(altSeat);
-
-            if (exactCount > 0) {
-                const vehicleName = currentSeat === '7' ? 'Innova/SUV' : 'Sedan';
+            const available = routeDrivers.filter(d => d.seatsAvailable > 0).length;
+            if (available > 0) {
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-green-50 text-green-600 mb-4 block border border-green-100 shadow-sm";
-                msgEl.innerHTML = `✅ ${exactCount} ${vehicleName} driver${exactCount>1?'s':''} available`;
-            } else if (altCount > 0) {
-                const wantedName = currentSeat === '7' ? "Innova/SUV" : "Sedan";
-                const altName = altSeat === '7' ? "Innova/SUV" : "Sedan";
-                msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-orange-50 text-orange-700 mb-4 block border border-orange-100 shadow-sm";
-                msgEl.innerHTML = `<div class="flex flex-col gap-1"><span>⚠️ ${wantedName} unavailable.</span><span class="text-blue-600 underline cursor-pointer" onclick="forceSelectAlt('${altSeat}')">But ${altCount} ${altName} available. Switch?</span></div>`;
+                msgEl.innerHTML = `✅ ${available} driver${available>1?'s':''} available on this route`;
             } else {
                 msgEl.className = "text-xs font-bold py-3 px-4 rounded-xl text-center bg-red-50 text-red-500 mb-4 block border border-red-100";
-                msgEl.innerHTML = `❌ No drivers available right now.`;
+                msgEl.innerHTML = `❌ No drivers available right now. Try again in a few minutes.`;
             }
             msgEl.classList.remove('hidden');
         }
 
-        // =====================================================
-        // FIX 3: BOOKING ID — Format: NT + YYYYMMDD + 4-char alphanum
-        // Example: NT20260223A7B9
-        // =====================================================
-        function generateOrderId() {
-            const now = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const yyyy = now.getFullYear();
-            const mm = pad(now.getMonth() + 1);
-            const dd = pad(now.getDate());
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let suffix = '';
-            for(let i = 0; i < 4; i++) {
-                suffix += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return `NT${yyyy}${mm}${dd}${suffix}`;
+        window.initiateBookingProcess = async () => {
+            if (!userData) { alert('Please login first.'); return; }
+            if (!navigator.onLine) { alert('You are offline. Please connect to book.'); return; }
+            const active = allUserOrders.find(o => ['pending', 'assigned', 'started'].includes(o.status));
+            if (active) { document.getElementById('duplicate-booking-modal').style.display = 'flex'; return; }
+            await executeBooking();
+        }
+        document.getElementById('confirm-duplicate-btn').onclick = async () => {
+            document.getElementById('duplicate-booking-modal').style.display = 'none';
+            await executeBooking();
+        }
+        document.getElementById('confirm-fallback-btn').onclick = async () => {
+            document.getElementById('fallback-booking-modal').style.display = 'none';
+            await executeBooking();
         }
 
-        window.initiateBookingProcess = () => {
-            if(!user) { alert("Please login first."); return; }
-            if(!navigator.onLine) { alert("You are offline. Please connect to book."); return; }
-            const active = allUserOrders.find(o => ['pending', 'assigned'].includes(o.status));
-            if(active) { 
-                document.getElementById('duplicate-booking-modal').style.display = 'flex'; 
-                return; 
-            }
-            executeBooking(false);
-        }
-
-        document.getElementById('confirm-duplicate-btn').onclick = () => { 
-            document.getElementById('duplicate-booking-modal').style.display = 'none'; 
-            executeBooking(false); 
-        }
-        document.getElementById('confirm-fallback-btn').onclick = () => { 
-            document.getElementById('fallback-booking-modal').style.display = 'none'; 
-            if(fallbackDriver) executeBooking(true, fallbackDriver); 
-        }
-
-        async function executeBooking(forceAny, specificDriver = null) {
-            // Show overlay
+        async function executeBooking() {
             const overlay = document.getElementById('card-searching-overlay');
-            overlay.style.display = 'flex';
-            lucide.createIcons();
-            
+            overlay.style.display = 'flex'; lucide.createIcons();
+
             const fromVal = document.getElementById('from-loc').value;
             const toVal = document.getElementById('to-loc').value;
-            
-            let displayFrom = fromVal; 
-            let displayTo = toVal;
-            if(state.bookingType === 'full') {
-                if(state.service === 'cab') {
-                    const pAddr = document.getElementById('pickup-addr').value; 
-                    const dAddr = document.getElementById('drop-addr').value;
-                    if(pAddr) displayFrom = `${pAddr} (${fromVal})`; 
-                    if(dAddr) displayTo = `${dAddr} (${toVal})`;
+            let pickupAddr = '', dropAddr = '';
+            if (state.bookingType === 'full') {
+                if (state.service === 'cab') {
+                    pickupAddr = document.getElementById('pickup-addr').value;
+                    dropAddr = document.getElementById('drop-addr').value;
                 } else {
-                    const pAddr = document.getElementById('amb-pickup-addr').value; 
-                    const dAddr = document.getElementById('amb-drop-addr').value;
-                    if(pAddr) displayFrom = pAddr; 
-                    if(dAddr) displayTo = dAddr;
+                    pickupAddr = document.getElementById('amb-pickup-addr').value;
+                    dropAddr = document.getElementById('amb-drop-addr').value;
                 }
             }
 
-            let driver = specificDriver;
-            const requiredSeats = state.passengers;
-            const requiredVehicle = state.bookingType === 'shared' 
-                ? `SHARED_${state.seatType}` 
-                : (state.service === 'cab' ? (state.cabVariant === 'suv' ? 'CAB_7' : 'CAB_5') : 'AMBULANCE');
-
-            // Driver matching
-            if(!driver && state.bookingType === 'shared') {
-                const candidates = activeDrivers.filter(d => {
-                    const dr = (d.prefRoute || '').toLowerCase();
-                    const tripFrom = fromVal.toLowerCase();
-                    let locMatch = false;
-                    if (dr === 'karimnagar' && tripFrom.includes('karimnagar')) locMatch = true;
-                    else if (dr === 'jbs' && (tripFrom.includes('jbs') || tripFrom.includes('secunderabad'))) locMatch = true;
-                    else if (dr === 'rgi airport' && (tripFrom.includes('airport') || tripFrom.includes('rgi'))) locMatch = true;
-                    else if (dr === 'hyderabad' && !tripFrom.includes('karimnagar')) locMatch = true; 
-                    if (!locMatch) return false;
-                    if (d.seatsAvailable < requiredSeats) return false;
-                    if (requiredVehicle === 'SHARED_7') return d.vehicleType.includes('7 Seater') || d.vehicleType.includes('Innova');
-                    if (requiredVehicle === 'SHARED_5') return d.vehicleType.includes('5 Seater') || d.vehicleType.includes('Sedan');
-                    return false;
-                });
-                if(candidates.length > 0) driver = candidates[0];
-            }
-
-            // Fallback logic
-            if (!driver && !forceAny && state.bookingType === 'shared') {
-                let altDriver = activeDrivers.find(d => {
-                    const dr = (d.prefRoute||'').toLowerCase(); 
-                    const tf = fromVal.toLowerCase();
-                    const locMatch = (dr==='karimnagar'&&tf.includes('karimnagar')) || (dr==='jbs'&&tf.includes('jbs')) || (dr.includes('hyd')&&!tf.includes('karimnagar'));
-                    return locMatch && d.seatsAvailable >= requiredSeats && !d.vehicleType.includes('Ambulance');
-                });
-                if (altDriver) {
-                    fallbackDriver = altDriver;
-                    document.getElementById('fallback-msg').innerText = `Your exact vehicle preference is busy, but a ${altDriver.vehicleType} is available. Book this instead?`;
-                    overlay.style.display = 'none';
-                    document.getElementById('fallback-booking-modal').style.display = 'flex';
-                    return;
-                }
-            }
-
-            // FIX 3: Use new NT-prefixed booking ID
-            const oid = generateOrderId();
-            
-            // FIX 4: Generate OTP before saving — so it shows INSTANTLY
-            const otp = Math.floor(1000 + Math.random() * 9000);
-
-            let serviceName = "Ride";
-            if (state.bookingType === 'shared') {
-                serviceName = `Shared (${state.passengers} Seat${state.passengers>1?'s':''})`;
-            } else if (state.service === 'cab') {
-                serviceName = `Private Cab (${state.cabVariant === 'suv' ? 'SUV' : 'Sedan'})`;
-            } else {
-                serviceName = "Ambulance";
-            }
-            
-            const totalPrice = document.getElementById('price-display').innerText;
-            
-            let payload = {
-                orderId: oid,
-                userId: user.uid, 
-                name: userData.name, 
-                email: user.email || '',
-                from: displayFrom, 
-                to: displayTo, 
-                price: totalPrice,
-                date: document.getElementById('travel-date').value,
-                serviceName: serviceName,
-                passengers: state.passengers,
-                otp: otp,   // FIX 4: OTP included in local payload BEFORE Firestore write
-                createdAt: serverTimestamp(),
-                status: 'pending',
-                routeKey: fromVal === "JBS-Hyderabad" ? "JBS" : (fromVal === "Karimnagar" ? "Karimnagar" : (fromVal === "Airport-RGI" ? "RGI Airport" : "Hyderabad"))
-            };
+            const price = parseInt(document.getElementById('price-display').innerText.replace(/,/g,'')) || 0;
 
             try {
-                if (driver) {
-                    payload.status = 'assigned';
-                    payload.driverId = driver.id;
-                    payload.driverName = driver.name;
-                    payload.driverPhone = driver.phone;
-                    payload.driverVehicle = driver.vehicleType;
-                    payload.driverPlate = driver.vehicleNo;
-                    payload.driverImage = driver.photoUrl || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-                    payload.driverRating = driver.rating || 5.0;
-
-                    await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', oid), payload);
-                    
-                    const newFilledSeats = (driver.filledSeats || 0) + state.passengers;
-                    const newAvailableSeats = Math.max(0, (driver.totalSeats || 7) - newFilledSeats);
-                    await updateDoc(doc(db, 'artifacts', APP_ID, 'trips', driver.id), {
-                        filledSeats: newFilledSeats,
-                        seatsAvailable: newAvailableSeats,
-                        bookedSeats: (driver.bookedSeats || 0) + state.passengers
-                    });
-                } else {
-                    await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', oid), payload);
-                }
+                const ride = await apiFetch('/api/rides/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        from_loc: fromVal, to_loc: toVal,
+                        booking_type: state.bookingType,
+                        service_type: state.service,
+                        vehicle_size: state.bookingType === 'shared'
+                            ? (state.seatType === '7' ? '7 Seater' : '5 Seater')
+                            : (state.cabVariant === 'suv' ? '7 Seater' : 'Sedan'),
+                        ac: state.bookingType === 'shared' ? state.sharedAC === 'ac' : state.cabAC === 'ac',
+                        passengers: state.passengers,
+                        coupon_code: activeCoupon || '',
+                        discount: state.discount,
+                        pickup_addr: pickupAddr,
+                        drop_addr: dropAddr,
+                        travel_date: document.getElementById('travel-date').value,
+                        amb_type: state.ambType,
+                    })
+                });
 
                 overlay.style.display = 'none';
-                currentTrackingOrderId = oid;
-                
-                // FIX 4: Build local copy with JS timestamp so OTP shows immediately
-                const localPayload = { 
-                    ...payload, 
-                    id: oid, 
-                    otp: otp,  // ensure otp is in local copy
-                    createdAt: { seconds: Math.floor(Date.now() / 1000) } 
+                currentTrackingOrderId = ride.id;
+
+                const localOrder = {
+                    id: ride.id, orderId: ride.id, status: ride.status,
+                    from: ride.from_loc, to: ride.to_loc, price: ride.price,
+                    serviceName: ride.service_type === 'ambulance' ? 'Ambulance' : (ride.booking_type === 'shared' ? `Shared (${ride.passengers} Seat${ride.passengers>1?'s':''})` : 'Private Cab'),
+                    passengers: ride.passengers, otp: ride.otp,
+                    driverName: ride.driver_name, driverId: ride.driver_id,
+                    date: ride.travel_date,
+                    createdAt: { seconds: Math.floor(Date.now() / 1000) }
                 };
-                allUserOrders.unshift(localPayload);
+                allUserOrders.unshift(localOrder);
                 localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
-                
+
                 switchView('tracking');
-                renderLiveTripDetails(localPayload); // Pass local payload — OTP shows instantly!
-                
-                if(!driver && state.bookingType !== 'shared') {
-                    const waText = `New Booking Pending!\nID: ${oid}\nFrom: ${displayFrom}\nTo: ${displayTo}`;
-                    setTimeout(() => window.open(`https://wa.me/917842424201?text=${encodeURIComponent(waText)}`, '_blank'), 1000);
-                } else if (!driver && state.bookingType === 'shared') {
-                    alert("Booking placed! Waiting for a driver to accept.");
+                renderLiveTripDetails(localOrder);
+
+                if (!ride.driver_id) {
+                    setTimeout(() => {
+                        const waText = `New Booking!\nID: ${ride.id}\nRoute: ${fromVal} → ${toVal}\nService: ${localOrder.serviceName}\nFare: ₹${ride.price}`;
+                        window.open(`https://wa.me/917842424201?text=${encodeURIComponent(waText)}`, '_blank');
+                    }, 1000);
                 }
 
             } catch(e) {
-                console.error("Booking Error:", e);
-                let msg = "Booking failed. Please check your connection.";
-                if(e.code === 'permission-denied') msg = "Permission Error: Please refresh and try again.";
-                alert(msg);
                 overlay.style.display = 'none';
+                alert('Booking failed: ' + e.message);
             }
         }
 
-        // =====================================================
-        // FIX 4: renderLiveTripDetails — OTP always shows if present
-        // =====================================================
         function renderLiveTripDetails(order) {
             const container = document.getElementById('tracking-content');
             const isActive = ['assigned', 'started'].includes(order.status);
-            
             let statusBadge = isActive ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700';
-            if(order.status === 'completed') statusBadge = 'bg-green-100 text-green-700';
-            if(order.status === 'cancelled') statusBadge = 'bg-red-100 text-red-600';
+            if (order.status === 'completed') statusBadge = 'bg-green-100 text-green-700';
+            if (order.status === 'cancelled') statusBadge = 'bg-red-100 text-red-600';
 
             let driverHtml = '';
-            if(isActive || order.status === 'completed') {
-                driverHtml = `
-                <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 text-left shadow-sm">
+            if (isActive || order.status === 'completed') {
+                driverHtml = `<div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 text-left shadow-sm">
                     <p class="text-[10px] font-bold text-blue-500 uppercase mb-3">✅ Driver Assigned</p>
                     <div class="flex items-start gap-4 mb-4">
-                        <img src="${order.driverImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-white bg-white">
-                        <div class="flex-1">
-                            <h4 class="font-black text-slate-900 text-xl leading-tight">${order.driverName}</h4>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-[10px] font-bold text-slate-600">⭐ ${order.driverRating || '4.8'}</span>
-                            </div>
-                        </div>
+                        <div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 font-black text-2xl">${(order.driverName||'D')[0]}</div>
+                        <div class="flex-1"><h4 class="font-black text-slate-900 text-xl leading-tight">${order.driverName||'Driver'}</h4>
+                        <div class="flex items-center gap-2 mt-1"><span class="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-[10px] font-bold text-slate-600">⭐ Verified Driver</span></div></div>
                     </div>
-                    <div class="bg-white p-3 rounded-xl border border-blue-100 mb-4 flex items-center justify-between shadow-sm">
-                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Vehicle</p><p class="text-sm font-bold text-slate-900">${order.driverVehicle}</p></div>
-                        <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">Plate No</p><p class="text-sm font-bold text-slate-900 font-mono tracking-wider">${order.driverPlate}</p></div>
-                    </div>
-                    ${isActive ? `<a href="tel:${order.driverPhone}" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition">📞 Call Driver</a>` : ''}
+                    ${isActive ? `<button onclick="window.open('tel:+91')" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2">📞 Contact Driver</button>` : ''}
                 </div>`;
-            } else if(order.status === 'pending') {
-                driverHtml = `<div class="bg-yellow-50 p-6 rounded-2xl mb-6 text-center border border-yellow-100"><div class="text-3xl mb-2 animate-spin inline-block">⏳</div><p class="font-bold text-slate-800">Finding Driver...</p><p class="text-xs text-slate-500 mt-1">Please wait while we connect you.</p></div>`;
+            } else if (order.status === 'pending') {
+                driverHtml = `<div class="bg-yellow-50 p-6 rounded-2xl mb-6 text-center border border-yellow-100"><div class="text-3xl mb-2 animate-bounce">⏳</div><p class="font-bold text-slate-800">Finding Driver...</p><p class="text-xs text-slate-500 mt-1">Please wait while we connect you.</p></div>`;
             }
 
-            // FIX 4: Show OTP immediately for ANY assigned/started status
-            // Also show for pending if OTP is available (pre-generated)
             const showOTP = order.otp && (isActive || order.status === 'pending');
-            const otpHtml = showOTP ? `
-                <div class="otp-box mb-6">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Your Ride OTP</p>
-                    <div class="otp-digits">${order.otp}</div>
-                    <p class="text-[10px] text-slate-500 mt-2">Share this with your driver to start the ride</p>
-                </div>` : '';
+            const otpHtml = showOTP ? `<div class="otp-box mb-6">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Your Ride OTP</p>
+                <div class="otp-digits">${order.otp}</div>
+                <p class="text-[10px] text-slate-500 mt-2">Share this with your driver to start the ride</p>
+            </div>` : '';
 
             container.innerHTML = `
-                <div class="text-center mb-6">
-                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${statusBadge}">${order.status}</span>
-                    <h2 class="text-xl font-black text-slate-900">Order #${order.id || order.orderId}</h2>
-                    <p class="text-xs text-slate-400 font-bold mt-1">${order.date || ''}</p>
-                </div>
-                ${otpHtml}
-                ${driverHtml}
-                <div class="space-y-3 mb-6">
-                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span class="text-xs font-bold text-slate-500 flex items-center gap-1">📍 From</span>
-                        <span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${(order.from||'').split('(')[0]}</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span class="text-xs font-bold text-slate-500 flex items-center gap-1">🏁 To</span>
-                        <span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${(order.to||'').split('(')[0]}</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span class="text-xs font-bold text-slate-500">Service</span>
-                        <span class="text-sm font-bold text-slate-900">${order.serviceName || 'Ride'}</span>
-                    </div>
-                    <div class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
-                        <span class="text-xs font-bold text-slate-500">Total Fare</span>
-                        <span class="text-lg font-black text-slate-900">₹${order.price}</span>
-                    </div>
-                </div>
-                <div class="space-y-3">
-                    ${['pending','assigned'].includes(order.status) ? `<button onclick="confirmCancel('${order.id || order.orderId}')" class="w-full py-3.5 border-2 border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition">Cancel Order</button>` : ''}
-                    <button onclick="switchView('orders')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">View All Rides</button>
-                    <button onclick="syncData().then(()=>{ const o=allUserOrders.find(x=>x.id==='${order.id || order.orderId}'); if(o) renderLiveTripDetails(o); })" class="w-full text-xs font-bold text-blue-500 py-2">🔄 Refresh Status</button>
-                </div>
-            `;
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${statusBadge}">${order.status}</span>
+                <h2 class="text-xl font-black text-slate-900">Order #${(order.id||'').slice(-8).toUpperCase()}</h2>
+                <p class="text-xs text-slate-400 font-bold mt-1">${order.date||''}</p>
+            </div>
+            ${otpHtml}${driverHtml}
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="text-xs font-bold text-slate-500">📍 From</span><span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${order.from||''}</span></div>
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="text-xs font-bold text-slate-500">🏁 To</span><span class="text-sm font-bold text-slate-900 truncate max-w-[60%] text-right">${order.to||''}</span></div>
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100"><span class="text-xs font-bold text-slate-500">Service</span><span class="text-sm font-bold text-slate-900">${order.serviceName||'Ride'}</span></div>
+                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100"><span class="text-xs font-bold text-slate-500">Total Fare</span><span class="text-lg font-black text-slate-900">₹${order.price}</span></div>
+            </div>
+            <div class="space-y-3">
+                ${['pending','assigned'].includes(order.status) ? `<button onclick="confirmCancel('${order.id}')" class="w-full py-3.5 border-2 border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition">Cancel Order</button>` : ''}
+                <button onclick="switchView('orders')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">View All Rides</button>
+                <button onclick="syncData().then(()=>{ const o=allUserOrders.find(x=>x.id==='${order.id}'); if(o) renderLiveTripDetails(o); })" class="w-full text-xs font-bold text-blue-500 py-2">🔄 Refresh Status</button>
+            </div>`;
             lucide.createIcons();
         }
 
-        // =====================================================
-        // FIX 2: renderOrders — handles missing/null createdAt
-        // =====================================================
         function renderOrders() {
             const container = document.getElementById('orders-list-container');
-            
             if (!allUserOrders || allUserOrders.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-20 opacity-60">
-                        <div class="text-5xl mb-4">🚖</div>
-                        <p class="font-bold text-slate-500 text-lg">No rides yet</p>
-                        <p class="text-xs text-slate-400 mt-1">Your booking history will appear here</p>
-                        <button onclick="switchView('booking')" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm">Book a Ride</button>
-                    </div>`;
+                container.innerHTML = `<div class="text-center py-20 opacity-60"><div class="text-5xl mb-4">🚖</div><p class="font-bold text-slate-500 text-lg">No rides yet</p><p class="text-xs text-slate-400 mt-1">Your booking history will appear here</p><button onclick="switchView('booking')" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm">Book a Ride</button></div>`;
                 return;
             }
-
-            let html = '';
-            let lastDate = '';
-
+            let html = '', lastDate = '';
             allUserOrders.forEach(o => {
-                // FIX 2: Safe date handling — createdAt can be null on fresh bookings
-                let dateHeader = 'Today';
-                let timeStr = '';
-                
+                let dateHeader = 'Today', timeStr = '';
                 if (o.createdAt && o.createdAt.seconds) {
                     const d = new Date(o.createdAt.seconds * 1000);
-                    const today = new Date();
-                    const yesterday = new Date(today); 
-                    yesterday.setDate(today.getDate() - 1);
+                    const today = new Date(); const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
                     if (d.toDateString() === today.toDateString()) dateHeader = "Today";
                     else if (d.toDateString() === yesterday.toDateString()) dateHeader = "Yesterday";
                     else dateHeader = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                    timeStr = d.toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'});
+                    timeStr = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                 }
-
-                if (dateHeader !== lastDate) {
-                    html += `<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 pt-2 pb-1">${dateHeader}</h3>`;
-                    lastDate = dateHeader;
-                }
-
-                const statusColors = {
-                    assigned: 'text-blue-700 bg-blue-100',
-                    pending: 'text-yellow-700 bg-yellow-100',
-                    cancelled: 'text-red-700 bg-red-100',
-                    completed: 'text-green-700 bg-green-100',
-                    started: 'text-purple-700 bg-purple-100'
-                };
+                if (dateHeader !== lastDate) { html += `<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 pt-2 pb-1">${dateHeader}</h3>`; lastDate = dateHeader; }
+                const statusColors = { assigned: 'text-blue-700 bg-blue-100', pending: 'text-yellow-700 bg-yellow-100', cancelled: 'text-red-700 bg-red-100', completed: 'text-green-700 bg-green-100', started: 'text-purple-700 bg-purple-100' };
                 const statusBadge = statusColors[o.status] || 'text-slate-700 bg-slate-100';
-                const orderId = o.id || o.orderId || 'Unknown';
-
-                html += `
-                <div onclick="openOrder('${orderId}')" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition relative overflow-hidden">
+                const orderId = o.id || 'Unknown';
+                html += `<div onclick="openOrder('${orderId}')" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition">
                     <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider ${statusBadge} px-2 py-0.5 rounded-lg mb-1 inline-block">${o.status}</span>
-                            <h4 class="font-bold text-slate-900 text-base leading-tight mt-1">${o.serviceName || 'Taxi Ride'}</h4>
-                            <p class="text-[10px] text-slate-400 font-bold mt-0.5">#${orderId}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="font-black text-slate-900 text-lg block">₹${o.price}</span>
-                            <span class="text-[10px] font-bold text-slate-400">${timeStr}</span>
-                        </div>
+                        <div><span class="text-[10px] font-bold uppercase tracking-wider ${statusBadge} px-2 py-0.5 rounded-lg mb-1 inline-block">${o.status}</span>
+                        <h4 class="font-bold text-slate-900 text-base leading-tight mt-1">${o.serviceName||'Taxi Ride'}</h4>
+                        <p class="text-[10px] text-slate-400 font-bold mt-0.5">#${orderId.slice(-8).toUpperCase()}</p></div>
+                        <div class="text-right"><span class="font-black text-slate-900 text-lg block">₹${o.price}</span><span class="text-[10px] font-bold text-slate-400">${timeStr}</span></div>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center gap-3 text-xs font-bold text-slate-700">
-                        <span class="truncate max-w-[45%]">${(o.from||'').split('(')[0]}</span>
-                        <span class="text-slate-400">→</span>
-                        <span class="truncate max-w-[45%]">${(o.to||'').split('(')[0]}</span>
+                        <span class="truncate max-w-[45%]">${o.from||''}</span><span class="text-slate-400">→</span><span class="truncate max-w-[45%]">${o.to||''}</span>
                     </div>
                     ${o.status === 'cancelled' && o.cancelReason ? `<div class="mt-3 pt-3 border-t border-slate-50 text-[10px] text-red-500 font-bold">Cancelled: ${o.cancelReason}</div>` : ''}
                 </div>`;
             });
-
             container.innerHTML = html;
         }
 
         window.openOrder = (id) => {
-            const o = allUserOrders.find(x => (x.id === id || x.orderId === id));
-            if(!o) return;
-            
-            if(['pending','assigned','started'].includes(o.status)) {
-                currentTrackingOrderId = id;
-                renderLiveTripDetails(o);
-                switchView('tracking');
+            const o = allUserOrders.find(x => x.id === id);
+            if (!o) return;
+            if (['pending','assigned','started'].includes(o.status)) {
+                currentTrackingOrderId = id; renderLiveTripDetails(o); switchView('tracking');
             } else {
                 const content = document.getElementById('modal-content');
                 const timeStr = o.createdAt?.seconds ? new Date(o.createdAt.seconds * 1000).toLocaleString('en-IN') : o.date || '';
-                
-                content.innerHTML = `
-                    <div class="text-center mb-6">
-                        <h3 class="font-black text-xl text-slate-900">Order #${id}</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase mt-1">${timeStr}</p>
-                    </div>
-                    ${o.driverName ? `
-                    <div class="bg-slate-50 p-4 rounded-2xl mb-6 flex items-center gap-4">
-                        <img src="${o.driverImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-12 h-12 rounded-xl bg-white object-cover">
-                        <div><p class="font-bold text-slate-900 text-sm">${o.driverName}</p><p class="text-xs text-slate-500">${o.driverVehicle} • ${o.driverPlate}</p></div>
-                    </div>` : ''}
-                    <div class="space-y-4 mb-8 bg-white border border-slate-100 p-5 rounded-3xl shadow-sm">
-                        <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">Service</span><span class="font-bold text-slate-900 text-right">${o.serviceName}</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">From</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.from}</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">To</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.to}</span></div>
-                        <div class="pt-3 border-t border-slate-100 flex justify-between items-center"><span class="text-slate-500 font-bold">Total Fare</span><span class="font-black text-xl text-slate-900">₹${o.price}</span></div>
-                    </div>
-                    <button onclick="openSupport('${id}')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Report Issue</button>`;
-                document.getElementById('order-modal').style.display = 'flex';
-                lucide.createIcons();
+                content.innerHTML = `<div class="text-center mb-6"><h3 class="font-black text-xl text-slate-900">Order #${id.slice(-8).toUpperCase()}</h3><p class="text-xs font-bold text-slate-400 uppercase mt-1">${timeStr}</p></div>
+                <div class="space-y-4 mb-8 bg-white border border-slate-100 p-5 rounded-3xl shadow-sm">
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">Service</span><span class="font-bold text-slate-900 text-right">${o.serviceName}</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">From</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.from}</span></div>
+                    <div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">To</span><span class="font-bold text-slate-900 text-right w-1/2 truncate">${o.to}</span></div>
+                    ${o.driverName ? `<div class="flex justify-between text-sm"><span class="text-slate-500 font-bold">Driver</span><span class="font-bold text-slate-900">${o.driverName}</span></div>` : ''}
+                    <div class="pt-3 border-t border-slate-100 flex justify-between items-center"><span class="text-slate-500 font-bold">Total Fare</span><span class="font-black text-xl text-slate-900">₹${o.price}</span></div>
+                </div>
+                <button onclick="openSupport('${id}')" class="w-full py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Report Issue</button>`;
+                document.getElementById('order-modal').style.display = 'flex'; lucide.createIcons();
             }
         }
-        
-        window.confirmCancel = (id) => { 
-            cancelTargetId = id; 
-            document.getElementById('cancel-modal').style.display = 'flex'; 
-            document.getElementById('cancel-reason').value = ""; 
-        }
 
+        window.confirmCancel = (id) => {
+            cancelTargetId = id;
+            document.getElementById('cancel-modal').style.display = 'flex';
+            document.getElementById('cancel-reason').value = "";
+        }
         document.getElementById('confirm-cancel-btn').onclick = async () => {
             const r = document.getElementById('cancel-reason').value;
-            if(!r) return alert("Select a reason");
+            if (!r) return alert('Select a reason');
             try {
-                if(navigator.onLine) {
-                    await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'bookings', cancelTargetId), {
-                        status: 'cancelled', 
-                        cancelReason: r
-                    });
-                }
-                // Update local state
-                const idx = allUserOrders.findIndex(o => (o.id === cancelTargetId || o.orderId === cancelTargetId));
-                if(idx !== -1) { 
-                    allUserOrders[idx].status = 'cancelled'; 
-                    allUserOrders[idx].cancelReason = r;
-                }
+                await apiFetch(`/api/rides/${cancelTargetId}/cancel`, { method: 'PATCH', body: JSON.stringify({ reason: r }) });
+                const idx = allUserOrders.findIndex(o => o.id === cancelTargetId);
+                if (idx !== -1) { allUserOrders[idx].status = 'cancelled'; allUserOrders[idx].cancelReason = r; }
                 localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
                 document.getElementById('cancel-modal').style.display = 'none';
                 document.getElementById('order-modal').style.display = 'none';
-                if(currentTrackingOrderId === cancelTargetId) {
-                    renderOrders();
-                    switchView('orders');
-                }
-            } catch(e) { console.error(e); }
+                if (currentTrackingOrderId === cancelTargetId) { renderOrders(); switchView('orders'); }
+            } catch(e) { alert(e.message); }
         }
 
         window.switchView = (v) => {
-            ['booking','orders','profile','tracking'].forEach(view => {
-                document.getElementById(`view-${view}`).classList.add('hidden');
-            });
+            ['booking','orders','profile','tracking'].forEach(view => document.getElementById(`view-${view}`).classList.add('hidden'));
             document.getElementById(`view-${v}`).classList.remove('hidden');
-
-            // Mobile nav highlighting
-            document.querySelectorAll('#mobile-nav button').forEach(b => {
-                b.classList.remove('text-blue-600');
-                b.classList.add('text-slate-400');
-            });
+            document.querySelectorAll('#mobile-nav button').forEach(b => { b.classList.remove('text-blue-600'); b.classList.add('text-slate-400'); });
             const mobNav = document.getElementById(`nav-${v}`);
-            if(mobNav) { 
-                mobNav.classList.remove('text-slate-400'); 
-                mobNav.classList.add('text-blue-600'); 
-            }
-
-            // Desktop nav highlighting
-            if(v === 'booking') {
+            if (mobNav) { mobNav.classList.remove('text-slate-400'); mobNav.classList.add('text-blue-600'); }
+            if (v === 'booking') {
                 document.getElementById('d-nav-booking').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
                 document.getElementById('d-nav-orders').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
-            } else if(v === 'orders') {
+            } else if (v === 'orders') {
                 document.getElementById('d-nav-orders').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
                 document.getElementById('d-nav-booking').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
             }
-
-            if(v === 'orders') { renderOrders(); syncData(); }
+            if (v === 'orders') { renderOrders(); syncData(); }
         }
 
-        // Make syncData globally accessible for button
-        window.syncData = syncData;
+        // Poll for ride status updates every 10s while tracking
+        setInterval(() => {
+            if (currentTrackingOrderId) syncData();
+        }, 10000);
 
+        window.syncData = syncData;
         lucide.createIcons();
         populateLocations();
     </script>
-</body>
-</html>
