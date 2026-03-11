@@ -132,6 +132,103 @@
     </div>
 
     <!-- Document Upload Modal -->
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[106] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl animate-slide-up relative overflow-hidden max-h-[92vh] flex flex-col">
+            <!-- Header gradient -->
+            <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-5 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-lg font-black">Edit Profile</h3>
+                    <p class="text-[11px] text-orange-100 mt-0.5">Update your personal & vehicle details</p>
+                </div>
+                <button onclick="closeEditProfileModal()" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+                    <i data-lucide="x" class="h-4 w-4 text-white"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="overflow-y-auto p-5 space-y-4 flex-1">
+                <!-- Profile pic row -->
+                <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
+                    <div class="relative w-16 h-16 shrink-0 cursor-pointer group" onclick="document.getElementById('edit-modal-pic-input').click()">
+                        <img id="edit-modal-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=driver" class="w-16 h-16 rounded-full object-cover border-2 border-orange-300">
+                        <div class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-lucide="camera" class="text-white h-4 w-4"></i>
+                        </div>
+                        <input type="file" id="edit-modal-pic-input" class="hidden" accept="image/*" onchange="uploadProfilePic(this)">
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200" id="edit-modal-name-preview">Driver Name</p>
+                        <p class="text-xs text-slate-400">Tap photo to change</p>
+                    </div>
+                </div>
+                <!-- Name -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Full Name</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="user" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <input type="text" id="edit-name" placeholder="Your full name" class="bg-transparent outline-none flex-1 text-sm text-slate-700 dark:text-slate-200" oninput="document.getElementById('edit-modal-name-preview').innerText = this.value || 'Driver Name'">
+                    </div>
+                </div>
+                <!-- Phone -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Phone Number</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="phone" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <input type="tel" id="edit-phone" placeholder="10-digit mobile number" class="bg-transparent outline-none flex-1 text-sm text-slate-700 dark:text-slate-200">
+                    </div>
+                </div>
+                <!-- Email -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Email Address</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="mail" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <input type="email" id="edit-email" placeholder="your@email.com" class="bg-transparent outline-none flex-1 text-sm text-slate-700 dark:text-slate-200">
+                    </div>
+                </div>
+                <!-- Address -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Home Address</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="home" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <input type="text" id="edit-address" placeholder="Your home address" class="bg-transparent outline-none flex-1 text-sm text-slate-700 dark:text-slate-200">
+                    </div>
+                </div>
+                <!-- Divider -->
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-2">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Vehicle Details</p>
+                </div>
+                <!-- Vehicle Type -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Vehicle Type</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="car" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <select id="edit-vehicle-type" class="bg-transparent outline-none flex-1 text-sm text-slate-700 dark:text-slate-200 appearance-none">
+                            <option value="">Select vehicle type</option>
+                            <option value="5 Seater">5 Seater (Sedan/Etios)</option>
+                            <option value="7 Seater">7 Seater (Innova/Ertiga)</option>
+                            <option value="Tempo">Tempo (12+ Seater)</option>
+                            <option value="Ambulance">🚑 Ambulance</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Plate Number -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Vehicle Plate Number</label>
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                        <i data-lucide="hash" class="h-4 w-4 text-slate-400 shrink-0"></i>
+                        <input type="text" id="edit-plate" placeholder="e.g. TS09AB1234" class="bg-transparent outline-none flex-1 text-sm font-mono uppercase text-slate-700 dark:text-slate-200" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                </div>
+            </div>
+            <!-- Save button -->
+            <div class="p-5 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                <button id="save-edit-profile-btn" onclick="saveFullProfileChanges()" class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black rounded-2xl shadow-md hover:from-orange-600 hover:to-amber-600 transition active:scale-95">
+                    Save Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="doc-upload-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <div class="flex justify-between items-center mb-6">
@@ -151,7 +248,20 @@
                     <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Vehicle Insurance</p>
                     <p class="text-[10px] text-slate-500">Tap to upload PDF/Image</p>
                 </div>
-                <button onclick="showToast('Documents Uploaded!', 'success'); closeDocModal()" class="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg mt-4 active:scale-95 transition">Submit for Verification</button>
+                <div class="space-y-2">
+                    <input type="file" id="doc-license" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="stageDriverDocUpload('license', this, 'profile')">
+                    <input type="file" id="doc-aadhar" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="stageDriverDocUpload('aadhar', this, 'profile')">
+                    <input type="file" id="doc-rc" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="stageDriverDocUpload('rc', this, 'profile')">
+                    <input type="file" id="doc-insurance" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="stageDriverDocUpload('insurance', this, 'profile')">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="document.getElementById('doc-license').click()" class="py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-600">License</button>
+                        <button onclick="document.getElementById('doc-aadhar').click()" class="py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-600">Aadhar</button>
+                        <button onclick="document.getElementById('doc-rc').click()" class="py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-600">RC</button>
+                        <button onclick="document.getElementById('doc-insurance').click()" class="py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-600">Insurance</button>
+                    </div>
+                    <p class="text-[11px] text-slate-500" id="doc-upload-status-line">Select files, then submit for admin verification.</p>
+                </div>
+                <button onclick="submitDriverDocuments()" class="w-full py-3 bg-brand-600 text-white font-bold rounded-xl shadow-lg mt-4 active:scale-95 transition">Submit for Verification</button>
             </div>
         </div>
     </div>
@@ -434,8 +544,55 @@
             <div id="auth-step-3-register" class="hidden bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 space-y-4">
                 <div id="driver-reg-step-1" class="space-y-6">
                     <div class="text-center">
-                        <h3 class="font-black text-2xl dark:text-white">Join the Fleet</h3>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step 1 of 3: Profile</p>
+                        <h3 class="font-black text-2xl dark:text-white">Take Your Selfie</h3>
+                        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Step 1 of 3: Selfie & Profile</p>
+                    </div>
+                    <div class="rounded-[2rem] overflow-hidden bg-[linear-gradient(160deg,#0f172a_0%,#1e293b_58%,#334155_100%)] text-white shadow-2xl shadow-slate-900/20">
+                        <div class="p-6 md:p-7 grid gap-6">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-[11px] font-black uppercase tracking-[0.3em] text-orange-200">Verification</p>
+                                    <h4 class="text-2xl font-black mt-2">Use a clear front-facing photo</h4>
+                                </div>
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="camera" class="h-6 w-6 text-orange-200"></i>
+                                </div>
+                            </div>
+                            <div class="rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                                <div class="flex flex-col items-center text-center gap-4">
+                                    <div class="w-40 h-48 rounded-[2rem] bg-slate-100 dark:bg-slate-800 border-4 border-white/70 dark:border-slate-700 shadow-2xl relative cursor-pointer group overflow-hidden" onclick="document.getElementById('reg-profile-upload').click()">
+                                        <img id="reg-profile-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=driver-register" class="w-full h-full object-cover" alt="Driver profile">
+                                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center border border-white/20">
+                                                <i data-lucide="camera" class="text-white h-7 w-7"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-white">Show your face clearly and keep the camera steady.</p>
+                                        <p class="text-xs text-slate-300 mt-2">This photo is saved to your driver profile and checked during onboarding.</p>
+                                    </div>
+                                    <button type="button" onclick="document.getElementById('reg-profile-upload').click()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 font-black text-sm shadow-lg hover:scale-[1.02] transition-transform active:scale-95">
+                                        <i data-lucide="camera" class="h-4 w-4"></i> Take Selfie
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+                                <div class="rounded-2xl bg-white/8 border border-white/10 p-3">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-orange-200">1</p>
+                                    <p class="text-xs font-semibold text-slate-100 mt-2">Face the camera directly</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/8 border border-white/10 p-3">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-orange-200">2</p>
+                                    <p class="text-xs font-semibold text-slate-100 mt-2">Use good light and no helmet</p>
+                                </div>
+                                <div class="rounded-2xl bg-white/8 border border-white/10 p-3">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-orange-200">3</p>
+                                    <p class="text-xs font-semibold text-slate-100 mt-2">Continue after the photo is added</p>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="file" id="reg-profile-upload" class="hidden" accept="image/png,image/jpeg,image/webp" capture="user" onchange="uploadDriverProfilePic(this, 'register')">
                     </div>
                     <div class="space-y-4">
                         <div class="relative group">
@@ -471,6 +628,7 @@
                             <select id="reg-type" class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white font-bold mt-1">
                                 <option value="5 Seater">5 Seater (Sedan/Etios)</option>
                                 <option value="7 Seater">7 Seater (Innova/Ertiga)</option>
+                                <option value="Tempo">Tempo (12+ Seater)</option>
                                 <option value="Ambulance">🚑 Ambulance</option>
                             </select>
                         </div>
@@ -493,6 +651,32 @@
                                 <option value="RGI Airport">RGI Airport</option>
                                 <option value="Hyderabad">Hyderabad City</option>
                             </select>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-sm dark:text-white">Upload Verification Documents</h4>
+                                <span class="text-[10px] font-bold text-orange-600 uppercase">Required</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Upload all 4 docs so admin can review and verify your account.</p>
+                            <input type="file" id="reg-doc-license" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="stageDriverDocUpload('license', this, 'register')">
+                            <input type="file" id="reg-doc-aadhar" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="stageDriverDocUpload('aadhar', this, 'register')">
+                            <input type="file" id="reg-doc-rc" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="stageDriverDocUpload('rc', this, 'register')">
+                            <input type="file" id="reg-doc-insurance" class="hidden" accept="image/png,image/jpeg,image/webp" onchange="stageDriverDocUpload('insurance', this, 'register')">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <button type="button" onclick="document.getElementById('reg-doc-license').click()" class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <span class="font-bold">Driving License</span><span id="reg-doc-status-license" class="text-slate-400">Missing</span>
+                                </button>
+                                <button type="button" onclick="document.getElementById('reg-doc-aadhar').click()" class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <span class="font-bold">Aadhar Card</span><span id="reg-doc-status-aadhar" class="text-slate-400">Missing</span>
+                                </button>
+                                <button type="button" onclick="document.getElementById('reg-doc-rc').click()" class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <span class="font-bold">Vehicle RC</span><span id="reg-doc-status-rc" class="text-slate-400">Missing</span>
+                                </button>
+                                <button type="button" onclick="document.getElementById('reg-doc-insurance').click()" class="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <span class="font-bold">Insurance</span><span id="reg-doc-status-insurance" class="text-slate-400">Missing</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button onclick="driverRegSubmit()" class="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl shadow-xl shadow-green-500/30 active:scale-95 transition-transform flex justify-center items-center gap-2">
@@ -635,150 +819,342 @@
             </div>
 
             <!-- PROFILE TAB -->
-            <div id="view-profile" class="hidden space-y-6 animate-slide-up pb-20">
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center shadow-sm relative overflow-hidden">
-                    <div class="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 border-4 border-white dark:border-slate-700 shadow-lg relative cursor-pointer group" onclick="document.getElementById('profile-upload').click()">
-                        <img id="profile-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nandu" class="w-full h-full rounded-full object-cover">
-                        <div class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i data-lucide="camera" class="text-white h-6 w-6"></i>
-                        </div>
-                        <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="uploadProfilePic(this)">
+            <div id="view-profile" class="hidden animate-slide-up pb-24 -mx-4 -mt-4">
+                <!-- Hero Banner -->
+                <div class="relative bg-gradient-to-br from-orange-500 via-brand-600 to-amber-600 px-5 pt-10 pb-20 overflow-hidden">
+                    <!-- Background decoration -->
+                    <div class="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -translate-y-20 translate-x-20 pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full translate-y-16 -translate-x-12 pointer-events-none"></div>
+                    <div class="absolute top-6 left-1/2 -translate-x-1/2 w-32 h-32 bg-white/5 rounded-full pointer-events-none"></div>
+                    <!-- Verify badge top-right -->
+                    <div class="absolute top-4 right-4 z-10">
+                        <span id="prof-verify-badge" class="px-3 py-1.5 bg-yellow-400/90 text-yellow-900 text-[10px] font-black rounded-full shadow-sm">⏳ Pending Verification</span>
                     </div>
-                    <h3 id="prof-name" class="font-bold text-xl dark:text-white">Driver Name</h3>
-                    <div class="mt-1 flex flex-col items-center gap-1">
-                        <span id="prof-id" class="text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">ID-....</span>
-                        <div class="flex items-center gap-1 text-slate-500 text-sm">
-                            <i data-lucide="phone" class="h-3 w-3"></i> <span id="prof-phone">...</span>
+                    <!-- Avatar -->
+                    <div class="relative z-10 flex flex-col items-center text-center">
+                        <div class="relative mb-3">
+                            <div class="w-28 h-28 rounded-full bg-white/20 p-1 shadow-2xl shadow-black/30 cursor-pointer group" onclick="document.getElementById('profile-upload').click()">
+                                <img id="profile-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nandu" class="w-full h-full rounded-full object-cover border-4 border-white/40">
+                                <div class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i data-lucide="camera" class="text-white h-6 w-6"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="profile-upload" class="hidden" accept="image/*" capture="user" onchange="uploadProfilePic(this)">
+                            <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-lg cursor-pointer" onclick="document.getElementById('profile-upload').click()">
+                                <i data-lucide="camera" class="h-3.5 w-3.5 text-brand-600"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mt-4 flex gap-2">
-                        <span id="prof-verify-badge" class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">Pending Verification</span>
-                        <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-bold rounded-full border border-blue-200 dark:border-blue-900" id="prof-type">Type</span>
+                        <h3 id="prof-name" class="font-black text-2xl text-white tracking-tight drop-shadow">Driver Name</h3>
+                        <span id="prof-id" class="text-[10px] font-mono font-bold text-white/60 mt-0.5">ID-....</span>
+                        <div class="mt-2 flex items-center gap-3">
+                            <span class="px-3 py-1 bg-white/20 backdrop-blur text-white text-xs font-bold rounded-full border border-white/30" id="prof-type">Vehicle Type</span>
+                            <span class="px-3 py-1 bg-white/20 backdrop-blur text-white text-xs font-mono font-bold rounded-full border border-white/30" id="header-plate-profile">—</span>
+                        </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Jobs Done</p>
-                        <p class="text-2xl font-black text-slate-900 dark:text-white" id="stat-jobs">0</p>
-                        <span class="text-[9px] text-green-500 font-bold flex justify-center items-center"><i data-lucide="trending-up" class="h-3 w-3 mr-1"></i> +2 this week</span>
-                    </div>
-                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">Rating</p>
-                        <div class="flex items-center justify-center gap-1">
-                            <span id="stat-rating" class="text-2xl font-black text-slate-900 dark:text-white">5.0</span>
-                            <i data-lucide="star" class="h-4 w-4 text-yellow-400 fill-current"></i>
+
+                <!-- Stats row floating over banner bottom -->
+                <div class="px-4 -mt-10 relative z-10">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white dark:bg-slate-900 rounded-2xl p-3 text-center shadow-xl shadow-slate-200/60 dark:shadow-black/20 border border-slate-100 dark:border-slate-800">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Jobs</p>
+                            <p class="text-xl font-black text-slate-900 dark:text-white" id="stat-jobs">0</p>
+                            <span class="text-[9px] text-green-500 font-bold">Done</span>
                         </div>
-                        <span class="text-[9px] text-slate-400"><span id="stat-reviews">0</span> Reviews</span>
+                        <div class="bg-white dark:bg-slate-900 rounded-2xl p-3 text-center shadow-xl shadow-slate-200/60 dark:shadow-black/20 border border-slate-100 dark:border-slate-800">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Rating</p>
+                            <div class="flex items-center justify-center gap-0.5">
+                                <span id="stat-rating" class="text-xl font-black text-slate-900 dark:text-white">5.0</span>
+                                <i data-lucide="star" class="h-3.5 w-3.5 text-yellow-400 fill-current"></i>
+                            </div>
+                            <span class="text-[9px] text-slate-400"><span id="stat-reviews">0</span> reviews</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 rounded-2xl p-3 text-center shadow-xl shadow-slate-200/60 dark:shadow-black/20 border border-slate-100 dark:border-slate-800">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Docs</p>
+                            <button onclick="switchView('docs')" class="text-[10px] font-bold text-brand-600 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg border border-orange-200 dark:border-orange-800 mt-0.5">View →</button>
+                        </div>
                     </div>
                 </div>
-                <div class="space-y-4">
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Personal Info</h4>
-                            <button class="text-xs text-brand-600 font-bold" onclick="toggleEditProfile()">Edit</button>
+
+                <!-- Profile Details -->
+                <div class="px-4 mt-4 space-y-3">
+                    <!-- Personal Info Card -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-lg"><i data-lucide="user" class="h-3.5 w-3.5 text-brand-600"></i></div>
+                                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Personal Info</h4>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="personal-info-toggle-btn" class="text-xs text-slate-600 font-bold px-3 py-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center gap-1" onclick="togglePersonalInfo()">
+                                    <i data-lucide="eye" class="h-3 w-3"></i> Show Info
+                                </button>
+                                <button class="text-xs text-brand-600 font-bold px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800 flex items-center gap-1" onclick="openEditProfileModal()">
+                                    <i data-lucide="pencil" class="h-3 w-3"></i> Edit
+                                </button>
+                            </div>
                         </div>
-                        <div class="space-y-3 text-sm">
+                        <div id="personal-info-content" class="hidden p-4 space-y-3">
                             <div class="flex items-center gap-3">
-                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg"><i data-lucide="mail" class="h-4 w-4 text-slate-400"></i></div>
-                                <input type="email" id="prof-email" value="" placeholder="Email not set" class="bg-transparent outline-none w-full text-slate-600 dark:text-slate-300" disabled>
+                                <div class="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="user" class="h-4 w-4 text-slate-400"></i></div>
+                                <div><p class="text-[10px] text-slate-400 font-bold uppercase">Name</p><p class="text-sm font-bold text-slate-700 dark:text-slate-200" id="prof-name-display">—</p></div>
                             </div>
                             <div class="flex items-center gap-3">
-                                <div class="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg"><i data-lucide="home" class="h-4 w-4 text-slate-400"></i></div>
-                                <input type="text" id="prof-address" value="" placeholder="Home Address not set" class="bg-transparent outline-none w-full text-slate-600 dark:text-slate-300" disabled>
+                                <div class="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="phone" class="h-4 w-4 text-slate-400"></i></div>
+                                <div><p class="text-[10px] text-slate-400 font-bold uppercase">Phone</p><p class="text-sm font-bold text-slate-700 dark:text-slate-200 font-mono" id="prof-phone-display">—</p></div>
                             </div>
-                        </div>
-                        <button id="save-profile-btn" class="hidden w-full mt-3 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold" onclick="saveProfileChanges()">Save Changes</button>
-                    </div>
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Ride Preferences</h4>
-                            <button onclick="openSettingsModal()" class="text-xs text-brand-600 font-bold">Manage</button>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center text-xs">
-                                <span class="text-slate-400">Preferred Route</span>
-                                <span class="font-bold dark:text-white" id="prof-pref-route">Karimnagar</span>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="mail" class="h-4 w-4 text-slate-400"></i></div>
+                                <div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase">Email</p><input type="email" id="prof-email" value="" placeholder="Not set" class="bg-transparent outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full" disabled></div>
                             </div>
-                            <div class="flex justify-between items-center text-xs">
-                                <span class="text-slate-400">AC Preference</span>
-                                <span class="font-bold dark:text-white" id="prof-pref-ac">Any Type</span>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="home" class="h-4 w-4 text-slate-400"></i></div>
+                                <div class="flex-1 min-w-0"><p class="text-[10px] text-slate-400 font-bold uppercase">Address</p><input type="text" id="prof-address" value="" placeholder="Not set" class="bg-transparent outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full" disabled></div>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
-                        <div class="flex justify-between items-center mb-4">
-                            <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Documents</h4>
-                            <button onclick="openDocModal()" class="text-xs text-brand-600 font-bold">+ Upload</button>
+
+                    <!-- Vehicle Card -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-lg"><i data-lucide="car" class="h-3.5 w-3.5 text-blue-600"></i></div>
+                                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Vehicle Details</h4>
+                            </div>
+                            <button id="vehicle-info-toggle-btn" class="text-xs text-slate-600 font-bold px-3 py-1.5 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center gap-1" onclick="toggleVehicleInfo()">
+                                <i data-lucide="eye" class="h-3 w-3"></i> Show
+                            </button>
                         </div>
-                        <div class="space-y-2">
-                            <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="file-text" class="h-4 w-4 text-slate-400"></i>
-                                    <span class="text-xs font-medium dark:text-white">Driving License</span>
-                                </div>
-                                <span id="license-status" class="text-[10px] font-bold text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded">Pending Upload</span>
+                        <div id="vehicle-info-content" class="hidden p-4 grid grid-cols-2 gap-3">
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Type</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white" id="prof-vehicle-display">—</p>
                             </div>
-                            <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="shield-check" class="h-4 w-4 text-slate-400"></i>
-                                    <span class="text-xs font-medium dark:text-white">Insurance Policy</span>
-                                </div>
-                                <span id="insurance-status" class="text-[10px] font-bold text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded">Pending Upload</span>
-                            </div>
-                            <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="fingerprint" class="h-4 w-4 text-slate-400"></i>
-                                    <span class="text-xs font-medium dark:text-white">Aadhar Card</span>
-                                </div>
-                                <span id="aadhar-status" class="text-[10px] font-bold text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded">Pending Upload</span>
-                            </div>
-                            <div class="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="layers" class="h-4 w-4 text-slate-400"></i>
-                                    <span class="text-xs font-medium dark:text-white">Vehicle RC</span>
-                                </div>
-                                <span id="rc-status" class="text-[10px] font-bold text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded">Pending Upload</span>
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Plate No.</p>
+                                <p class="text-sm font-black text-slate-800 dark:text-white font-mono" id="prof-plate-display">—</p>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Preferences Card -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex justify-between items-center px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-lg"><i data-lucide="sliders" class="h-3.5 w-3.5 text-purple-600"></i></div>
+                                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">Ride Preferences</h4>
+                            </div>
+                            <button onclick="openSettingsModal()" class="text-xs text-brand-600 font-bold px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">Manage</button>
+                        </div>
+                        <div class="p-4 grid grid-cols-2 gap-3">
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Route</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white" id="prof-pref-route">—</p>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">AC</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white" id="prof-pref-ac">—</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.open('https://wa.me/917842424201', '_blank')" class="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl border border-green-100 dark:border-green-800 flex flex-col items-center justify-center gap-2 hover:bg-green-100 transition active:scale-95">
-                            <i data-lucide="headphones" class="h-6 w-6 text-green-600"></i>
-                            <span class="text-xs font-bold text-green-700 dark:text-green-400">Help & Support</span>
+                        <button onclick="switchView('docs')" class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 flex items-center gap-3 hover:from-blue-100 hover:to-indigo-100 transition active:scale-95">
+                            <div class="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-xl"><i data-lucide="file-check" class="h-5 w-5 text-blue-600 dark:text-blue-400"></i></div>
+                            <div class="text-left">
+                                <p class="text-xs font-black text-blue-700 dark:text-blue-400">Documents</p>
+                                <p class="text-[10px] text-blue-500 dark:text-blue-500">View & upload</p>
+                            </div>
                         </button>
-                        <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center gap-2">
+                        <button onclick="window.open('https://wa.me/917842424201', '_blank')" class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-2xl border border-green-100 dark:border-green-800 flex items-center gap-3 hover:from-green-100 hover:to-emerald-100 transition active:scale-95">
+                            <div class="bg-green-100 dark:bg-green-900/40 p-2 rounded-xl"><i data-lucide="headphones" class="h-5 w-5 text-green-600 dark:text-green-400"></i></div>
+                            <div class="text-left">
+                                <p class="text-xs font-black text-green-700 dark:text-green-400">Support</p>
+                                <p class="text-[10px] text-green-500 dark:text-green-500">WhatsApp</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Settings & Logout -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl"><i data-lucide="moon" class="h-4 w-4 text-slate-500"></i></div>
+                                <span class="text-sm font-bold text-slate-700 dark:text-slate-200">Dark Mode</span>
+                            </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="dark-toggle" class="sr-only peer" onchange="toggleTheme()">
-                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900"></div>
+                                <div class="w-10 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                             </label>
-                            <span class="text-xs font-bold text-slate-500">Dark Mode</span>
+                        </div>
+                        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition active:scale-95">
+                            <div class="bg-red-100 dark:bg-red-900/30 p-2 rounded-xl"><i data-lucide="log-out" class="h-4 w-4 text-red-500"></i></div>
+                            <span class="font-bold text-sm">Log Out</span>
+                        </button>
+                    </div>
+
+                    <p class="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest py-2">Nandu Travels · Driver Partner</p>
+                </div>
+            </div>
+
+            <!-- DOCS TAB -->
+            <div id="view-docs" class="hidden animate-slide-up pb-24">
+                <!-- Header Banner -->
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 mb-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-10 translate-x-10 pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-white/20 p-2 rounded-xl"><i data-lucide="shield-check" class="h-5 w-5 text-white"></i></div>
+                            <div>
+                                <h3 class="font-black text-white text-base">Document Verification</h3>
+                                <p class="text-blue-100 text-[11px]">Upload all 4 docs to get your Verified Badge</p>
+                            </div>
+                        </div>
+                        <!-- Overall status bar -->
+                        <div class="mt-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] text-blue-100 font-bold">Verification Progress</span>
+                                <span id="doc-progress-text" class="text-[10px] text-white font-black">0 / 4 uploaded</span>
+                            </div>
+                            <div class="w-full bg-white/20 rounded-full h-2">
+                                <div id="doc-progress-bar" class="bg-white h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+                            </div>
                         </div>
                     </div>
-                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 p-4 text-red-500 font-bold bg-white dark:bg-slate-900 rounded-2xl border border-red-100 hover:bg-red-50 dark:hover:bg-red-900/10 transition active:scale-95">
-                        <i data-lucide="log-out" class="h-4 w-4"></i> Log Out
-                    </button>
                 </div>
-                <p class="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">Nandu Travels v3.4 (Fixed)</p>
+
+                <!-- Overall verification badge status -->
+                <div id="docs-verif-status-card" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                    <div class="bg-yellow-100 dark:bg-yellow-900/40 p-2.5 rounded-xl shrink-0"><i data-lucide="clock" class="h-5 w-5 text-yellow-600 dark:text-yellow-400"></i></div>
+                    <div>
+                        <p class="font-bold text-sm text-yellow-800 dark:text-yellow-300" id="docs-verif-title">Pending Verification</p>
+                        <p class="text-[11px] text-yellow-600 dark:text-yellow-400" id="docs-verif-subtitle">Upload all required documents below for admin review.</p>
+                    </div>
+                </div>
+
+                <!-- Document Cards -->
+                <div class="space-y-3">
+                    <!-- License -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-xl"><i data-lucide="id-card" class="h-5 w-5 text-blue-600 dark:text-blue-400"></i></div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white">Driving License</p>
+                                    <p class="text-[11px] text-slate-400">Front &amp; back required</p>
+                                </div>
+                            </div>
+                            <span id="license-status" class="text-[10px] font-bold text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-1 rounded-full">Pending Upload</span>
+                        </div>
+                        <div id="license-preview-wrap" class="hidden px-4 pb-3">
+                            <img id="license-preview-img" src="" class="w-full max-h-40 object-cover rounded-xl border border-slate-100 dark:border-slate-700">
+                        </div>
+                        <div class="px-4 pb-4">
+                            <label class="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload / Replace
+                                <input type="file" class="hidden" accept="image/*,application/pdf" onchange="stageDriverDocUpload('license', this, 'profile')">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Aadhar -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-orange-50 dark:bg-orange-900/30 p-2.5 rounded-xl"><i data-lucide="fingerprint" class="h-5 w-5 text-orange-600 dark:text-orange-400"></i></div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white">Aadhar Card</p>
+                                    <p class="text-[11px] text-slate-400">Both sides required</p>
+                                </div>
+                            </div>
+                            <span id="aadhar-status" class="text-[10px] font-bold text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-1 rounded-full">Pending Upload</span>
+                        </div>
+                        <div id="aadhar-preview-wrap" class="hidden px-4 pb-3">
+                            <img id="aadhar-preview-img" src="" class="w-full max-h-40 object-cover rounded-xl border border-slate-100 dark:border-slate-700">
+                        </div>
+                        <div class="px-4 pb-4">
+                            <label class="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload / Replace
+                                <input type="file" class="hidden" accept="image/*,application/pdf" onchange="stageDriverDocUpload('aadhar', this, 'profile')">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Insurance -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-green-50 dark:bg-green-900/30 p-2.5 rounded-xl"><i data-lucide="shield-check" class="h-5 w-5 text-green-600 dark:text-green-400"></i></div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white">Insurance Policy</p>
+                                    <p class="text-[11px] text-slate-400">Valid vehicle insurance</p>
+                                </div>
+                            </div>
+                            <span id="insurance-status" class="text-[10px] font-bold text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-1 rounded-full">Pending Upload</span>
+                        </div>
+                        <div id="insurance-preview-wrap" class="hidden px-4 pb-3">
+                            <img id="insurance-preview-img" src="" class="w-full max-h-40 object-cover rounded-xl border border-slate-100 dark:border-slate-700">
+                        </div>
+                        <div class="px-4 pb-4">
+                            <label class="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:border-green-400 hover:text-green-500 hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-all">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload / Replace
+                                <input type="file" class="hidden" accept="image/*,application/pdf" onchange="stageDriverDocUpload('insurance', this, 'profile')">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- RC -->
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div class="flex items-center justify-between p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-purple-50 dark:bg-purple-900/30 p-2.5 rounded-xl"><i data-lucide="layers" class="h-5 w-5 text-purple-600 dark:text-purple-400"></i></div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-800 dark:text-white">Vehicle RC</p>
+                                    <p class="text-[11px] text-slate-400">Registration certificate</p>
+                                </div>
+                            </div>
+                            <span id="rc-status" class="text-[10px] font-bold text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-1 rounded-full">Pending Upload</span>
+                        </div>
+                        <div id="rc-preview-wrap" class="hidden px-4 pb-3">
+                            <img id="rc-preview-img" src="" class="w-full max-h-40 object-cover rounded-xl border border-slate-100 dark:border-slate-700">
+                        </div>
+                        <div class="px-4 pb-4">
+                            <label class="flex items-center justify-center gap-2 w-full py-2.5 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 cursor-pointer hover:border-purple-400 hover:text-purple-500 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload / Replace
+                                <input type="file" class="hidden" accept="image/*,application/pdf" onchange="stageDriverDocUpload('rc', this, 'profile')">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit button (shown when there are unsaved staged files) -->
+                <div id="docs-submit-bar" class="hidden mt-4">
+                    <button onclick="submitDriverDocuments()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 transition active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="h-5 w-5"></i> Submit for Verification
+                    </button>
+                    <p class="text-[11px] text-slate-400 text-center mt-2">Admin will review and approve your documents.</p>
+                </div>
             </div>
         </main>
 
         <!-- Navigation Bar -->
-        <nav class="fixed bottom-0 w-full max-w-lg bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex justify-around py-3 px-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-            <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center gap-1 p-2 text-brand-600 dark:text-brand-500 transition-colors">
-                <i data-lucide="layout-grid" class="h-6 w-6"></i>
-                <span class="text-[10px] font-bold">Jobs</span>
+        <nav class="fixed bottom-0 w-full max-w-lg bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex justify-around py-2 px-1 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+            <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center gap-0.5 px-2 py-1.5 text-brand-600 dark:text-brand-500 transition-colors">
+                <i data-lucide="layout-grid" class="h-5 w-5"></i>
+                <span class="text-[9px] font-bold">Jobs</span>
             </button>
-            <button onclick="switchView('history')" id="nav-history" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
-                <i data-lucide="history" class="h-6 w-6"></i>
-                <span class="text-[10px] font-bold">History</span>
+            <button onclick="switchView('history')" id="nav-history" class="flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-400 transition-colors">
+                <i data-lucide="history" class="h-5 w-5"></i>
+                <span class="text-[9px] font-bold">History</span>
             </button>
-            <button onclick="switchView('wallet')" id="nav-wallet" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
-                <i data-lucide="wallet" class="h-6 w-6"></i>
-                <span class="text-[10px] font-bold">Wallet</span>
+            <button onclick="switchView('wallet')" id="nav-wallet" class="flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-400 transition-colors">
+                <i data-lucide="wallet" class="h-5 w-5"></i>
+                <span class="text-[9px] font-bold">Wallet</span>
             </button>
-            <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
-                <i data-lucide="user-circle" class="h-6 w-6"></i>
-                <span class="text-[10px] font-bold">Profile</span>
+            <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-400 transition-colors">
+                <i data-lucide="user-circle" class="h-5 w-5"></i>
+                <span class="text-[9px] font-bold">Profile</span>
             </button>
         </nav>
     </div>
@@ -823,6 +1199,10 @@
         let walletSubscription = null;
         let historyJobs = [];
         let expenseList = [];
+        let pendingDriverProfilePic = '';
+        let pendingDriverProfileFile = null;
+        let pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
+        let pendingDriverDocUrls = { license: '', aadhar: '', rc: '', insurance: '' };
         let manualSeats = 0;
         let pendingVerifyJobId = null;
         let pendingAcceptJobId = null;
@@ -831,6 +1211,7 @@
         let googleClientId = null;
         let googleReady = false;
         let pendingDriverRegistration = null;
+        let profileSyncInterval = null;
 
         // ── AUTH FUNCTIONS (API-based) ────────────────────────────────────────
         window.driverEmailAuth = async () => {
@@ -858,6 +1239,10 @@
             if (!email || !password) { showToast('Please enter email and password', 'warning'); return; }
             if (password.length < 6) { showToast('Password must be at least 6 characters', 'warning'); return; }
             pendingDriverRegistration = { email, password };
+            pendingDriverProfilePic = '';
+            pendingDriverProfileFile = null;
+            pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
+            pendingDriverDocUrls = { license: '', aadhar: '', rc: '', insurance: '' };
             isRegistering = true;
             document.getElementById('auth-step-1').classList.add('hidden');
             document.getElementById('auth-step-3-register').classList.remove('hidden');
@@ -865,6 +1250,9 @@
             document.getElementById('driver-reg-step-2').classList.add('hidden');
             document.getElementById('driver-reg-step-3').classList.add('hidden');
             document.getElementById('reg-email').value = email;
+            const regImg = document.getElementById('reg-profile-img');
+            if (regImg) regImg.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=driver-register';
+            updateRegistrationDocStatusUI();
             showToast('Complete your profile to finish registration.', 'info');
             setTimeout(() => lucide.createIcons(), 50);
         };
@@ -906,7 +1294,13 @@
                 localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver));
                 showToast('Signed in with Google', 'success');
 
-                const missingCoreProfile = !data.driver.phone || !data.driver.plate;
+                const missingCoreProfile = !data.driver.phone
+                    || !data.driver.plate
+                    || !data.driver.profile_pic
+                    || !data.driver.license_url
+                    || !data.driver.aadhar_url
+                    || !data.driver.rc_url
+                    || !data.driver.insurance_url;
                 if (missingCoreProfile) {
                     isRegistering = true;
                     pendingDriverRegistration = null;
@@ -959,11 +1353,63 @@
             if (!plate) { showToast('❌ Please enter your vehicle number', 'error'); return; }
             if (!type) { showToast('❌ Please select a vehicle type', 'error'); return; }
             if (!route) { showToast('❌ Please select your preferred route', 'error'); return; }
+            if (!pendingDriverProfilePic) { showToast('❌ Please upload your driver photo', 'error'); return; }
+            if (!allRequiredDriverDocsPresent()) { showToast('❌ Please upload all required documents', 'error'); return; }
 
             showToast('⏳ Saving your profile...', 'info');
             try {
                 let freshProfile = null;
                 const token = getToken();
+
+                const uploadPendingDriverPhoto = async () => {
+                    if (!pendingDriverProfileFile) return null;
+                    const data = new FormData();
+                    data.append('file', pendingDriverProfileFile);
+                    const uploadRes = await fetch(API + '/api/drivers/me/profile-pic', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                        body: data,
+                    });
+                    if (!uploadRes.ok) {
+                        let msg = 'Profile photo upload failed';
+                        try { const d = await uploadRes.json(); msg = d.detail || msg; } catch(e) {}
+                        throw new Error(msg);
+                    }
+                    const uploadOut = await uploadRes.json();
+                    pendingDriverProfilePic = uploadOut.profile_pic || pendingDriverProfilePic;
+                    pendingDriverProfileFile = null;
+                    return uploadOut.profile_pic;
+                };
+
+                const uploadPendingDriverDocs = async () => {
+                    const form = new FormData();
+                    if (pendingDriverDocFiles.license) form.append('license_file', pendingDriverDocFiles.license);
+                    if (pendingDriverDocFiles.aadhar) form.append('aadhar_file', pendingDriverDocFiles.aadhar);
+                    if (pendingDriverDocFiles.rc) form.append('rc_file', pendingDriverDocFiles.rc);
+                    if (pendingDriverDocFiles.insurance) form.append('insurance_file', pendingDriverDocFiles.insurance);
+                    if (![...form.keys()].length) return null;
+
+                    const uploadRes = await fetch(API + '/api/drivers/me/documents', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                        body: form,
+                    });
+                    if (!uploadRes.ok) {
+                        let msg = 'Document upload failed';
+                        try { const d = await uploadRes.json(); msg = d.detail || msg; } catch(e) {}
+                        throw new Error(msg);
+                    }
+                    const uploadOut = await uploadRes.json();
+                    pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
+                    pendingDriverDocUrls = {
+                        license: uploadOut.license_url || pendingDriverDocUrls.license,
+                        aadhar: uploadOut.aadhar_url || pendingDriverDocUrls.aadhar,
+                        rc: uploadOut.rc_url || pendingDriverDocUrls.rc,
+                        insurance: uploadOut.insurance_url || pendingDriverDocUrls.insurance,
+                    };
+                    updateRegistrationDocStatusUI();
+                    return uploadOut;
+                };
 
                 if (token) {
                     freshProfile = await apiFetch('/api/drivers/me', {
@@ -972,6 +1418,7 @@
                             name,
                             email,
                             phone,
+                            profile_pic: pendingDriverProfilePic,
                             vehicle_type: type,
                             plate,
                             route_pref: route,
@@ -979,6 +1426,17 @@
                             address: ''
                         })
                     });
+                    const uploadedProfilePic = await uploadPendingDriverPhoto();
+                    if (uploadedProfilePic) freshProfile.profile_pic = uploadedProfilePic;
+                    const uploadedDocs = await uploadPendingDriverDocs();
+                    if (uploadedDocs) {
+                        freshProfile.license_url = uploadedDocs.license_url;
+                        freshProfile.aadhar_url = uploadedDocs.aadhar_url;
+                        freshProfile.rc_url = uploadedDocs.rc_url;
+                        freshProfile.insurance_url = uploadedDocs.insurance_url;
+                        freshProfile.doc_status = uploadedDocs.doc_status;
+                        freshProfile.is_verified = uploadedDocs.is_verified;
+                    }
                 } else {
                     const pendingEmail = pendingDriverRegistration?.email || email;
                     const pendingPassword = pendingDriverRegistration?.password || '';
@@ -994,6 +1452,7 @@
                             email: pendingEmail,
                             phone,
                             password: pendingPassword,
+                            profile_pic: '',
                             vehicle_type: type,
                             plate,
                             route_pref: route,
@@ -1003,10 +1462,22 @@
                     });
                     setToken(regData.access_token);
                     freshProfile = regData.driver;
+                    const uploadedProfilePic = await uploadPendingDriverPhoto();
+                    if (uploadedProfilePic) freshProfile.profile_pic = uploadedProfilePic;
+                    const uploadedDocs = await uploadPendingDriverDocs();
+                    if (uploadedDocs) {
+                        freshProfile.license_url = uploadedDocs.license_url;
+                        freshProfile.aadhar_url = uploadedDocs.aadhar_url;
+                        freshProfile.rc_url = uploadedDocs.rc_url;
+                        freshProfile.insurance_url = uploadedDocs.insurance_url;
+                        freshProfile.doc_status = uploadedDocs.doc_status;
+                        freshProfile.is_verified = uploadedDocs.is_verified;
+                    }
                 }
 
                 // CRITICAL: Update localStorage so the reload picks up new data
                 localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile));
+                pendingDriverProfilePic = freshProfile.profile_pic || pendingDriverProfilePic;
                 pendingDriverRegistration = null;
                 showToast('✅ Welcome Partner! Account created successfully!', 'success');
                 setTimeout(() => location.reload(), 1500);
@@ -1020,8 +1491,30 @@
 
         function sanitizeInput(str) { if (!str) return ""; return String(str).replace(/[<>]/g, "").trim(); }
 
+        function getDriverAvatarSrc(profile) {
+            if (profile?.profile_pic) return profile.profile_pic;
+            const seed = encodeURIComponent(profile?.name || profile?.email || 'Nandu');
+            return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+        }
+
+        function updateDriverAvatarUI(profile) {
+            const src = getDriverAvatarSrc(profile || {});
+            ['header-pic', 'profile-img'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.src = src;
+            });
+            const regImg = document.getElementById('reg-profile-img');
+            if (regImg) regImg.src = pendingDriverProfilePic || src;
+        }
+
         function requiresDriverProfileCompletion(profile) {
-            return !((profile?.phone || '').trim()) || !((profile?.plate || '').trim());
+            return !((profile?.phone || '').trim())
+                || !((profile?.plate || '').trim())
+                || !((profile?.profile_pic || '').trim())
+                || !((profile?.license_url || '').trim())
+                || !((profile?.aadhar_url || '').trim())
+                || !((profile?.rc_url || '').trim())
+                || !((profile?.insurance_url || '').trim());
         }
 
         function showDriverProfileCompletion(profile = {}) {
@@ -1042,6 +1535,16 @@
             document.getElementById('reg-plate').value = profile.plate || '';
             document.getElementById('reg-type').value = profile.vehicle_type || '7 Seater';
             document.getElementById('reg-route').value = profile.route_pref || 'Karimnagar';
+            pendingDriverProfilePic = profile.profile_pic || '';
+            pendingDriverDocUrls = {
+                license: profile.license_url || '',
+                aadhar: profile.aadhar_url || '',
+                rc: profile.rc_url || '',
+                insurance: profile.insurance_url || '',
+            };
+            pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
+            updateDriverAvatarUI(profile);
+            updateRegistrationDocStatusUI();
             setTimeout(() => lucide.createIcons(), 100);
         }
 
@@ -1144,36 +1647,80 @@
         }
 
         function showLoginScreen() {
+            if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
             document.getElementById('splash-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('hidden');
             lucide.createIcons();
         }
 
-        function initDriverUI(profile) {
+        async function pollDriverProfileStatus() {
+            if (!getToken() || !driverId) return;
+            try {
+                const freshProfile = await apiFetch('/api/drivers/me', { ignore401: true });
+                if (!freshProfile || !freshProfile.id) return;
+                // Keep client state in sync with admin verification/doc decisions.
+                const changed = !driverProfile
+                    || freshProfile.doc_status !== driverProfile.doc_status
+                    || freshProfile.is_verified !== driverProfile.is_verified
+                    || freshProfile.verification_status !== driverProfile.verification_status
+                    || freshProfile.license_url !== driverProfile.license_url
+                    || freshProfile.aadhar_url !== driverProfile.aadhar_url
+                    || freshProfile.rc_url !== driverProfile.rc_url
+                    || freshProfile.insurance_url !== driverProfile.insurance_url;
+
+                if (changed) {
+                    driverProfile = { ...(driverProfile || {}), ...freshProfile };
+                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    initDriverUI(driverProfile);
+                }
+            } catch (e) {
+                console.warn('Driver profile sync failed:', e?.message || e);
+            }
+        }
+
+        function initDriverUI(profile, options = {}) {
+            const skipDashboardReload = !!options.skipDashboardReload;
             driverId = profile.id;
             driverProfile = profile;
+            pendingDriverProfilePic = profile.profile_pic || '';
+            pendingDriverDocUrls = {
+                license: profile.license_url || '',
+                aadhar: profile.aadhar_url || '',
+                rc: profile.rc_url || '',
+                insurance: profile.insurance_url || '',
+            };
+            pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
             
             // Update UI with profile data
             document.getElementById("driver-name").innerText = profile.name || "Driver";
             document.getElementById("prof-name").innerText = profile.name || "Driver";
             document.getElementById("header-plate").innerText = profile.plate || "TS--";
-            document.getElementById("prof-phone").innerText = profile.phone || "Not set";
+            const profPhoneEl = document.getElementById("prof-phone");
+            if (profPhoneEl) profPhoneEl.innerText = profile.phone || "Not set";
             document.getElementById("prof-id").innerText = "ID-" + (profile.id + '').slice(-4).toUpperCase();
             document.getElementById('stat-jobs').innerText = profile.jobs_done || 0;
             document.getElementById("prof-type").innerText = profile.vehicle_type || "Vehicle";
             document.getElementById("prof-email").value = profile.email || "";
             document.getElementById("prof-address").value = profile.address || "";
+            // Sync display spans
+            if (document.getElementById('prof-name-display')) document.getElementById('prof-name-display').innerText = profile.name || '—';
+            if (document.getElementById('prof-phone-display')) document.getElementById('prof-phone-display').innerText = profile.phone || '—';
+            if (document.getElementById('prof-vehicle-display')) document.getElementById('prof-vehicle-display').innerText = profile.vehicle_type || '—';
+            if (document.getElementById('prof-plate-display')) document.getElementById('prof-plate-display').innerText = profile.plate || '—';
+            if (document.getElementById('header-plate-profile')) document.getElementById('header-plate-profile').innerText = profile.plate || '—';
+            updateDriverAvatarUI(profile);
             
             if (document.getElementById('stat-rating')) document.getElementById('stat-rating').innerText = (profile.rating || 5.0).toFixed(1);
             if (document.getElementById('stat-reviews')) document.getElementById('stat-reviews').innerText = profile.reviews_count || 0;
 
             const badge = document.getElementById("prof-verify-badge");
             if (badge) {
-                const status = profile.verification_status || (profile.is_verified === true ? "verified" : "pending");
-                if (status === "verified") { badge.innerText = "Verified Partner"; badge.className = "px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full"; }
-                else if (status === "rejected") { badge.innerText = "Verification Rejected"; badge.className = "px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full"; }
-                else { badge.innerText = "Pending Verification"; badge.className = "px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full"; }
+                const rawStatus = (profile.verification_status || profile.doc_status || '').toLowerCase();
+                const status = rawStatus === 'approved' ? 'verified' : rawStatus;
+                if (status === "verified" || profile.is_verified === true) { badge.innerText = "✅ Verified Partner"; badge.className = "px-3 py-1.5 bg-green-400/90 text-green-900 text-[10px] font-black rounded-full shadow-sm"; }
+                else if (status === "rejected") { badge.innerText = "❌ Verification Rejected"; badge.className = "px-3 py-1.5 bg-red-400/90 text-red-900 text-[10px] font-black rounded-full shadow-sm"; }
+                else { badge.innerText = "⏳ Pending Verification"; badge.className = "px-3 py-1.5 bg-yellow-400/90 text-yellow-900 text-[10px] font-black rounded-full shadow-sm"; }
             }
 
             const docFields = [
@@ -1185,9 +1732,34 @@
             docFields.forEach(f => {
                 const el = document.getElementById(f.id);
                 if(!el) return;
-                if(f.url) { el.innerText = "Verified ✅"; el.className = "text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded"; }
-                else { el.innerText = "Pending Upload"; el.className = "text-[10px] font-bold text-yellow-500 bg-yellow-100 px-2 py-0.5 rounded"; }
+                if(!f.url) {
+                    el.innerText = "Pending Upload";
+                    el.className = "text-[10px] font-bold text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-1 rounded-full";
+                    return;
+                }
+                if ((profile.doc_status || 'pending') === 'approved') {
+                    el.innerText = "Verified ✅";
+                    el.className = "text-[10px] font-bold text-green-700 bg-green-100 dark:bg-green-900/30 px-2.5 py-1 rounded-full";
+                } else if ((profile.doc_status || 'pending') === 'rejected') {
+                    el.innerText = "Rejected ✗";
+                    el.className = "text-[10px] font-bold text-red-700 bg-red-100 dark:bg-red-900/30 px-2.5 py-1 rounded-full";
+                } else {
+                    el.innerText = "In Review…";
+                    el.className = "text-[10px] font-bold text-blue-700 bg-blue-100 dark:bg-blue-900/30 px-2.5 py-1 rounded-full";
+                }
             });
+            // Populate doc preview images
+            [['license', profile.license_url], ['aadhar', profile.aadhar_url], ['insurance', profile.insurance_url], ['rc', profile.rc_url]].forEach(([key, url]) => {
+                const wrap = document.getElementById(`${key}-preview-wrap`);
+                const img = document.getElementById(`${key}-preview-img`);
+                if (wrap && img && url) {
+                    img.src = url;
+                    wrap.classList.remove('hidden');
+                } else if (wrap) {
+                    wrap.classList.add('hidden');
+                }
+            });
+            refreshDocsProgressUI();
 
             if(profile.ac_pref !== undefined) document.getElementById('setting-ac').checked = !!profile.ac_pref;
             if(profile.route_pref) {
@@ -1202,8 +1774,9 @@
             document.getElementById('splash-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            
-            loadDashboard();
+            updateRegistrationDocStatusUI();
+
+            if (!skipDashboardReload) loadDashboard();
         }
 
         window.loadDashboard = function() {
@@ -1212,14 +1785,21 @@
             pollMarketJobs();
             pollHistory();
             pollWallet();
+            pollDriverProfileStatus();
             
             // Poll every 5 seconds
+            if (window.pollInterval) clearInterval(window.pollInterval);
             window.pollInterval = setInterval(() => {
                 pollActiveJobs();
                 pollMarketJobs();
                 pollHistory();
                 pollWallet();
             }, 5000);
+
+            if (profileSyncInterval) clearInterval(profileSyncInterval);
+            profileSyncInterval = setInterval(() => {
+                pollDriverProfileStatus();
+            }, 7000);
             
             updateSeatUI();
             updateWalletView();
@@ -1523,6 +2103,28 @@
         };
 
         window.toggleExpenseForm = () => { document.getElementById('expense-form').classList.toggle('hidden'); };
+        window.togglePersonalInfo = () => {
+            const content = document.getElementById('personal-info-content');
+            const btn = document.getElementById('personal-info-toggle-btn');
+            if (!content || !btn) return;
+            const isHidden = content.classList.contains('hidden');
+            content.classList.toggle('hidden');
+            btn.innerHTML = isHidden
+                ? '<i data-lucide="eye-off" class="h-3 w-3"></i> Hide Info'
+                : '<i data-lucide="eye" class="h-3 w-3"></i> Show Info';
+            lucide.createIcons();
+        };
+        window.toggleVehicleInfo = () => {
+            const content = document.getElementById('vehicle-info-content');
+            const btn = document.getElementById('vehicle-info-toggle-btn');
+            if (!content || !btn) return;
+            const isHidden = content.classList.contains('hidden');
+            content.classList.toggle('hidden');
+            btn.innerHTML = isHidden
+                ? '<i data-lucide="eye-off" class="h-3 w-3"></i> Hide'
+                : '<i data-lucide="eye" class="h-3 w-3"></i> Show';
+            lucide.createIcons();
+        };
         window.toggleTheme = () => { const isDark = document.documentElement.classList.toggle('dark'); localStorage.setItem('nandu_theme', isDark ? 'dark' : 'light'); };
 
         // FIX #8: Correct capacity for ambulance + full cab bookings
@@ -1763,7 +2365,7 @@ Are you absolutely sure you want to proceed?`);
         };
 
         window.switchView = (viewId) => {
-            ['home', 'history', 'wallet', 'profile'].forEach(v => {
+            ['home', 'history', 'wallet', 'profile', 'docs'].forEach(v => {
                 const view = document.getElementById(`view-${v}`);
                 const nav = document.getElementById(`nav-${v}`);
                 if(view) view.classList.add('hidden');
@@ -1775,6 +2377,7 @@ Are you absolutely sure you want to proceed?`);
             if(selectedNav) { selectedNav.classList.add('text-brand-600', 'dark:text-brand-500'); selectedNav.classList.remove('text-slate-400'); }
             if(viewId === 'history') { pollHistory(); }
             if(viewId === 'wallet') pollWallet();
+            if(viewId === 'docs') { refreshDocsProgressUI(); }
         };
 
         window.openSeatModal = () => {
@@ -1947,6 +2550,8 @@ Are you absolutely sure you want to proceed?`);
 
         window.logout = async function() {
             stopKeepAlive(); // ✅ Cleanup interval to prevent memory leak
+            if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
+            if (window.pollInterval) { clearInterval(window.pollInterval); window.pollInterval = null; }
             if(confirm("Are you sure you want to log out?")) {
                 let driverPhoneNumber = null;
                 if (driverProfile && driverProfile.phone) driverPhoneNumber = driverProfile.phone;
@@ -2391,6 +2996,161 @@ Are you absolutely sure you want to proceed?`);
         window.closeDocModal = () => document.getElementById('doc-upload-modal').classList.add('hidden');
         window.openDocModal = () => document.getElementById('doc-upload-modal').classList.remove('hidden');
 
+        window.stageDriverDocUpload = (key, input, source = 'register') => {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const maxBytes = 8 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                showToast('Document must be under 8 MB', 'error');
+                input.value = '';
+                return;
+            }
+            pendingDriverDocFiles[key] = file;
+            // Show preview in Docs tab
+            const previewWrap = document.getElementById(`${key}-preview-wrap`);
+            const previewImg = document.getElementById(`${key}-preview-img`);
+            if (previewWrap && previewImg && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewWrap.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+            if (source === 'profile') {
+                const statusLine = document.getElementById('doc-upload-status-line');
+                if (statusLine) statusLine.innerText = `${file.name} selected for ${key}.`;
+            }
+            updateRegistrationDocStatusUI();
+            refreshDocsProgressUI();
+        };
+
+        function allRequiredDriverDocsPresent() {
+            return ['license', 'aadhar', 'rc', 'insurance'].every((k) => {
+                return !!pendingDriverDocFiles[k] || !!(pendingDriverDocUrls[k] || '').trim();
+            });
+        }
+
+        function updateRegistrationDocStatusUI() {
+            ['license', 'aadhar', 'rc', 'insurance'].forEach((key) => {
+                const el = document.getElementById(`reg-doc-status-${key}`);
+                if (!el) return;
+                const hasLocal = !!pendingDriverDocFiles[key];
+                const hasSaved = !!(pendingDriverDocUrls[key] || '').trim();
+                if (hasLocal) {
+                    el.innerText = 'Selected';
+                    el.className = 'text-green-600 font-bold';
+                } else if (hasSaved) {
+                    el.innerText = 'Uploaded';
+                    el.className = 'text-blue-600 font-bold';
+                } else {
+                    el.innerText = 'Missing';
+                    el.className = 'text-slate-400';
+                }
+            });
+        }
+
+        window.refreshDocsProgressUI = function() {
+            const keys = ['license', 'aadhar', 'rc', 'insurance'];
+            const uploaded = keys.filter(k => !!(pendingDriverDocFiles[k] || (pendingDriverDocUrls[k] || '').trim()));
+            const count = uploaded.length;
+            const percent = Math.round((count / 4) * 100);
+            const progressBar = document.getElementById('doc-progress-bar');
+            const progressText = document.getElementById('doc-progress-text');
+            if (progressBar) progressBar.style.width = percent + '%';
+            if (progressText) progressText.innerText = `${count} / 4 uploaded`;
+            // Show/hide submit bar
+            const hasStagedFiles = keys.some(k => !!pendingDriverDocFiles[k]);
+            const submitBar = document.getElementById('docs-submit-bar');
+            if (submitBar) submitBar.classList.toggle('hidden', !hasStagedFiles);
+            // Nav badge: show red dot if less than 4 docs uploaded
+            const navBadge = document.getElementById('docs-nav-badge');
+            if (navBadge) navBadge.classList.toggle('hidden', count >= 4);
+            // Overall status card
+            const profile = driverProfile || {};
+            const docStatus = profile.doc_status || 'pending';
+            const statusCard = document.getElementById('docs-verif-status-card');
+            const statusTitle = document.getElementById('docs-verif-title');
+            const statusSubtitle = document.getElementById('docs-verif-subtitle');
+            if (statusCard && statusTitle && statusSubtitle) {
+                if (count < 4) {
+                    statusCard.className = 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-4 flex items-center gap-3';
+                    statusCard.querySelector('div').innerHTML = '<i data-lucide="clock" class="h-5 w-5 text-yellow-600 dark:text-yellow-400"></i>';
+                    statusTitle.className = 'font-bold text-sm text-yellow-800 dark:text-yellow-300';
+                    statusTitle.innerText = 'Incomplete Documents';
+                    statusSubtitle.innerText = `${4 - count} more document(s) needed for verification.`;
+                } else if (docStatus === 'approved') {
+                    statusCard.className = 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-4 mb-4 flex items-center gap-3';
+                    statusCard.querySelector('div').innerHTML = '<i data-lucide="shield-check" class="h-5 w-5 text-green-600 dark:text-green-400"></i>';
+                    statusTitle.className = 'font-bold text-sm text-green-800 dark:text-green-300';
+                    statusTitle.innerText = 'Documents Approved ✅';
+                    statusSubtitle.innerText = 'All your documents have been verified by admin.';
+                } else if (docStatus === 'rejected') {
+                    statusCard.className = 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-4 flex items-center gap-3';
+                    statusCard.querySelector('div').innerHTML = '<i data-lucide="shield-x" class="h-5 w-5 text-red-600 dark:text-red-400"></i>';
+                    statusTitle.className = 'font-bold text-sm text-red-800 dark:text-red-300';
+                    statusTitle.innerText = 'Documents Rejected ✗';
+                    statusSubtitle.innerText = 'Please re-upload your documents for admin review.';
+                } else {
+                    statusCard.className = 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 mb-4 flex items-center gap-3';
+                    statusCard.querySelector('div').innerHTML = '<i data-lucide="loader" class="h-5 w-5 text-blue-600 dark:text-blue-400 animate-spin"></i>';
+                    statusTitle.className = 'font-bold text-sm text-blue-800 dark:text-blue-300';
+                    statusTitle.innerText = 'Under Admin Review…';
+                    statusSubtitle.innerText = 'All documents uploaded. Awaiting admin approval.';
+                }
+            }
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.submitDriverDocuments = async () => {
+            const form = new FormData();
+            if (pendingDriverDocFiles.license) form.append('license_file', pendingDriverDocFiles.license);
+            if (pendingDriverDocFiles.aadhar) form.append('aadhar_file', pendingDriverDocFiles.aadhar);
+            if (pendingDriverDocFiles.rc) form.append('rc_file', pendingDriverDocFiles.rc);
+            if (pendingDriverDocFiles.insurance) form.append('insurance_file', pendingDriverDocFiles.insurance);
+            if (![...form.keys()].length) {
+                showToast('Please select at least one document', 'warning');
+                return;
+            }
+            try {
+                const res = await fetch(API + '/api/drivers/me/documents', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body: form,
+                });
+                if (!res.ok) {
+                    let msg = 'Document upload failed';
+                    try { const d = await res.json(); msg = d.detail || msg; } catch(e) {}
+                    throw new Error(msg);
+                }
+                const out = await res.json();
+                pendingDriverDocFiles = { license: null, aadhar: null, rc: null, insurance: null };
+                pendingDriverDocUrls = {
+                    license: out.license_url || pendingDriverDocUrls.license,
+                    aadhar: out.aadhar_url || pendingDriverDocUrls.aadhar,
+                    rc: out.rc_url || pendingDriverDocUrls.rc,
+                    insurance: out.insurance_url || pendingDriverDocUrls.insurance,
+                };
+                if (driverProfile) {
+                    driverProfile.license_url = out.license_url;
+                    driverProfile.aadhar_url = out.aadhar_url;
+                    driverProfile.rc_url = out.rc_url;
+                    driverProfile.insurance_url = out.insurance_url;
+                    driverProfile.doc_status = out.doc_status;
+                    driverProfile.is_verified = out.is_verified;
+                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    initDriverUI(driverProfile, { skipDashboardReload: true });
+                }
+                const statusLine = document.getElementById('doc-upload-status-line');
+                if (statusLine) statusLine.innerText = 'Documents uploaded. Waiting for admin verification.';
+                closeDocModal();
+                showToast('Documents uploaded for verification', 'success');
+                updateRegistrationDocStatusUI();
+            } catch (e) {
+                showToast('Document upload failed: ' + e.message, 'error');
+            }
+        };
+
         window.showToast = (m, t) => {
             const d = document.createElement('div');
             const c = t === 'success' ? 'bg-green-600' : t === 'warning' ? 'bg-orange-500' : t === 'info' ? 'bg-blue-600' : 'bg-red-500';
@@ -2403,20 +3163,80 @@ Are you absolutely sure you want to proceed?`);
         init();
 
         window.toggleEditProfile = () => {
-            const emailInput = document.getElementById('prof-email');
-            const addressInput = document.getElementById('prof-address');
-            const saveBtn = document.getElementById('save-profile-btn');
-            const isCurrentlyDisabled = emailInput.disabled;
-            emailInput.disabled = !isCurrentlyDisabled;
-            addressInput.disabled = !isCurrentlyDisabled;
-            if (isCurrentlyDisabled) {
-                saveBtn.classList.remove('hidden');
-                emailInput.classList.add('border', 'border-brand-400', 'rounded-lg', 'px-2', 'py-1', 'bg-white', 'dark:bg-slate-800');
-                addressInput.classList.add('border', 'border-brand-400', 'rounded-lg', 'px-2', 'py-1', 'bg-white', 'dark:bg-slate-800');
-            } else {
-                saveBtn.classList.add('hidden');
-                emailInput.classList.remove('border', 'border-brand-400', 'rounded-lg', 'px-2', 'py-1', 'bg-white', 'dark:bg-slate-800');
-                addressInput.classList.remove('border', 'border-brand-400', 'rounded-lg', 'px-2', 'py-1', 'bg-white', 'dark:bg-slate-800');
+            // Legacy: now just opens the full modal
+            openEditProfileModal();
+        };
+
+        window.openEditProfileModal = () => {
+            if (!driverProfile) return;
+            const p = driverProfile;
+            document.getElementById('edit-name').value = p.name || '';
+            document.getElementById('edit-phone').value = p.phone || '';
+            document.getElementById('edit-email').value = p.email || '';
+            document.getElementById('edit-address').value = p.address || '';
+            document.getElementById('edit-vehicle-type').value = p.vehicle_type || '';
+            document.getElementById('edit-plate').value = p.plate || '';
+            document.getElementById('edit-modal-name-preview').innerText = p.name || 'Driver Name';
+            const pic = p.profile_pic || `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(p.name || 'driver')}`;
+            const avatarEl = document.getElementById('edit-modal-avatar');
+            if (avatarEl) {
+                avatarEl.onerror = function() { this.onerror=null; this.src=`https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent(p.name||'driver')}`; };
+                avatarEl.src = pic;
+            }
+            document.getElementById('edit-profile-modal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeEditProfileModal = () => {
+            document.getElementById('edit-profile-modal').classList.add('hidden');
+        };
+
+        window.saveFullProfileChanges = async () => {
+            const btn = document.getElementById('save-edit-profile-btn');
+            btn.disabled = true; btn.innerText = 'Saving…';
+            try {
+                const body = {};
+                const name = document.getElementById('edit-name').value.trim();
+                const phone = document.getElementById('edit-phone').value.trim();
+                const email = document.getElementById('edit-email').value.trim();
+                const address = document.getElementById('edit-address').value.trim();
+                const vehicleType = document.getElementById('edit-vehicle-type').value.trim();
+                const plate = document.getElementById('edit-plate').value.trim().toUpperCase();
+                if (name) body.name = name;
+                if (phone) body.phone = phone;
+                if (email) body.email = email;
+                if (address) body.address = address;
+                if (vehicleType) body.vehicle_type = vehicleType;
+                if (plate) body.plate = plate;
+                const updated = await apiFetch('/api/drivers/me', { method: 'PATCH', body: JSON.stringify(body) });
+                driverProfile = { ...driverProfile, ...body };
+                localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                // Sync display fields
+                if (name) {
+                    document.getElementById('prof-name').innerText = name;
+                    if (document.getElementById('prof-name-display')) document.getElementById('prof-name-display').innerText = name;
+                    document.getElementById('driver-name').innerText = name;
+                }
+                if (phone) {
+                    document.getElementById('prof-phone').innerText = phone;
+                    if (document.getElementById('prof-phone-display')) document.getElementById('prof-phone-display').innerText = phone;
+                }
+                if (email) document.getElementById('prof-email').value = email;
+                if (address) document.getElementById('prof-address').value = address;
+                if (vehicleType) {
+                    document.getElementById('prof-type').innerText = vehicleType;
+                    if (document.getElementById('prof-vehicle-display')) document.getElementById('prof-vehicle-display').innerText = vehicleType;
+                }
+                if (plate) {
+                    document.getElementById('header-plate').innerText = plate;
+                    if (document.getElementById('prof-plate-display')) document.getElementById('prof-plate-display').innerText = plate;
+                }
+                showToast('Profile updated!', 'success');
+                closeEditProfileModal();
+            } catch(e) {
+                showToast('Failed: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false; btn.innerText = 'Save Profile';
             }
         };
 
@@ -2449,17 +3269,66 @@ Are you absolutely sure you want to proceed?`);
             }
         };
 
-        window.uploadProfilePic = (input) => {
+        window.uploadDriverProfilePic = async (input, source = 'profile') => {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('profile-img').src = e.target.result;
-                document.getElementById('header-pic').src = e.target.result;
-                showToast("Profile photo updated!", "success");
-            };
-            reader.readAsDataURL(file);
+            const maxBytes = 5 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                showToast('Image must be under 5 MB', 'error');
+                input.value = '';
+                return;
+            }
+
+            const previewUrl = URL.createObjectURL(file);
+            pendingDriverProfileFile = file;
+            if (source === 'register') {
+                pendingDriverProfilePic = previewUrl;
+                const regImg = document.getElementById('reg-profile-img');
+                if (regImg) regImg.src = previewUrl;
+            } else {
+                const profileImg = document.getElementById('profile-img');
+                const headerImg = document.getElementById('header-pic');
+                if (profileImg) profileImg.src = previewUrl;
+                if (headerImg) headerImg.src = previewUrl;
+            }
+
+            if (!getToken()) {
+                showToast('Driver photo added for registration', 'success');
+                input.value = '';
+                return;
+            }
+
+            const data = new FormData();
+            data.append('file', file);
+            try {
+                const res = await fetch(API + '/api/drivers/me/profile-pic', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body: data,
+                });
+                if (!res.ok) {
+                    let msg = 'Upload failed';
+                    try { const d = await res.json(); msg = d.detail || msg; } catch(e) {}
+                    throw new Error(msg);
+                }
+                const out = await res.json();
+                pendingDriverProfilePic = out.profile_pic || pendingDriverProfilePic;
+                pendingDriverProfileFile = null;
+                if (driverProfile) {
+                    driverProfile.profile_pic = pendingDriverProfilePic;
+                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    updateDriverAvatarUI(driverProfile);
+                }
+                showToast('Profile photo updated!', 'success');
+            } catch (e) {
+                showToast('Image upload failed: ' + e.message, 'error');
+                if (driverProfile) updateDriverAvatarUI(driverProfile);
+            } finally {
+                input.value = '';
+            }
         };
+
+        window.uploadProfilePic = (input) => window.uploadDriverProfilePic(input, 'profile');
 
         window.openOptions = (event, jobId) => { if (event) event.stopPropagation(); pendingOptionsJobId = jobId; document.getElementById('options-modal').classList.remove('hidden'); };
         

@@ -42,6 +42,74 @@ class CancelRideIn(BaseModel):
     reason: str = ""
 
 
+@router.get("/live-search")
+async def live_search_riders(
+    from_loc: str = "",
+    to_loc: str = "",
+    travel_date: str = "",
+    time_slot: str = "",
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Ride, User.picture)
+        .join(User, Ride.user_id == User.id)
+        .where(
+            Ride.booking_type == "shared",
+            Ride.status.in_(["pending", "assigned", "started"]),
+            Ride.user_id != user.id,
+        )
+        .order_by(Ride.created_at.desc())
+        .limit(100)
+    )
+
+    rows = result.all()
+    out = []
+    q_from = from_loc.strip().lower()
+    q_to = to_loc.strip().lower()
+    q_date = travel_date.strip()
+    q_time = time_slot.strip().lower()
+
+    for ride, picture in rows:
+        ride_from = (ride.from_loc or "")
+        ride_to = (ride.to_loc or "")
+        if q_from and q_from not in ride_from.lower():
+            continue
+        if q_to and q_to not in ride_to.lower():
+            continue
+        if q_date and (ride.travel_date or "") != q_date:
+            continue
+
+        if q_time in {"morning", "afternoon", "evening", "night"}:
+            dt = ride.created_at
+            hour = dt.hour if dt else 12
+            if q_time == "morning" and not (6 <= hour < 12):
+                continue
+            if q_time == "afternoon" and not (12 <= hour < 17):
+                continue
+            if q_time == "evening" and not (17 <= hour < 21):
+                continue
+            if q_time == "night" and not (hour >= 21 or hour < 6):
+                continue
+
+        out.append(
+            {
+                "ride_id": ride.id,
+                "user_name": ride.user_name or "Rider",
+                "user_picture": picture or "",
+                "from_loc": ride.from_loc,
+                "to_loc": ride.to_loc,
+                "travel_date": ride.travel_date,
+                "passengers": ride.passengers,
+                "price": ride.price,
+                "status": ride.status,
+                "created_at": ride.created_at.isoformat() if ride.created_at else None,
+            }
+        )
+
+    return out
+
+
 # ─── Create Booking ──────────────────────────────────────────────────────────────
 
 @router.post("/")

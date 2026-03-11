@@ -51,7 +51,8 @@
         <div class="px-4 pb-2 pt-2 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Operations</div>
         <button onclick="switchTab('live')" id="nav-live" class="nav-btn active w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-orange-600 text-white font-semibold transition text-sm"><i data-lucide="activity" class="h-4 w-4 shrink-0"></i> Live Bookings <span id="nav-live-badge" class="ml-auto bg-white/20 text-white text-[10px] px-1.5 rounded-full hidden"></span></button>
         <button onclick="switchTab('monitor')" id="nav-monitor" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="monitor-play" class="h-4 w-4 shrink-0"></i> Master Monitor</button>
-        <button onclick="switchTab('drivers')" id="nav-drivers" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="car" class="h-4 w-4 shrink-0"></i> Drivers & Docs</button>
+        <button onclick="switchTab('drivers')" id="nav-drivers" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="car" class="h-4 w-4 shrink-0"></i> Drivers</button>
+        <button onclick="switchTab('verifications')" id="nav-verifications" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="badge-check" class="h-4 w-4 shrink-0"></i> Document Verifications <span id="nav-verifications-badge" class="ml-auto bg-amber-500 text-white text-[10px] px-1.5 rounded-full hidden"></span></button>
         <button onclick="switchTab('customers')" id="nav-customers" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="users" class="h-4 w-4 shrink-0"></i> Customers</button>
         <div class="px-4 pb-2 pt-4 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Management</div>
         <button onclick="switchTab('coupons')" id="nav-coupons" class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-medium transition text-sm"><i data-lucide="ticket" class="h-4 w-4 shrink-0"></i> Coupons</button>
@@ -187,6 +188,7 @@
                                 <th class="px-4 py-3">Driver</th>
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3 text-right">Fare</th>
+                                <th class="px-4 py-3 text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody id="monitor-table-body" class="divide-y divide-slate-100"></tbody>
@@ -224,6 +226,31 @@
             </div>
         </div>
 
+        <!-- ========== VIEW: DOCUMENT VERIFICATIONS ========== -->
+        <div id="view-verifications" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-800">Document Verification Queue</h3>
+                    <p class="text-sm text-slate-500">Review driver documents and approve/reject quickly</p>
+                </div>
+                <button onclick="loadDashboardData()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 transition flex items-center gap-2"><i data-lucide="refresh-cw" class="h-4 w-4"></i> Refresh</button>
+            </div>
+
+            <div id="pending-verif-section" class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 bg-amber-50 border-b border-amber-100">
+                    <div class="flex items-center gap-2">
+                        <span class="text-amber-600 text-base">⏳</span>
+                        <h3 class="font-bold text-amber-800 text-sm">Pending Driver Verifications</h3>
+                        <span id="pending-verif-count" class="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                    </div>
+                    <span class="text-[11px] text-amber-600 font-medium">Review submitted documents &amp; approve</span>
+                </div>
+                <div id="pending-verif-list" class="divide-y divide-slate-100">
+                    <p class="p-6 text-center text-slate-400 text-sm" id="pending-verif-empty">No pending submissions</p>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== VIEW: CUSTOMERS ========== -->
         <div id="view-customers" class="hidden space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
@@ -243,7 +270,9 @@
                             <tr>
                                 <th class="px-4 py-3">Joined</th>
                                 <th class="px-4 py-3">Name</th>
+                                <th class="px-4 py-3">Email</th>
                                 <th class="px-4 py-3">Phone</th>
+                                <th class="px-4 py-3">Provider</th>
                                 <th class="px-4 py-3">Total Bookings</th>
                                 <th class="px-4 py-3 text-right">Actions</th>
                             </tr>
@@ -600,6 +629,114 @@
     </div>
 </div>
 
+<!-- Customer Manage Modal -->
+<div id="customer-modal" class="fixed inset-0 bg-black/50 modal-overlay hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-3xl w-full max-w-2xl p-6 mx-4 border border-blue-100 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-black text-slate-900">Customer Profile Manager</h3>
+            <button onclick="closeModal('customer-modal')" class="text-slate-400 hover:text-slate-900"><i data-lucide="x" class="h-5 w-5"></i></button>
+        </div>
+
+        <div class="rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-700 text-white p-5 mb-5 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-12 -top-10 w-44 h-44 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute -left-10 -bottom-10 w-36 h-36 rounded-full bg-cyan-200/20 blur-2xl"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4">
+                <img id="customer-avatar-preview" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=dbeafe" alt="Customer" class="w-24 h-24 rounded-2xl object-cover border-2 border-white/50 shadow-lg bg-white/20">
+                <div class="text-center sm:text-left flex-1">
+                    <p class="text-[11px] font-black uppercase tracking-[0.24em] text-cyan-100">Managed Profile</p>
+                    <h4 id="customer-display-name" class="text-2xl font-black mt-1">Guest User</h4>
+                    <p id="customer-display-email" class="text-sm text-cyan-100 mt-1">-</p>
+                    <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <span id="customer-provider-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">LOCAL</span>
+                        <span id="customer-trips-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">0 trips</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="customer-meta" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 mb-4"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Full Name</label>
+                <input type="text" id="customer-name-input" oninput="updateCustomerAvatarPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Email</label>
+                <input type="email" id="customer-email-input" oninput="updateCustomerAvatarPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Phone</label>
+                <input type="tel" id="customer-phone-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Profile Picture URL</label>
+                <input type="text" id="customer-picture-input" oninput="updateCustomerAvatarPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="/uploads/users/...">
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="deleteCustomerByModal()" class="py-3 px-4 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold">Delete User</button>
+            <button onclick="closeModal('customer-modal')" class="flex-1 py-3 bg-slate-100 font-bold rounded-xl text-slate-600">Cancel</button>
+            <button onclick="saveCustomerByModal()" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Manage Modal -->
+<div id="booking-modal" class="fixed inset-0 bg-black/50 modal-overlay hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl w-full max-w-xl p-6 mx-4 max-h-[90vh] overflow-y-auto custom-scroll">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Manage Booking</h3>
+            <button onclick="closeModal('booking-modal')" class="text-slate-400 hover:text-slate-900"><i data-lucide="x" class="h-5 w-5"></i></button>
+        </div>
+        <div id="booking-meta" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 mb-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Status</label>
+                <select id="booking-status-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="pending">Pending</option>
+                    <option value="assigned">Assigned</option>
+                    <option value="started">Started</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Fare (INR)</label>
+                <input type="number" id="booking-price-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Passengers</label>
+                <input type="number" id="booking-passengers-input" min="1" max="12" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Travel Date</label>
+                <input type="text" id="booking-date-input" placeholder="YYYY-MM-DD" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Driver Name</label>
+                <input type="text" id="booking-driver-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Driver ID</label>
+                <input type="text" id="booking-driver-id-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+        <div class="mb-4">
+            <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Cancel Reason</label>
+            <textarea id="booking-cancel-reason-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none" rows="2"></textarea>
+        </div>
+        <label class="inline-flex items-center gap-2 text-xs text-slate-500 font-medium mb-4">
+            <input type="checkbox" id="booking-force-input" class="rounded border-slate-300">
+            Force status change (ignore normal transition rules)
+        </label>
+        <div class="flex gap-3">
+            <button onclick="closeModal('booking-modal')" class="flex-1 py-3 bg-slate-100 font-bold rounded-xl text-slate-600">Cancel</button>
+            <button onclick="saveBookingByModal()" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700">Save Booking</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast container -->
 <div id="toast-container" class="fixed bottom-5 right-5 z-[200] space-y-2"></div>
 
@@ -609,6 +746,7 @@
 
     let drivers = [], bookingsCache = [], customers = [], coupons = [], supportTickets = [], broadcasts = [];
     let cancelTargetId = null, docTargetId = null, supportTargetId = null;
+    let customerTargetId = null, bookingTargetId = null;
     let revChart = null, srvChart = null;
     let seatEditId = null, seatEditMax = 7, seatEditCurrent = 0;
     let pollTimer = null;
@@ -780,9 +918,17 @@
             aadharUrl: d.aadhar_url || '',
             rcUrl: d.rc_url || '',
             insuranceUrl: d.insurance_url || '',
-            docStatus: d.doc_status || 'pending'
+            docStatus: d.doc_status || 'pending',
+            profilePic: d.profile_pic || ''
         }));
-        customers = userList.map(u => ({ ...u, mobile: u.phone, joinedAt: u.created_at }));
+        customers = userList.map(u => ({
+            ...u,
+            mobile: u.phone,
+            joinedAt: u.created_at,
+            createdAt: u.created_at,
+            provider: u.provider || 'local',
+            picture: u.picture || ''
+        }));
         coupons = couponList.map(c => ({ ...c, minFare: c.min_fare }));
         supportTickets = ticketList.map(t => ({
             ...t,
@@ -835,6 +981,7 @@
         renderLiveFeed();
         renderMonitor();
         renderDrivers();
+        renderPendingVerifications();
         renderCoupons();
         renderSupport();
         renderBroadcasts();
@@ -902,9 +1049,10 @@
                 <td class="px-4 py-3 text-xs text-slate-500">${sanitize(b.driverName || '—')}</td>
                 <td class="px-4 py-3">${badge}</td>
                 <td class="px-4 py-3 text-right font-bold text-slate-800">₹${b.rawPrice}</td>
+                <td class="px-4 py-3 text-right"><button onclick="openBookingModal('${b.id}')" class="text-blue-600 font-bold text-xs hover:bg-blue-50 px-3 py-1.5 rounded border border-blue-100">Manage</button></td>
             </tr>`;
         }).join('');
-        document.getElementById('monitor-table-body').innerHTML = html || `<tr><td colspan="8" class="p-6 text-center text-slate-400">No records found</td></tr>`;
+        document.getElementById('monitor-table-body').innerHTML = html || `<tr><td colspan="9" class="p-6 text-center text-slate-400">No records found</td></tr>`;
         lucide.createIcons();
     };
 
@@ -915,8 +1063,15 @@
 
         const html = data.map(d => {
             const statusColor = d.status === 'online' ? 'bg-green-100 text-green-700' : d.isBlocked ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500';
-            const isSeven = (d.vehicleType || '').toLowerCase().includes('7') || (d.vehicleType || '').toLowerCase().includes('innova');
-            const totalSeats = d.seatsTotal || (isSeven ? 7 : 5);
+            const totalSeats = (() => {
+                if (d.seatsTotal > 0) return d.seatsTotal;
+                const vt = (d.vehicleType || '').toLowerCase();
+                if (vt.includes('12') || vt.includes('tempo')) return 12;
+                if (vt.includes('7') || vt.includes('innova') || vt.includes('ertiga') || vt.includes('suv')) return 7;
+                if (vt.includes('4') || vt.includes('mini')) return 4;
+                if (vt.includes('ambulance')) return 2;
+                return 5;
+            })();
             const filled = d.filledSeats || 0;
             const rating = d.rating ? `⭐ ${parseFloat(d.rating).toFixed(1)}` : '⭐ N/A';
             const ratingColor = d.rating && d.rating < 3.5 ? 'text-red-600 font-bold' : 'text-slate-600';
@@ -953,6 +1108,95 @@
         lucide.createIcons();
     }
 
+    function renderPendingVerifications() {
+        // Drivers who have submitted at least one document and are waiting for review
+        const pending = drivers.filter(d =>
+            (d.docStatus === 'pending' || d.verification_status === 'pending') &&
+            (d.licenseUrl || d.aadharUrl || d.rcUrl || d.insuranceUrl)
+        );
+
+        const countBadge = document.getElementById('pending-verif-count');
+        const emptyMsg = document.getElementById('pending-verif-empty');
+        const list = document.getElementById('pending-verif-list');
+        if (!list) return;
+
+        if (countBadge) {
+            if (pending.length > 0) { countBadge.innerText = pending.length; countBadge.classList.remove('hidden'); }
+            else countBadge.classList.add('hidden');
+        }
+
+        const navBadge = document.getElementById('nav-verifications-badge');
+        if (navBadge) {
+            if (pending.length > 0) {
+                navBadge.innerText = pending.length;
+                navBadge.classList.remove('hidden');
+            } else {
+                navBadge.classList.add('hidden');
+            }
+        }
+
+        if (!pending.length) {
+            if (emptyMsg) emptyMsg.classList.remove('hidden');
+            list.innerHTML = '<p class="p-6 text-center text-slate-400 text-sm">No pending submissions</p>';
+            return;
+        }
+        if (emptyMsg) emptyMsg.classList.add('hidden');
+
+        list.innerHTML = pending.map(d => {
+            const docTypes = [
+                { key: 'licenseUrl', label: 'License' },
+                { key: 'aadharUrl', label: 'Aadhar' },
+                { key: 'rcUrl', label: 'RC' },
+                { key: 'insuranceUrl', label: 'Insurance' }
+            ];
+            const docPreviews = docTypes.map(dt => {
+                const url = d[dt.key];
+                const thumb = url
+                    ? `<img src="${url}" class="w-full h-full object-cover rounded-lg" onerror="this.outerHTML='<div class=\\'w-full h-full bg-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-[9px] font-bold text-center\\'>No image</div>'">`
+                    : `<div class="w-full h-full bg-slate-100 rounded-lg flex items-center justify-center text-slate-300 text-[9px]">Not uploaded</div>`;
+                return `<div class="flex flex-col gap-1"><p class="text-[10px] font-bold text-slate-500">${dt.label}</p><div class="h-16 w-20 overflow-hidden rounded-lg border border-slate-100 bg-slate-50">${thumb}</div></div>`;
+            }).join('');
+
+            const submittedDate = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+            const allDocs = docTypes.every(dt => !!d[dt.key]);
+
+            return `<div class="p-4">
+                <div class="flex flex-col sm:flex-row gap-4 items-start">
+                    <!-- Driver info -->
+                    <div class="flex items-center gap-3 min-w-0 sm:w-48 shrink-0">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-black text-lg shrink-0 overflow-hidden">
+                            ${d.profilePic ? `<img src="${sanitize(d.profilePic)}" class="w-full h-full object-cover" onerror="this.style.display='none'">` : sanitize((d.name||'?')[0].toUpperCase())}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-slate-900 text-sm truncate">${sanitize(d.name||'Unknown')}</p>
+                            <p class="text-[11px] text-slate-500 font-mono">${sanitize(d.phone||'—')}</p>
+                            <p class="text-[10px] text-slate-400">${sanitize(d.vehicleType||'—')} · ${sanitize(d.vehicleNo||'—')}</p>
+                            <p class="text-[10px] text-amber-600 font-bold mt-0.5">Applied ${submittedDate}</p>
+                        </div>
+                    </div>
+                    <!-- Doc previews -->
+                    <div class="flex gap-3 flex-wrap">
+                        ${docPreviews}
+                    </div>
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2 sm:ml-auto shrink-0 w-full sm:w-auto">
+                        ${!allDocs ? '<p class="text-[10px] text-amber-600 font-bold mb-1">⚠ Not all docs uploaded</p>' : ''}
+                        <button onclick="approveDriver('${d.id}')" class="px-4 py-2.5 bg-green-600 text-white font-bold text-xs rounded-xl hover:bg-green-700 transition flex items-center gap-1.5 justify-center">
+                            <i data-lucide="check-circle" class="h-4 w-4"></i> Approve & Verify
+                        </button>
+                        <button onclick="rejectDriver('${d.id}')" class="px-4 py-2.5 bg-red-50 text-red-600 font-bold text-xs rounded-xl hover:bg-red-100 border border-red-200 transition flex items-center gap-1.5 justify-center">
+                            <i data-lucide="x-circle" class="h-4 w-4"></i> Reject Documents
+                        </button>
+                        <button onclick="openDocModal('${d.id}')" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold text-xs rounded-xl hover:bg-slate-200 border border-slate-200 transition flex items-center gap-1.5 justify-center">
+                            <i data-lucide="zoom-in" class="h-3.5 w-3.5"></i> View Full Docs
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        lucide.createIcons();
+    }
+
     window.renderCustomers = () => {
         const search = (document.getElementById('customer-search').value || '').toLowerCase();
         let data = customers;
@@ -965,17 +1209,144 @@
             return `<tr class="border-b border-slate-50 hover:bg-slate-50">
                 <td class="px-4 py-3 text-xs text-slate-400">${dateStr}</td>
                 <td class="px-4 py-3 font-bold text-slate-900 text-sm">${sanitize(c.name || 'Guest User')}</td>
+                <td class="px-4 py-3 text-xs text-slate-600">${sanitize(c.email || '—')}</td>
                 <td class="px-4 py-3 font-mono text-xs text-slate-600">${sanitize(c.mobile || 'No Mobile')}</td>
+                <td class="px-4 py-3 text-xs"><span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 font-bold uppercase">${sanitize(c.provider || 'local')}</span></td>
                 <td class="px-4 py-3 text-xs font-bold text-slate-500">${bookingCount} trips</td>
-                <td class="px-4 py-3 text-right">
+                <td class="px-4 py-3 text-right flex justify-end items-center gap-2">
+                    <button onclick="openCustomerModal('${c.id}')" class="text-blue-600 font-bold text-xs hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">Manage</button>
                     <a href="https://wa.me/${phone}" target="_blank" class="text-green-600 font-bold text-xs hover:bg-green-50 px-3 py-1.5 rounded-lg border border-green-200 inline-flex items-center gap-1">
                         <i data-lucide="message-circle" class="h-3 w-3"></i> WhatsApp
                     </a>
                 </td>
             </tr>`;
         }).join('');
-        document.getElementById('customers-table-body').innerHTML = html || `<tr><td colspan="5" class="p-6 text-center text-slate-400">No customers found</td></tr>`;
+        document.getElementById('customers-table-body').innerHTML = html || `<tr><td colspan="7" class="p-6 text-center text-slate-400">No customers found</td></tr>`;
         lucide.createIcons();
+    };
+
+    window.openCustomerModal = (id) => {
+        customerTargetId = id;
+        const c = customers.find(x => x.id === id);
+        if (!c) return;
+        const bookingCount = bookingsCache.filter(b => b.user_id === c.id || b.mobile === c.mobile).length;
+        document.getElementById('customer-meta').innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <p><span class="font-bold text-slate-500">ID:</span> ${sanitize(c.id)}</p>
+                <p><span class="font-bold text-slate-500">Joined:</span> ${sanitize(fmtDateTime(c.createdAt || c.joinedAt))}</p>
+                <p><span class="font-bold text-slate-500">Trips:</span> ${bookingCount}</p>
+                <p><span class="font-bold text-slate-500">Provider:</span> ${sanitize((c.provider || 'local').toUpperCase())}</p>
+            </div>
+        `;
+        document.getElementById('customer-name-input').value = c.name || '';
+        document.getElementById('customer-email-input').value = c.email || '';
+        document.getElementById('customer-phone-input').value = c.mobile || c.phone || '';
+        document.getElementById('customer-picture-input').value = c.picture || '';
+        document.getElementById('customer-display-name').innerText = c.name || 'Guest User';
+        document.getElementById('customer-display-email').innerText = c.email || '-';
+        document.getElementById('customer-provider-badge').innerText = (c.provider || 'local').toUpperCase();
+        document.getElementById('customer-trips-badge').innerText = `${bookingCount} trips`;
+        updateCustomerAvatarPreview();
+        document.getElementById('customer-modal').classList.remove('hidden');
+        lucide.createIcons();
+    };
+
+    window.updateCustomerAvatarPreview = () => {
+        const name = document.getElementById('customer-name-input')?.value || 'guest';
+        const picture = document.getElementById('customer-picture-input')?.value?.trim() || '';
+        const seed = encodeURIComponent(name || 'guest');
+        const fallback = `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=dbeafe`;
+        const avatar = document.getElementById('customer-avatar-preview');
+        if (!avatar) return;
+        avatar.onerror = function () { this.onerror = null; this.src = fallback; };
+        avatar.src = picture || fallback;
+        const displayName = document.getElementById('customer-display-name');
+        if (displayName) displayName.innerText = name || 'Guest User';
+        const displayEmail = document.getElementById('customer-display-email');
+        const email = document.getElementById('customer-email-input')?.value || '-';
+        if (displayEmail) displayEmail.innerText = email;
+    };
+
+    window.saveCustomerByModal = async () => {
+        if (!customerTargetId) return;
+        const body = {
+            name: document.getElementById('customer-name-input').value.trim(),
+            email: document.getElementById('customer-email-input').value.trim(),
+            phone: document.getElementById('customer-phone-input').value.trim(),
+            picture: document.getElementById('customer-picture-input').value.trim(),
+        };
+        try {
+            await apiFetch(`/api/admin/users/${customerTargetId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(body)
+            });
+            closeModal('customer-modal');
+            showToast('Customer updated successfully');
+            await loadDashboardData();
+        } catch (e) {
+            showToast('Failed to update customer: ' + e.message, 'error');
+        }
+    };
+
+    window.deleteCustomerByModal = async () => {
+        if (!customerTargetId) return;
+        if (!confirm('Delete this customer and all of their rides?')) return;
+        try {
+            await apiFetch(`/api/admin/users/${customerTargetId}`, { method: 'DELETE' });
+            closeModal('customer-modal');
+            showToast('Customer deleted', 'warn');
+            await loadDashboardData();
+        } catch (e) {
+            showToast('Failed to delete customer: ' + e.message, 'error');
+        }
+    };
+
+    window.openBookingModal = (id) => {
+        bookingTargetId = id;
+        const b = bookingsCache.find(x => x.id === id);
+        if (!b) return;
+        document.getElementById('booking-meta').innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <p><span class="font-bold text-slate-500">Booking ID:</span> ${sanitize(b.id)}</p>
+                <p><span class="font-bold text-slate-500">Created:</span> ${sanitize(fmtDateTime(b.createdAt))}</p>
+                <p><span class="font-bold text-slate-500">Customer:</span> ${sanitize(b.name)} (${sanitize(b.mobile || '-')})</p>
+                <p><span class="font-bold text-slate-500">Route:</span> ${sanitize(b.from)} -> ${sanitize(b.to)}</p>
+            </div>
+        `;
+        document.getElementById('booking-status-input').value = b.status || 'pending';
+        document.getElementById('booking-price-input').value = b.rawPrice || 0;
+        document.getElementById('booking-passengers-input').value = b.passengers || 1;
+        document.getElementById('booking-date-input').value = b.travel_date || '';
+        document.getElementById('booking-driver-name-input').value = b.driver_name || b.driverName || '';
+        document.getElementById('booking-driver-id-input').value = b.driver_id || '';
+        document.getElementById('booking-cancel-reason-input').value = b.cancel_reason || '';
+        document.getElementById('booking-force-input').checked = false;
+        document.getElementById('booking-modal').classList.remove('hidden');
+    };
+
+    window.saveBookingByModal = async () => {
+        if (!bookingTargetId) return;
+        const body = {
+            status: document.getElementById('booking-status-input').value,
+            price: parseInt(document.getElementById('booking-price-input').value || '0'),
+            passengers: parseInt(document.getElementById('booking-passengers-input').value || '1'),
+            travel_date: document.getElementById('booking-date-input').value.trim(),
+            driver_name: document.getElementById('booking-driver-name-input').value.trim(),
+            driver_id: document.getElementById('booking-driver-id-input').value.trim(),
+            cancel_reason: document.getElementById('booking-cancel-reason-input').value.trim(),
+            force: document.getElementById('booking-force-input').checked
+        };
+        try {
+            await apiFetch(`/api/admin/bookings/${bookingTargetId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(body)
+            });
+            closeModal('booking-modal');
+            showToast('Booking updated successfully');
+            await loadDashboardData();
+        } catch (e) {
+            showToast('Failed to update booking: ' + e.message, 'error');
+        }
     };
 
     function renderCoupons() {
@@ -1158,6 +1529,34 @@
         });
         showToast(val ? 'Driver verified ✓' : 'Verification removed');
         await loadDashboardData();
+    };
+
+    window.approveDriver = async (id) => {
+        if (!confirm('Approve this driver and grant the Verified badge?')) return;
+        try {
+            await apiFetch(`/api/admin/drivers/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ doc_status: 'approved', is_verified: true })
+            });
+            showToast('Driver approved & verified ✓', 'success');
+            await loadDashboardData();
+        } catch(e) {
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    window.rejectDriver = async (id) => {
+        const reason = prompt('Rejection reason (optional, shown to admin log):') ?? '';
+        try {
+            await apiFetch(`/api/admin/drivers/${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ doc_status: 'rejected', is_verified: false })
+            });
+            showToast('Documents rejected', 'warn');
+            await loadDashboardData();
+        } catch(e) {
+            showToast('Failed: ' + e.message, 'error');
+        }
     };
 
     window.toggleBlock = async (id, status) => {
@@ -1457,7 +1856,7 @@
 
     // ==================== TAB SWITCHER ====================
     window.switchTab = (t) => {
-        const tabs = ['live', 'monitor', 'drivers', 'customers', 'coupons', 'support', 'analytics', 'admins', 'settings'];
+        const tabs = ['live', 'monitor', 'drivers', 'verifications', 'customers', 'coupons', 'support', 'analytics', 'admins', 'settings'];
         tabs.forEach(x => {
             document.getElementById(`view-${x}`).classList.add('hidden');
             const btn = document.getElementById(`nav-${x}`);
@@ -1465,16 +1864,18 @@
             // restore badge spans
             if (x === 'live') btn.innerHTML = `<i data-lucide="activity" class="h-4 w-4 shrink-0"></i> Live Bookings <span id="nav-live-badge" class="ml-auto bg-white/20 text-white text-[10px] px-1.5 rounded-full hidden"></span>`;
             if (x === 'support') btn.innerHTML = `<i data-lucide="life-buoy" class="h-4 w-4 shrink-0"></i> Help Desk <span id="nav-support-badge" class="ml-auto bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden"></span>`;
+            if (x === 'verifications') btn.innerHTML = `<i data-lucide="badge-check" class="h-4 w-4 shrink-0"></i> Document Verifications <span id="nav-verifications-badge" class="ml-auto bg-amber-500 text-white text-[10px] px-1.5 rounded-full hidden"></span>`;
         });
         document.getElementById(`view-${t}`).classList.remove('hidden');
         document.getElementById(`nav-${t}`).className = 'nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold transition text-sm shadow-lg';
 
-        const titles = { live: 'Live Bookings', monitor: 'Master Monitor', drivers: 'Driver Fleet', customers: 'Customer Database', coupons: 'Coupon Manager', support: 'Help Desk', analytics: 'Analytics', admins: 'Admin Team', settings: 'Settings' };
+        const titles = { live: 'Live Bookings', monitor: 'Master Monitor', drivers: 'Driver Fleet', verifications: 'Document Verifications', customers: 'Customer Database', coupons: 'Coupon Manager', support: 'Help Desk', analytics: 'Analytics', admins: 'Admin Team', settings: 'Settings' };
         document.getElementById('page-title').innerText = titles[t];
 
         if (t === 'customers') renderCustomers();
         if (t === 'analytics') renderAnalytics();
         if (t === 'support') renderSupport();
+        if (t === 'verifications') renderPendingVerifications();
         if (t === 'admins') loadAdmins();
         lucide.createIcons();
     };

@@ -118,6 +118,7 @@
             color: #f8fafc;
             font-variant-numeric: tabular-nums;
         }
+
     </style>
 
     <!-- Google Sign-In Script -->
@@ -183,6 +184,12 @@
                             <!-- Google Sign-In button will be rendered here -->
                         </div>
                         <div id="google-error" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-medium"></div>
+                        <p class="text-center text-[10px] text-slate-400 font-semibold leading-relaxed">
+                            By continuing, you agree to our
+                            <a href="terms.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Terms &amp; Conditions</a>
+                            and
+                            <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Privacy Policy</a>.
+                        </p>
 
                         <!-- Divider -->
                         <div class="relative py-1 my-1">
@@ -262,6 +269,16 @@
                             <!-- Error msg -->
                             <p id="register-error" class="hidden text-xs text-red-500 font-bold text-center mb-2 bg-red-50 py-1.5 px-3 rounded-xl"></p>
 
+                            <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 mb-3 cursor-pointer">
+                                <input id="reg-legal-consent" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500" />
+                                <span class="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                                    I agree to the
+                                    <a href="terms.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Terms &amp; Conditions</a>
+                                    and
+                                    <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Privacy Policy</a>.
+                                </span>
+                            </label>
+
                             <button onclick="registerWithEmail()" id="btn-register"
                                 class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="user-plus" class="h-4 w-4"></i> Create My Account
@@ -322,11 +339,12 @@
             <h1 class="font-extrabold text-xl text-slate-900 tracking-tight">Travel With <span class="text-orange-600">Nandu</span></h1>
         </div>
         <div class="flex items-center gap-8">
+            <button onclick="switchView('live')" id="d-nav-live" class="font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent"><i data-lucide="radio" class="h-4 w-4"></i> Live</button>
             <button onclick="switchView('booking')" id="d-nav-booking" class="font-bold text-orange-600 transition flex items-center gap-2 py-2 border-b-2 border-orange-600"><i data-lucide="map-pin" class="h-4 w-4"></i> Book</button>
             <button onclick="switchView('orders')" id="d-nav-orders" class="font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent"><i data-lucide="list" class="h-4 w-4"></i> My Rides</button>
             <div class="h-6 w-px bg-slate-200 mx-2"></div>
             <button onclick="switchView('profile')" class="flex items-center gap-3 font-bold text-slate-900 hover:bg-slate-50 pl-3 pr-4 py-2 rounded-full border border-slate-200 transition shadow-sm">
-                <div class="bg-orange-100 p-1.5 rounded-full"><i data-lucide="user" class="h-4 w-4 text-orange-600"></i></div>
+                <img id="header-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=ffedd5" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-orange-100 bg-orange-50">
                 <span id="header-user-name" class="text-sm">Guest</span>
             </button>
         </div>
@@ -343,7 +361,9 @@
             </div>
             <div class="flex items-center gap-3">
                 <div id="m-connection-status" class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                <button onclick="switchView('profile')" class="p-2 bg-slate-100 rounded-full text-slate-500 hover:text-orange-600"><i data-lucide="user" class="h-4 w-4"></i></button>
+                <button onclick="switchView('profile')" class="p-1 bg-slate-100 rounded-full text-slate-500 hover:text-orange-600 border border-slate-200">
+                    <img id="mobile-header-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=ffedd5" alt="Profile" class="w-8 h-8 rounded-full object-cover bg-orange-50">
+                </button>
             </div>
         </header>
 
@@ -562,93 +582,177 @@
                 </div>
             </div>
 
-            <!-- VIEW 2: LIVE TRACKING -->
+            <!-- VIEW 2: LIVE HUB -->
+            <div id="view-live" class="hidden w-full max-w-2xl pb-20">
+                <div class="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/60 p-6 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-black text-slate-900 text-xl">Online Riders</h3>
+                        <button onclick="searchOnlineRiders()" class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg">Refresh</button>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">Search by pickup, drop, date and time like BlaBlaCar.</p>
+
+                    <div class="grid md:grid-cols-2 gap-3 mt-4">
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pickup</label>
+                            <select id="live-from-loc" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
+                                <option value="">Any pickup</option>
+                                <option value="Karimnagar">Karimnagar</option>
+                                <option value="JBS-Hyderabad">JBS-Hyderabad</option>
+                                <option value="Hyderabad-City">Hyderabad City</option>
+                                <option value="Airport-RGI">Airport RGI</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Drop</label>
+                            <select id="live-to-loc" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
+                                <option value="">Any drop</option>
+                                <option value="Karimnagar">Karimnagar</option>
+                                <option value="JBS-Hyderabad">JBS-Hyderabad</option>
+                                <option value="Hyderabad-City">Hyderabad City</option>
+                                <option value="Airport-RGI">Airport RGI</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Travel Date</label>
+                            <input id="live-travel-date" type="date" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
+                        </div>
+                        <div class="relative">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time</label>
+                            <select id="live-time-slot" class="w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none">
+                                <option value="">Any time</option>
+                                <option value="morning">Morning</option>
+                                <option value="afternoon">Afternoon</option>
+                                <option value="evening">Evening</option>
+                                <option value="night">Night</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between bg-green-50 border border-green-100 rounded-xl p-3">
+                        <p class="text-xs font-bold text-green-700 uppercase tracking-wider">Riders Online</p>
+                        <p id="live-online-riders-count" class="text-xl font-black text-slate-900">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                    <h4 class="font-black text-slate-900 mb-3">Available Rider Trips</h4>
+                    <div id="live-riders-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: LIVE TRACKING -->
             <div id="view-tracking" class="hidden w-full max-w-lg">
                  <div id="tracking-content" class="bg-white rounded-[2rem] shadow-xl p-6 relative min-h-[400px]">
                  </div>
             </div>
 
-            <!-- VIEW 3: ORDERS LIST -->
+            <!-- VIEW 4: ORDERS LIST -->
             <div id="view-orders" class="hidden w-full max-w-2xl">
                 <div id="orders-list-container" class="space-y-4 pb-20"></div>
             </div>
 
-            <!-- VIEW 4: PROFILE PAGE -->
+            <!-- VIEW 5: PROFILE PAGE -->
             <div id="view-profile" class="hidden w-full max-w-xl pb-24">
-                <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden min-h-[80vh] flex flex-col">
-                    <div class="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-orange-50 to-white z-0"></div>
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-50"></div>
-                    <div class="absolute top-20 -left-10 w-32 h-32 bg-yellow-100 rounded-full blur-3xl opacity-50"></div>
+                <div class="bg-white rounded-[2.5rem] shadow-2xl relative overflow-hidden min-h-[80vh] flex flex-col border border-orange-100/60">
+                    <div class="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_right,_rgba(251,146,60,0.34),_transparent_34%),linear-gradient(135deg,#fff7ed_0%,#ffedd5_38%,#ffffff_100%)]"></div>
+                    <div class="absolute -top-12 right-8 w-48 h-48 rounded-full bg-orange-200/60 blur-3xl"></div>
+                    <div class="absolute top-28 -left-12 w-40 h-40 rounded-full bg-amber-100/80 blur-3xl"></div>
 
-                    <div class="relative z-10 flex flex-col items-center mt-4">
-                        <div class="relative group">
-                            <div class="w-32 h-32 rounded-full p-1.5 bg-white shadow-xl mb-4 relative z-10">
-                                <img id="profile-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=ffedd5" alt="Avatar" class="w-full h-full rounded-full object-cover bg-orange-50">
+                    <div class="relative z-10 p-6 sm:p-8 flex-1 flex flex-col gap-6">
+                        <div class="rounded-[2rem] bg-slate-900 text-white p-6 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.7)] overflow-hidden relative">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.18),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(249,115,22,0.32),_transparent_30%)]"></div>
+                            <div class="relative flex flex-col sm:flex-row sm:items-end gap-6">
+                                <div class="relative shrink-0 group self-center sm:self-auto">
+                                    <div class="w-32 h-32 rounded-[2rem] p-1.5 bg-white/20 backdrop-blur shadow-xl">
+                                        <img id="profile-avatar" src="https://api.dicebear.com/9.x/micah/svg?seed=guest&backgroundColor=ffedd5" alt="Avatar" class="w-full h-full rounded-[1.6rem] object-cover bg-orange-50">
+                                    </div>
+                                    <button onclick="triggerProfileImageUpload()" class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[11px] font-black bg-white text-slate-900 px-4 py-2 rounded-full shadow-lg whitespace-nowrap">Change Photo</button>
+                                    <input id="profile-image-input" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="uploadProfileImage(event)">
+                                </div>
+                                <div class="flex-1 text-center sm:text-left pt-3 sm:pt-0">
+                                    <p class="text-[11px] font-black uppercase tracking-[0.3em] text-orange-200">Profile</p>
+                                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight mt-2" id="profile-name">Guest User</h2>
+                                    <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                                        <p class="text-xs font-bold text-white/90 bg-white/10 px-3 py-2 rounded-full border border-white/15" id="profile-mobile">+91 --</p>
+                                        <p class="text-xs font-bold text-white/80 bg-white/10 px-3 py-2 rounded-full border border-white/15">Safe rides, verified routes</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-center mb-8">
-                            <h2 class="text-3xl font-black text-slate-900 tracking-tight" id="profile-name">Guest User</h2>
-                            <p class="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full inline-block mt-2 border border-slate-100" id="profile-mobile">+91 --</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg flex flex-col items-center justify-center gap-1">
-                                <div class="bg-orange-50 p-2 rounded-xl mb-1"><i data-lucide="car" class="h-5 w-5 text-orange-600"></i></div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-white p-5 rounded-[1.8rem] border border-slate-100 shadow-lg shadow-orange-100/40">
+                                <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mb-4"><i data-lucide="car" class="h-5 w-5"></i></div>
                                 <div class="text-3xl font-black text-slate-900" id="profile-rides-count">0</div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Rides</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Completed Rides</div>
                             </div>
-                            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-lg flex flex-col items-center justify-center gap-1">
-                                <div class="bg-yellow-50 p-2 rounded-xl mb-1"><i data-lucide="star" class="h-5 w-5 text-yellow-500 fill-current"></i></div>
+                            <div class="bg-white p-5 rounded-[1.8rem] border border-slate-100 shadow-lg shadow-blue-100/40">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4"><i data-lucide="calendar" class="h-5 w-5"></i></div>
+                                <div class="text-lg font-black text-slate-900" id="profile-joined-date">Today</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Member Since</div>
+                            </div>
+                            <div class="bg-white p-5 rounded-[1.8rem] border border-slate-100 shadow-lg shadow-amber-100/40">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mb-4"><i data-lucide="star" class="h-5 w-5 fill-current"></i></div>
                                 <div class="text-3xl font-black text-slate-900">5.0</div>
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">User Rating</div>
+                                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Rider Rating</div>
                             </div>
                         </div>
-                        <div class="w-full space-y-3">
-                            <button onclick="enableNameEdit()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors"><i data-lucide="pencil" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm">Edit Name</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Display Name</p>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="bg-white rounded-[2rem] border border-slate-100 p-5 shadow-lg shadow-slate-100/70">
+                                <div class="flex items-start justify-between gap-4 mb-5">
+                                    <div>
+                                        <p class="text-xs font-black uppercase tracking-[0.28em] text-slate-400">Account Details</p>
+                                        <h3 class="text-xl font-black text-slate-900 mt-2">Your travel identity</h3>
+                                    </div>
+                                    <button onclick="enableNameEdit()" class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-700 font-bold text-xs hover:bg-orange-100 transition-colors">
+                                        <i data-lucide="pencil" class="h-4 w-4"></i> Edit Name
+                                    </button>
                                 </div>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
-                            </button>
-                            <!-- NEW: Explicit Email Field -->
-                            <div class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm"><i data-lucide="mail" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm" id="profile-email-display">...</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Email Address</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm"><i data-lucide="mail" class="h-5 w-5"></i></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-bold text-slate-900 text-sm truncate" id="profile-email-display">...</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Email Address</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div class="w-12 h-12 rounded-2xl bg-white text-blue-600 flex items-center justify-center shadow-sm"><i data-lucide="phone" class="h-5 w-5"></i></div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-bold text-slate-900 text-sm truncate" id="profile-mobile-card">+91 --</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mobile Number</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="name-edit-container" class="hidden w-full mt-4">
+                                    <div class="flex gap-2 bg-slate-50 p-2 rounded-2xl border border-blue-200 shadow-inner">
+                                        <input type="text" id="edit-profile-name-input" class="flex-1 bg-transparent px-4 py-2 text-sm font-bold outline-none text-slate-900 placeholder-slate-300" placeholder="Enter new name">
+                                        <button onclick="saveNameEdit()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700">Save</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-blue-600 flex items-center justify-center shadow-sm"><i data-lucide="calendar" class="h-5 w-5"></i></div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-900 text-sm" id="profile-joined-date">Today</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Member Since</p>
-                                </div>
+
+                            <div class="bg-white rounded-[2rem] border border-slate-100 p-3 shadow-lg shadow-slate-100/70 space-y-2">
+                                <button onclick="openChat()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
+                                    <div class="w-12 h-12 rounded-2xl bg-white text-green-600 flex items-center justify-center shadow-sm group-hover:bg-green-600 group-hover:text-white transition-colors"><i data-lucide="message-circle" class="h-5 w-5"></i></div>
+                                    <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Help & Support</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Live chat with Nandu</p></div>
+                                    <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-green-500 transition-colors"></i>
+                                </button>
+                                <button onclick="document.getElementById('privacy-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
+                                    <div class="w-12 h-12 rounded-2xl bg-white text-violet-600 flex items-center justify-center shadow-sm group-hover:bg-violet-600 group-hover:text-white transition-colors"><i data-lucide="shield" class="h-5 w-5"></i></div>
+                                    <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Privacy Policy</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Security & data</p></div>
+                                    <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-violet-500 transition-colors"></i>
+                                </button>
+                                <button onclick="document.getElementById('terms-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
+                                    <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors"><i data-lucide="file-text" class="h-5 w-5"></i></div>
+                                    <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Terms & Conditions</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Rules of service</p></div>
+                                    <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-orange-500 transition-colors"></i>
+                                </button>
                             </div>
-                            <div id="name-edit-container" class="hidden w-full px-1 mb-2">
-                                <div class="flex gap-2 bg-white p-2 rounded-2xl border border-blue-200 shadow-lg">
-                                    <input type="text" id="edit-profile-name-input" class="flex-1 bg-transparent px-4 py-2 text-sm font-bold outline-none text-slate-900 placeholder-slate-300" placeholder="Enter new name">
-                                    <button onclick="saveNameEdit()" class="bg-blue-600 text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-blue-700">Save</button>
-                                </div>
-                            </div>
-                            <button onclick="openChat()" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-green-600 flex items-center justify-center shadow-sm group-hover:bg-green-600 group-hover:text-white transition-colors"><i data-lucide="message-circle" class="h-5 w-5"></i></div>
-                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Help & Support</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Live Chat</p></div>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-green-500 transition-colors"></i>
-                            </button>
-                            <button onclick="document.getElementById('privacy-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-purple-600 flex items-center justify-center shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-colors"><i data-lucide="shield" class="h-5 w-5"></i></div>
-                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Privacy Policy</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Security & Data</p></div>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-purple-500 transition-colors"></i>
-                            </button>
-                            <button onclick="document.getElementById('terms-modal').classList.remove('hidden')" class="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-md transition-all group text-left">
-                                <div class="w-12 h-12 rounded-2xl bg-white text-orange-600 flex items-center justify-center shadow-sm group-hover:bg-orange-600 group-hover:text-white transition-colors"><i data-lucide="file-text" class="h-5 w-5"></i></div>
-                                <div class="flex-1"><p class="font-bold text-slate-900 text-sm">Terms & Conditions</p><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Rules of Service</p></div>
-                                <i data-lucide="chevron-right" class="h-4 w-4 text-slate-300 group-hover:text-orange-500 transition-colors"></i>
-                            </button>
                         </div>
-                        <div class="mt-8 w-full">
+
+                        <div class="mt-auto pt-2">
                             <button onclick="handleLogout()" class="w-full py-4 rounded-2xl font-bold text-sm text-red-500 bg-red-50 hover:bg-red-100 hover:text-red-600 transition flex items-center justify-center gap-2">
                                 <i data-lucide="log-out" class="h-4 w-4"></i> Log Out
                             </button>
@@ -663,6 +767,7 @@
 
     <!-- MOBILE BOTTOM NAV -->
     <nav id="mobile-nav" class="lg:hidden bg-white/90 backdrop-blur-md border-t border-slate-200 h-20 fixed bottom-0 w-full flex justify-around items-center z-40 pb-safe shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+        <button onclick="switchView('live')" id="nav-live" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl"><i data-lucide="radio" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Live</span></button>
         <button onclick="switchView('booking')" id="nav-booking" class="flex flex-col items-center gap-1.5 text-blue-600 transition p-2 rounded-xl"><i data-lucide="plus-circle" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Book</span></button>
         <button onclick="switchView('orders')" id="nav-orders" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl"><i data-lucide="list" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Orders</span></button>
         <button onclick="switchView('profile')" id="nav-profile" class="flex flex-col items-center gap-1.5 text-slate-400 hover:text-blue-600 transition p-2 rounded-xl"><i data-lucide="user" class="h-6 w-6 stroke-[2.5]"></i><span class="text-[10px] font-bold">Profile</span></button>
@@ -868,6 +973,7 @@
 
         // ── STATE ─────────────────────────────────────────────────────────────
         let userData = null, allUserOrders = [], activeDrivers = [];
+        let liveSearchResults = [];
         let state = { bookingType: 'shared', service: 'cab', passengers: 1, discount: 0,
                       seatType: '7', sharedAC: 'ac', cabVariant: 'sedan', cabAC: 'ac', ambType: 'non-ac' };
         let activeCoupon = null, currentTrackingOrderId = null, rateOrderId = null;
@@ -1013,6 +1119,8 @@
             updateUserDisplayNames(userData.name);
             document.getElementById('profile-name').innerText = userData.name;
             document.getElementById('profile-mobile').innerText = userData.phone || 'No Phone Set';
+            const mobileCard = document.getElementById('profile-mobile-card');
+            if (mobileCard) mobileCard.innerText = userData.phone || 'No Phone Set';
             if (document.getElementById('profile-email-display')) {
                 document.getElementById('profile-email-display').innerText = userData.email || 'No Email Set';
             }
@@ -1020,13 +1128,14 @@
                 const date = new Date(userData.created_at);
                 document.getElementById('profile-joined-date').innerText = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
             }
-            const seed = (userData.email || 'guest').replace(/[^a-zA-Z0-9]/g, '');
-            const avatarEl = document.getElementById('profile-avatar');
-            if (avatarEl) avatarEl.src = `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=e0e7ff&radius=50`;
+            updateUserAvatars(userData);
             document.getElementById('m-connection-status').classList.replace('bg-slate-300', 'bg-green-500');
             syncData();
             populateLocations();
             calculateEstimate();
+            const liveDate = document.getElementById('live-travel-date');
+            if (liveDate && !liveDate.value) liveDate.valueAsDate = new Date();
+            searchOnlineRiders();
             lucide.createIcons();
         }
 
@@ -1058,7 +1167,7 @@
                 // This prevents the 401 Unauthorized console error.
                 activeDrivers = [];
                 localStorage.setItem('activeDrivers', JSON.stringify(activeDrivers));
-                setTimeout(() => { updateFleetUI(); updateDetailedAvailability(); }, 50);
+                setTimeout(() => { updateFleetUI(); updateDetailedAvailability(); searchOnlineRiders(); }, 50);
             } catch(e) {}
         }
         window.addEventListener('online', syncData);
@@ -1066,6 +1175,7 @@
         function updateOrdersUI() {
             const completed = allUserOrders.filter(o => o.status === 'completed').length;
             document.getElementById('profile-rides-count').innerText = completed;
+            searchOnlineRiders();
             allUserOrders.forEach(o => {
                 if (o.status === 'completed' && !o.userRating && !localStorage.getItem(`rated_${o.id}`)) openRating(o);
             });
@@ -1081,6 +1191,21 @@
             document.getElementById('user-display-name').innerText = first;
             const headerName = document.getElementById('header-user-name');
             if (headerName) headerName.innerText = first;
+        }
+
+        function updateUserAvatars(user) {
+            const seed = ((user?.email || 'guest') + '').replace(/[^a-zA-Z0-9]/g, '');
+            const avatarSrc = user?.picture || `https://api.dicebear.com/9.x/micah/svg?seed=${seed}&backgroundColor=e0e7ff&radius=50`;
+            ['profile-avatar', 'header-avatar', 'mobile-header-avatar'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.src = avatarSrc;
+            });
+        }
+
+        function mergeUserData(patch) {
+            userData = { ...(userData || {}), ...(patch || {}) };
+            localStorage.setItem('nandu_user', JSON.stringify(userData));
+            return userData;
         }
 
         // ── AUTH ──────────────────────────────────────────────────────────────
@@ -1133,11 +1258,13 @@
             const phone = document.getElementById('reg-phone').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
+            const legalConsent = document.getElementById('reg-legal-consent')?.checked;
             document.getElementById('register-error').classList.add('hidden');
             if (!name) return showAuthError('register-error', '⚠️ Please enter your full name.');
             if (!/^\d{10}$/.test(phone)) return showAuthError('register-error', '⚠️ Please enter a valid 10-digit phone number.');
             if (!email) return showAuthError('register-error', '⚠️ Please enter your email address.');
             if (password.length < 6) return showAuthError('register-error', '⚠️ Password must be at least 6 characters.');
+            if (!legalConsent) return showAuthError('register-error', '⚠️ Please accept Terms & Privacy Policy to continue.');
             setButtonLoading('btn-register', true);
             try {
                 const data = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify({ name, phone, email, password }), ignore401: true });
@@ -1314,8 +1441,7 @@
             if (!/^\d{10}$/.test(phoneInput)) return alert('Valid 10-digit phone number required');
             try {
                 const data = await apiFetch('/api/users/me', { method: 'PATCH', body: JSON.stringify({ name: nameInput, phone: phoneInput }) });
-                userData = data; // Replace entire userData object
-                localStorage.setItem('nandu_user', JSON.stringify(userData));
+                mergeUserData(data);
                 document.getElementById('user-phone-input').value = phoneInput;
                 // Don't reload - just show the main UI
                 initUserUI();
@@ -1333,12 +1459,51 @@
             if (!newName) return;
             try {
                 await apiFetch('/api/users/me', { method: 'PATCH', body: JSON.stringify({ name: newName }) });
-                userData.name = newName;
-                localStorage.setItem('nandu_user', JSON.stringify(userData));
+                mergeUserData({ name: newName });
                 document.getElementById('profile-name').innerText = newName;
                 document.getElementById('name-edit-container').classList.add('hidden');
                 updateUserDisplayNames(newName);
             } catch(e) { alert('Could not save: ' + e.message); }
+        }
+
+        window.triggerProfileImageUpload = () => {
+            const input = document.getElementById('profile-image-input');
+            if (input) input.click();
+        }
+
+        window.uploadProfileImage = async (event) => {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            const maxBytes = 5 * 1024 * 1024;
+            if (file.size > maxBytes) {
+                alert('Please choose an image under 5 MB');
+                event.target.value = '';
+                return;
+            }
+
+            const data = new FormData();
+            data.append('file', file);
+            try {
+                const token = getToken();
+                const res = await fetch(API + '/api/users/me/picture', {
+                    method: 'POST',
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                    body: data,
+                });
+                if (!res.ok) {
+                    let msg = 'Upload failed';
+                    try { const d = await res.json(); msg = d.detail || msg; } catch(e) {}
+                    throw new Error(msg);
+                }
+                const out = await res.json();
+                mergeUserData({ picture: out.picture || '' });
+                updateUserAvatars(userData);
+                alert('Profile image updated');
+            } catch (e) {
+                alert('Image upload failed: ' + e.message);
+            } finally {
+                event.target.value = '';
+            }
         }
 
         // ── COUPONS ───────────────────────────────────────────────────────────
@@ -1493,6 +1658,81 @@
             if (state.discount) total = Math.max(0, total - state.discount);
             document.getElementById('price-display').innerText = total.toLocaleString();
             updateFleetUI(); updateDetailedAvailability();
+            if (document.getElementById('view-live') && !document.getElementById('view-live').classList.contains('hidden')) {
+                searchOnlineRiders();
+            }
+        }
+
+        window.searchOnlineRiders = async () => {
+            const list = document.getElementById('live-riders-list');
+            const countEl = document.getElementById('live-online-riders-count');
+            if (!list || !countEl) return;
+
+            const fromLoc = (document.getElementById('live-from-loc')?.value || '').trim();
+            const toLoc = (document.getElementById('live-to-loc')?.value || '').trim();
+            const travelDate = (document.getElementById('live-travel-date')?.value || '').trim();
+            const timeSlot = (document.getElementById('live-time-slot')?.value || '').trim();
+
+            list.innerHTML = '<p class="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-xl p-3">Searching riders...</p>';
+
+            try {
+                const q = new URLSearchParams();
+                if (fromLoc) q.set('from_loc', fromLoc);
+                if (toLoc) q.set('to_loc', toLoc);
+                if (travelDate) q.set('travel_date', travelDate);
+                if (timeSlot) q.set('time_slot', timeSlot);
+                const riders = await apiFetch(`/api/rides/live-search?${q.toString()}`);
+                liveSearchResults = riders || [];
+                countEl.innerText = String(liveSearchResults.length);
+                renderOnlineRiderList();
+            } catch (e) {
+                list.innerHTML = `<p class="text-xs text-red-600 font-semibold bg-red-50 border border-red-100 rounded-xl p-3">Failed to load riders: ${sanitizeInput(e.message || 'Unknown error')}</p>`;
+                countEl.innerText = '0';
+            }
+        }
+
+        function renderOnlineRiderList() {
+            const list = document.getElementById('live-riders-list');
+            if (!list) return;
+            if (!liveSearchResults.length) {
+                list.innerHTML = '<p class="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-xl p-3">No riders found for this route/time.</p>';
+                return;
+            }
+
+            list.innerHTML = liveSearchResults.map((r, idx) => {
+                const avatar = r.user_picture ? sanitizeInput(r.user_picture) : `https://api.dicebear.com/9.x/micah/svg?seed=${encodeURIComponent((r.user_name || 'rider') + idx)}&backgroundColor=ffedd5`;
+                return `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                        <div class="flex items-start gap-3">
+                            <img src="${avatar}" class="w-11 h-11 rounded-full object-cover bg-white border border-slate-200" alt="rider">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-black text-slate-900 truncate">${sanitizeInput(r.user_name || 'Rider')}</p>
+                                    <span class="text-[10px] font-bold text-orange-700 bg-orange-50 border border-orange-100 px-2 py-1 rounded-full">${sanitizeInput((r.status || '').toUpperCase())}</span>
+                                </div>
+                                <p class="text-[11px] font-semibold text-slate-600 mt-0.5">${sanitizeInput(r.from_loc || '-')} -> ${sanitizeInput(r.to_loc || '-')}</p>
+                                <p class="text-[11px] font-semibold text-slate-500 mt-1">Date: ${sanitizeInput(r.travel_date || 'Any')} | Seats: ${sanitizeInput(String(r.passengers || 1))}</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <p class="text-sm font-black text-slate-900">₹${sanitizeInput(String(r.price || 0))}</p>
+                                    <button onclick="selectLiveRiderTrip('${sanitizeInput(r.from_loc || '')}','${sanitizeInput(r.to_loc || '')}','${sanitizeInput(r.travel_date || '')}')" class="text-xs font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">Select</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.selectLiveRiderTrip = (fromLoc, toLoc, travelDate) => {
+            switchView('booking');
+            switchBookingType('shared');
+            const fromEl = document.getElementById('from-loc');
+            const toEl = document.getElementById('to-loc');
+            const dateEl = document.getElementById('travel-date');
+            if (fromEl) fromEl.value = fromLoc || fromEl.value;
+            if (toEl) toEl.value = toLoc || toEl.value;
+            if (dateEl && travelDate) dateEl.value = travelDate;
+            calculateEstimate();
         }
 
         function updateFleetUI() {
@@ -1759,19 +1999,25 @@
         }
 
         window.switchView = (v) => {
-            ['booking','orders','profile','tracking'].forEach(view => document.getElementById(`view-${view}`).classList.add('hidden'));
+            ['booking','live','orders','profile','tracking'].forEach(view => document.getElementById(`view-${view}`).classList.add('hidden'));
             document.getElementById(`view-${v}`).classList.remove('hidden');
             document.querySelectorAll('#mobile-nav button').forEach(b => { b.classList.remove('text-blue-600'); b.classList.add('text-slate-400'); });
             const mobNav = document.getElementById(`nav-${v}`);
             if (mobNav) { mobNav.classList.remove('text-slate-400'); mobNav.classList.add('text-blue-600'); }
-            if (v === 'booking') {
-                document.getElementById('d-nav-booking').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
-                document.getElementById('d-nav-orders').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
-            } else if (v === 'orders') {
-                document.getElementById('d-nav-orders').className = "font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600";
-                document.getElementById('d-nav-booking').className = "font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent";
-            }
+            const titleMap = { booking: 'Book Ride', live: 'Live Status', orders: 'My Rides', profile: 'Profile', tracking: 'Track Ride' };
+            const titleEl = document.getElementById('header-title');
+            if (titleEl && titleMap[v]) titleEl.innerText = titleMap[v];
+
+            const desktopButtons = ['booking', 'live', 'orders'];
+            desktopButtons.forEach(name => {
+                const btn = document.getElementById(`d-nav-${name}`);
+                if (!btn) return;
+                btn.className = name === v
+                    ? 'font-bold text-blue-600 transition flex items-center gap-2 py-2 border-b-2 border-blue-600'
+                    : 'font-bold text-slate-500 hover:text-slate-800 transition flex items-center gap-2 py-2 border-b-2 border-transparent';
+            });
             if (v === 'orders') { renderOrders(); syncData(); }
+            if (v === 'live') { searchOnlineRiders(); syncData(); }
         }
 
         // Poll for ride status updates every 10s while tracking
@@ -1782,4 +2028,5 @@
         window.syncData = syncData;
         lucide.createIcons();
         populateLocations();
+        searchOnlineRiders();
     </script>

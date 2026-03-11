@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+import shutil
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -32,6 +36,7 @@ async def create_or_update_me(
         "name": user.name,
         "email": user.email,
         "phone": user.phone,
+        "picture": user.picture,
         "role": user.role,
         "created_at": user.created_at.isoformat() if user.created_at is not None else None,
     }
@@ -44,6 +49,7 @@ async def get_me(user: User = Depends(get_current_user)):
         "name": user.name,
         "email": user.email,
         "phone": user.phone,
+        "picture": user.picture,
         "role": user.role,
         "created_at": user.created_at.isoformat() if user.created_at is not None else None
     }
@@ -69,4 +75,40 @@ async def patch_me(
     if body.picture is not None:
         user.picture = body.picture.strip()  # type: ignore
     await db.commit()
-    return {"ok": True, "name": user.name, "phone": user.phone}
+    return {"ok": True, "name": user.name, "phone": user.phone, "picture": user.picture}
+
+
+@router.post("/me/picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    content_type = (file.content_type or "").lower()
+    allowed_types = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    if content_type not in allowed_types:
+        raise HTTPException(400, "Only JPG, PNG, or WEBP images are allowed")
+
+    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "users"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    previous_picture = (user.picture or "").strip()
+
+    filename = f"{user.id}_{uuid.uuid4().hex[:10]}{allowed_types[content_type]}"
+    target = upload_dir / filename
+
+    with target.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    user.picture = f"/uploads/users/{filename}"  # type: ignore
+    await db.commit()
+
+    if previous_picture.startswith("/uploads/users/"):
+        old_file = upload_dir / previous_picture.replace("/uploads/users/", "", 1)
+        try:
+            if old_file.exists() and old_file.is_file() and old_file != target:
+                old_file.unlink()
+        except OSError:
+            pass
+
+    return {"ok": True, "picture": user.picture}

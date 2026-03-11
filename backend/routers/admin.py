@@ -53,6 +53,24 @@ class ForceCancelIn(BaseModel):
     reason: str = "Cancelled by admin"
 
 
+class UserPatchIn(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    picture: Optional[str] = None
+
+
+class BookingPatchIn(BaseModel):
+    driver_id: Optional[str] = None
+    driver_name: Optional[str] = None
+    status: Optional[str] = None
+    price: Optional[int] = None
+    passengers: Optional[int] = None
+    travel_date: Optional[str] = None
+    cancel_reason: Optional[str] = None
+    force: bool = False
+
+
 # ─── Stats ───────────────────────────────────────────────────────────────────────
 
 @router.get("/stats")
@@ -168,9 +186,114 @@ async def all_users(
     result = await db.execute(
         select(User).where(User.role == "user").order_by(User.created_at.desc())
     )
-    return [{"id": u.id, "name": u.name, "email": u.email,
-             "phone": u.phone, "created_at": u.created_at.isoformat() if u.created_at is not None else None}  # type: ignore
-            for u in result.scalars().all()]
+    return [_user_dict(u) for u in result.scalars().all()]
+
+
+@router.patch("/users/{user_id}")
+async def patch_user(
+    user_id: str,
+    body: UserPatchIn,
+    admin: object = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(User).where(User.id == user_id, User.role == "user"))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if body.email is not None:
+        email = body.email.lower().strip()
+        if email != (user.email or ""):
+            r = await db.execute(select(User).where(User.email == email, User.id != user_id).limit(1))
+            if r.scalar_one_or_none():
+                raise HTTPException(400, "Email already in use by another user")
+            user.email = email  # type: ignore
+
+    if body.phone is not None:
+        phone = body.phone.strip()
+        if phone and phone != (user.phone or ""):
+            r = await db.execute(select(User).where(User.phone == phone, User.id != user_id).limit(1))
+            if r.scalar_one_or_none():
+                raise HTTPException(400, "Phone already in use by another user")
+        user.phone = phone  # type: ignore
+
+    if body.name is not None:
+        user.name = body.name.strip()  # type: ignore
+    if body.picture is not None:
+        user.picture = body.picture.strip()  # type: ignore
+
+    await db.commit()
+    await db.refresh(user)
+    return _user_dict(user)
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    admin: object = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(User).where(User.id == user_id, User.role == "user"))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    await db.execute(Ride.__table__.delete().where(Ride.user_id == user_id))
+    await db.delete(user)
+    await db.commit()
+    return {"ok": True}
+
+
+@router.patch("/bookings/{ride_id}")
+async def patch_booking(
+    ride_id: str,
+    body: BookingPatchIn,
+    admin: object = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Ride).where(Ride.id == ride_id))
+    ride = result.scalar_one_or_none()
+    if not ride:
+        raise HTTPException(404, "Ride not found")
+
+    if body.driver_id is not None:
+        ride.driver_id = body.driver_id.strip() or None  # type: ignore
+    if body.driver_name is not None:
+        ride.driver_name = body.driver_name.strip() or None  # type: ignore
+
+    if body.price is not None:
+        if body.price < 0:
+            raise HTTPException(400, "price cannot be negative")
+        ride.price = body.price  # type: ignore
+
+    if body.passengers is not None:
+        if body.passengers < 1 or body.passengers > 12:
+            raise HTTPException(400, "passengers must be between 1 and 12")
+        ride.passengers = body.passengers  # type: ignore
+
+    if body.travel_date is not None:
+        ride.travel_date = body.travel_date.strip()  # type: ignore
+
+    if body.cancel_reason is not None:
+        ride.cancel_reason = body.cancel_reason.strip()  # type: ignore
+
+    if body.status is not None:
+        next_status = body.status.strip().lower()
+        allowed = {"pending", "assigned", "started", "completed", "cancelled"}
+        if next_status not in allowed:
+            raise HTTPException(400, "Invalid booking status")
+        current = str(ride.status or "pending")
+        if not body.force and current != next_status:
+            from services.state_machine import assert_transition
+            assert_transition(current, next_status)
+        ride.status = next_status  # type: ignore
+        if next_status == "cancelled" and not (ride.cancel_reason or "").strip():
+            ride.cancel_reason = "Cancelled by admin"  # type: ignore
+
+    await db.commit()
+    await db.refresh(ride)
+    await manager.broadcast_admin("ride_updated", _ride_dict(ride))
+    return _ride_dict(ride)
 
 
 # ─── Coupons ─────────────────────────────────────────────────────────────────────
@@ -361,6 +484,7 @@ def _driver_dict(d: Driver) -> dict:
         "seats_total": d.seats_total,
         "filled_seats": d.filled_seats,
         "doc_status": d.doc_status,
+        "profile_pic": d.profile_pic,
         "license_url": d.license_url,
         "aadhar_url": d.aadhar_url,
         "rc_url": d.rc_url,
@@ -384,6 +508,21 @@ def _ticket_dict(t: SupportTicket) -> dict:
         "description": t.description, "status": t.status,
         "admin_reply": t.admin_reply,
         "created_at": t.created_at.isoformat() if t.created_at is not None else None  # type: ignore
+    }
+
+
+def _user_dict(u: User) -> dict:
+    return {
+        "id": u.id,
+        "name": u.name,
+        "email": u.email,
+        "phone": u.phone,
+        "role": u.role,
+        "provider": u.provider,
+        "provider_id": u.provider_id,
+        "email_verified": u.email_verified,
+        "picture": u.picture,
+        "created_at": u.created_at.isoformat() if u.created_at is not None else None,  # type: ignore
     }
 
 

@@ -40,6 +40,7 @@ class DriverRegisterIn(BaseModel):
     email: str
     phone: str
     password: str
+    profile_pic: str = ""
     vehicle_type: str = "7 Seater"
     plate: str
     route_pref: str = "Karimnagar"
@@ -90,6 +91,8 @@ async def register(body: RegisterIn, db: AsyncSession = Depends(get_db)):
             "name": user.name, 
             "email": user.email, 
             "phone": user.phone,
+            "picture": user.picture,
+            "role": user.role or "user",
             "created_at": created_at_val.isoformat() if created_at_val else None
         }
     }
@@ -139,6 +142,7 @@ async def login(body: LoginIn, db: AsyncSession = Depends(get_db)):
                 "name": admin_user.name, 
                 "email": admin_user.email,
                 "phone": admin_user.phone,
+                "picture": admin_user.picture,
                 "role": "admin",
                 "created_at": admin_created_at.isoformat() if admin_created_at else None
             }
@@ -162,7 +166,7 @@ async def login(body: LoginIn, db: AsyncSession = Depends(get_db)):
         "token_type": "bearer",
         "user": {
             "id": user.id, "name": user.name, "email": user.email,
-            "phone": user.phone, "role": role,
+            "phone": user.phone, "picture": user.picture, "role": role,
             "created_at": user_created_at.isoformat() if user_created_at else None
         }
     }
@@ -189,15 +193,25 @@ async def driver_register(body: DriverRegisterIn, db: AsyncSession = Depends(get
     if by_phone.scalar_one_or_none():
         raise HTTPException(400, "Driver with this phone already exists.")
 
+    def _seats_for_type(vt: str) -> int:
+        v = vt.lower()
+        if any(x in v for x in ('12', 'tempo')): return 12
+        if any(x in v for x in ('7', 'innova', 'ertiga', 'suv')): return 7
+        if any(x in v for x in ('4', 'mini')): return 4
+        if any(x in v for x in ('ambulance',)): return 2
+        return 5  # sedan/5-seater default
+
     driver = Driver(
         name=body.name.strip(),
         email=email,
         phone=phone,
         password_hash=hash_password(body.password),
+        profile_pic=body.profile_pic.strip(),
         vehicle_type=body.vehicle_type,
         plate=plate,
         route_pref=body.route_pref,
         ac_pref=body.ac_pref,
+        seats_total=_seats_for_type(body.vehicle_type or ''),
     )
     try:
         db.add(driver)
@@ -220,7 +234,8 @@ async def driver_register(body: DriverRegisterIn, db: AsyncSession = Depends(get
             "phone": driver.phone, "vehicle_type": driver.vehicle_type,
             "plate": driver.plate, "route_pref": driver.route_pref,
             "ac_pref": driver.ac_pref, "is_verified": driver.is_verified,
-            "status": driver.status
+            "status": driver.status, "profile_pic": driver.profile_pic,
+            "address": driver.address
         }
     }
 
@@ -380,12 +395,15 @@ async def auth_me(
     user = r.scalar_one_or_none()
     if not user:
         raise HTTPException(401, "User not found.")
+    user_created_at = cast(Optional[datetime.datetime], user.created_at)
     return {
         "id": user.id,
         "role": user.role or "user",
         "name": user.name,
         "email": user.email,
         "phone": user.phone,
+        "picture": user.picture,
+        "created_at": user_created_at.isoformat() if user_created_at else None,
     }
 
 

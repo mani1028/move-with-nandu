@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+import shutil
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, timezone
@@ -93,6 +97,15 @@ async def patch_me(
         driver.profile_pic = body.profile_pic.strip()  # type: ignore
     if body.vehicle_type is not None:
         driver.vehicle_type = body.vehicle_type.strip()  # type: ignore
+        # Auto-update seat count to match the new vehicle type
+        def _seats_for_type(vt: str) -> int:
+            v = vt.lower()
+            if any(x in v for x in ('12', 'tempo')): return 12
+            if any(x in v for x in ('7', 'innova', 'ertiga', 'suv')): return 7
+            if any(x in v for x in ('4', 'mini')): return 4
+            if any(x in v for x in ('ambulance',)): return 2
+            return 5
+        driver.seats_total = _seats_for_type(body.vehicle_type.strip())  # type: ignore
     if body.plate is not None:
         plate = body.plate.upper().strip()
         if not plate:
@@ -131,6 +144,130 @@ async def patch_me(
     await db.commit()
     await db.refresh(driver)
     return _driver_dict(driver)
+
+
+@router.post("/me/profile-pic")
+async def upload_driver_profile_pic(
+    file: UploadFile = File(...),
+    driver: Driver = Depends(get_current_driver),
+    db: AsyncSession = Depends(get_db),
+):
+    content_type = (file.content_type or "").lower()
+    allowed_types = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    if content_type not in allowed_types:
+        raise HTTPException(400, "Only JPG, PNG, or WEBP images are allowed")
+
+    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "drivers"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    previous_picture = (driver.profile_pic or "").strip()
+    filename = f"{driver.id}_{uuid.uuid4().hex[:10]}{allowed_types[content_type]}"
+    target = upload_dir / filename
+
+    with target.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    driver.profile_pic = f"/uploads/drivers/{filename}"  # type: ignore
+    await db.commit()
+    await db.refresh(driver)
+
+    if previous_picture.startswith("/uploads/drivers/"):
+        old_file = upload_dir / previous_picture.replace("/uploads/drivers/", "", 1)
+        try:
+            if old_file.exists() and old_file.is_file() and old_file != target:
+                old_file.unlink()
+        except OSError:
+            pass
+
+    return {"ok": True, "profile_pic": driver.profile_pic}
+
+
+@router.post("/me/documents")
+async def upload_driver_documents(
+    license_file: Optional[UploadFile] = File(None),
+    aadhar_file: Optional[UploadFile] = File(None),
+    rc_file: Optional[UploadFile] = File(None),
+    insurance_file: Optional[UploadFile] = File(None),
+    driver: Driver = Depends(get_current_driver),
+    db: AsyncSession = Depends(get_db),
+):
+    files = {
+        "license": license_file,
+        "aadhar": aadhar_file,
+        "rc": rc_file,
+        "insurance": insurance_file,
+    }
+    if not any(files.values()):
+        raise HTTPException(400, "Upload at least one document")
+
+    allowed_types = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+    }
+    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "driver-docs"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    # Capture previous files so we can clean up replaced documents.
+    previous = {
+        "license": (driver.license_url or "").strip(),
+        "aadhar": (driver.aadhar_url or "").strip(),
+        "rc": (driver.rc_url or "").strip(),
+        "insurance": (driver.insurance_url or "").strip(),
+    }
+
+    saved = {}
+    for key, up in files.items():
+        if not up:
+            continue
+        content_type = (up.content_type or "").lower()
+        ext = allowed_types.get(content_type)
+        if not ext:
+            raise HTTPException(400, f"{key} must be JPG, PNG, or WEBP")
+
+        filename = f"{driver.id}_{key}_{uuid.uuid4().hex[:10]}{ext}"
+        target = upload_dir / filename
+        with target.open("wb") as buffer:
+            shutil.copyfileobj(up.file, buffer)
+        saved[key] = f"/uploads/driver-docs/{filename}"
+
+    if "license" in saved:
+        driver.license_url = saved["license"]  # type: ignore
+    if "aadhar" in saved:
+        driver.aadhar_url = saved["aadhar"]  # type: ignore
+    if "rc" in saved:
+        driver.rc_url = saved["rc"]  # type: ignore
+    if "insurance" in saved:
+        driver.insurance_url = saved["insurance"]  # type: ignore
+
+    # Any document refresh requires re-verification by admin.
+    driver.doc_status = "pending"  # type: ignore
+    driver.is_verified = False  # type: ignore
+
+    await db.commit()
+    await db.refresh(driver)
+
+    for key, old_url in previous.items():
+        new_url = saved.get(key)
+        if not new_url or not old_url.startswith("/uploads/driver-docs/"):
+            continue
+        old_file = upload_dir / old_url.replace("/uploads/driver-docs/", "", 1)
+        new_file = upload_dir / new_url.replace("/uploads/driver-docs/", "", 1)
+        try:
+            if old_file.exists() and old_file.is_file() and old_file != new_file:
+                old_file.unlink()
+        except OSError:
+            pass
+
+    return {
+        "ok": True,
+        "doc_status": driver.doc_status,
+        "is_verified": driver.is_verified,
+        "license_url": driver.license_url,
+        "aadhar_url": driver.aadhar_url,
+        "rc_url": driver.rc_url,
+        "insurance_url": driver.insurance_url,
+    }
 
 
 @router.patch("/status")
