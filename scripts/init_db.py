@@ -10,6 +10,7 @@ import asyncio
 import os
 import sys
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Setup logging
@@ -26,7 +27,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from backend.config import settings
-from backend.database import init_db, AsyncSessionLocal, Setting
+from backend.database import init_db, AsyncSessionLocal, Setting, User, Admin
+from backend.auth import hash_password
 from sqlalchemy import select
 
 
@@ -61,6 +63,73 @@ async def main():
                 if not existing.scalar_one_or_none():
                     db.add(Setting(key=key, value=val))
                     logger.info(f"  + Setting: {key} = {val}")
+
+            # Seed or update bootstrap admin credentials for first login.
+            admin_email = str(settings["admin_email"]).lower().strip()
+            admin_password = str(settings["admin_password"])
+            admin_name = os.getenv("ADMIN_NAME", "Nandu Admin").strip() or "Nandu Admin"
+            admin_phone = os.getenv("ADMIN_PHONE", "9999999999").strip() or "9999999999"
+            admin_hash = hash_password(admin_password)
+
+            user_result = await db.execute(select(User).where(User.email == admin_email).limit(1))
+            admin_user = user_result.scalar_one_or_none()
+            if admin_user is None:
+                admin_user = User(
+                    name=admin_name,
+                    email=admin_email,
+                    phone=admin_phone,
+                    password_hash=admin_hash,
+                    role="admin",
+                    provider="local",
+                    provider_id=None,
+                    email_verified=True,
+                    picture="",
+                    created_at=datetime.now(UTC).replace(tzinfo=None),
+                )
+                db.add(admin_user)
+                await db.flush()
+                logger.info(f"  + Admin user seeded: {admin_email}")
+            else:
+                for field, value in {
+                    "name": admin_name,
+                    "phone": admin_phone,
+                    "password_hash": admin_hash,
+                    "role": "admin",
+                    "provider": "local",
+                    "provider_id": None,
+                    "email_verified": True,
+                }.items():
+                    setattr(admin_user, field, value)
+                logger.info(f"  ~ Admin user updated: {admin_email}")
+
+            admin_result = await db.execute(select(Admin).where(Admin.email == admin_email).limit(1))
+            admin_row = admin_result.scalar_one_or_none()
+            if admin_row is None:
+                admin_row = Admin(
+                    id=admin_user.id,
+                    name=admin_name,
+                    email=admin_email,
+                    phone=admin_phone,
+                    password_hash=admin_hash,
+                    provider="local",
+                    provider_id=None,
+                    email_verified=True,
+                    created_at=datetime.now(UTC).replace(tzinfo=None),
+                )
+                db.add(admin_row)
+                logger.info(f"  + Admin profile seeded: {admin_email}")
+            else:
+                for field, value in {
+                    "name": admin_name,
+                    "phone": admin_phone,
+                    "password_hash": admin_hash,
+                    "provider": "local",
+                    "provider_id": None,
+                    "email_verified": True,
+                }.items():
+                    setattr(admin_row, field, value)
+                logger.info(f"  ~ Admin profile updated: {admin_email}")
+
             await db.commit()
         
         logger.info("\n✅ Database initialization complete!")
