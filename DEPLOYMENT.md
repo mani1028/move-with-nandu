@@ -4,7 +4,7 @@
 
 This app is production-ready with:
 - **Database**: Supabase PostgreSQL (async SQLAlchemy)
-- **Storage**: Supabase S3-compatible buckets
+- **Storage**: Supabase Storage buckets for persistent uploads on Vercel
 - **Frontend**: Vercel static hosting
 - **Backend**: Vercel serverless functions
 
@@ -19,6 +19,9 @@ This app is production-ready with:
 3. Copy credentials from **Settings > Database**:
    - **Connection String (Transaction Pooler)**: Format `postgresql+asyncpg://postgres.PROJECT_ID:PASSWORD@aws-X.pooler.supabase.com:6543/postgres`
    - **Service Role Secret**: From **Settings > API**
+4. Set your public app URL for each environment:
+   - Local: `APP_BASE_URL=http://localhost:8000`
+   - Vercel: `APP_BASE_URL=https://your-project.vercel.app`
 
 ### 2. Create Storage Buckets
 
@@ -33,7 +36,8 @@ In Supabase **Storage**, create and set to **Public**:
 export DATABASE_URL="postgresql+asyncpg://postgres.YOUR_ID:PASSWORD@aws-X.pooler.supabase.com:6543/postgres"
 export SUPABASE_URL="https://YOUR_ID.supabase.co"
 export SUPABASE_SERVICE_ROLE_KEY="YOUR_SERVICE_ROLE_KEY"
-export ENVIRONMENT=production
+export APP_BASE_URL="http://localhost:8000"
+export ENVIRONMENT=development
 
 # Initialize database tables
 python scripts/init_db.py
@@ -85,11 +89,15 @@ SUPABASE_URL=https://YOUR_ID.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGci... (full Service Role key)
 ENVIRONMENT=production
 MAX_FILE_SIZE_BYTES=5242880
+APP_BASE_URL=https://movewithnandu.vercel.app
 CORS_ORIGINS=https://movewithnandu.vercel.app
 SECRET_KEY=your-long-random-secret-here
+ADMIN_PASSWORD=replace-the-default-admin-password
 GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
 GOOGLE_REDIRECT_URI=https://movewithnandu.vercel.app/api/auth/google/callback
+SUPABASE_PROFILE_BUCKET=user-profiles
+SUPABASE_DRIVER_DOCS_BUCKET=driver-docs
 ```
 
 **⚠️ Important**: Copy the exact values from:
@@ -103,7 +111,7 @@ Click **Deploy** in Vercel. The build will:
 
 1. Install Python dependencies → `pip install -r backend/requirements.txt`
 2. Run `scripts/init_db.py` → creates all tables
-3. Start backend with `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+3. Route all requests through `api/index.py`, which serves both `/api/*` and static frontend files via FastAPI
 
 Expected log output in Vercel:
 ```
@@ -135,6 +143,11 @@ curl https://movewithnandu.vercel.app/api/health
 curl https://movewithnandu.vercel.app/api/status
 # Output: {"status":"running", "app":"Travel With Nandu API", ...}
 ```
+
+### 2b. Test Upload Storage Path
+Upload a user or driver image locally and in Vercel:
+- Local should return `/uploads/...`
+- Vercel should return `https://<project>.supabase.co/storage/v1/object/public/...`
 
 ### 3. Test Google OAuth
 Visit your frontend at `https://movewithnandu.vercel.app` and try Google login. Check **browser Console** for any errors.
@@ -183,10 +196,11 @@ To test locally with Supabase:
 
 ```bash
 # 1. Set environment
-export ENVIRONMENT=production
+export ENVIRONMENT=development
 export DATABASE_URL="postgresql+asyncpg://postgres.YOUR_ID:PASSWORD@..."
 export SUPABASE_URL="https://YOUR_ID.supabase.co"
 export SUPABASE_SERVICE_ROLE_KEY="eyJhbGci..."
+export APP_BASE_URL="http://localhost:8000"
 
 # 2. Initialize DB
 python scripts/init_db.py

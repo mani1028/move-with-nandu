@@ -10,14 +10,15 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 from ..database import get_db, User, Driver, Setting, Admin
 from ..auth import hash_password, verify_password, create_access_token, decode_token
+from ..config import settings
 from dotenv import load_dotenv
 
 load_dotenv()
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@nandutravels.com")
-ADMIN_PASS  = os.getenv("ADMIN_PASSWORD", "Admin@Nandu2026")
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+ADMIN_EMAIL = str(settings["admin_email"])
+ADMIN_PASS = str(settings["admin_password"])
+GOOGLE_CLIENT_ID = str(settings["google_client_id"])
 
 
 # ─── Schemas ────────────────────────────────────────────────────────────────────

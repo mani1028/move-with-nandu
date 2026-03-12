@@ -4,9 +4,10 @@ Test with a valid JWT token created using our backend's token generation.
 """
 import requests
 import json
+import os
 from backend.auth import create_access_token
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000").rstrip("/")
 
 # Create a valid JWT token
 token = create_access_token({"sub": "test-user-001", "role": "user"})

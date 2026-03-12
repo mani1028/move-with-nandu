@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, cast
 from jose import JWTError, jwt
@@ -8,27 +7,11 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from .database import get_db, User, Driver, Admin
-from dotenv import load_dotenv
+from .config import settings
 
-load_dotenv()
-
-SECRET_KEY: str = os.getenv("SECRET_KEY", "").strip()
-if not SECRET_KEY:
-    if os.getenv("ENVIRONMENT", "development") == "production":
-        raise ValueError(
-            "FATAL: SECRET_KEY environment variable must be set in production! "
-            "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
-        )
-    # Development fallback - NOT suitable for production
-    import warnings
-    warnings.warn(
-        "Using development fallback SECRET_KEY. Set SECRET_KEY environment variable for production.",
-        RuntimeWarning
-    )
-    SECRET_KEY = "dev-only-fallback-key-change-for-production"
-
-ALGORITHM  = os.getenv("ALGORITHM", "HS256")
-EXPIRE_MIN = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
+SECRET_KEY = cast(str, settings["secret_key"])
+ALGORITHM = cast(str, settings["algorithm"])
+EXPIRE_MIN = cast(int, settings["access_token_expire_minutes"])
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)

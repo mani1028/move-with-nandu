@@ -5,8 +5,9 @@ Test script to discover what's causing the 500 errors on the frontend endpoints.
 import requests
 import json
 import time
+import os
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000").rstrip("/")
 
 def test_health():
     """Test the health endpoint."""

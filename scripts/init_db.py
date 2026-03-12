@@ -25,26 +25,21 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
+from backend.config import settings
 from backend.database import init_db, AsyncSessionLocal, Setting
 from sqlalchemy import select
 
 
 async def main():
     """Initialize database schema and settings."""
-    env = os.getenv("ENVIRONMENT", "development")
-    db_url = os.getenv("DATABASE_URL", "").strip()
+    env = str(settings["environment"])
+    db_url = str(settings["database_url"])
     
     logger.info("=" * 80)
     logger.info("🗄️  DATABASE INITIALIZATION")
     logger.info("=" * 80)
     logger.info(f"Environment: {env}")
     logger.info(f"Database: {db_url[:50]}..." if db_url else "No DATABASE_URL set")
-    
-    if not db_url:
-        if env == "production":
-            logger.error("❌ FATAL: DATABASE_URL not set in production!")
-            sys.exit(1)
-        logger.warning("⚠️  No DATABASE_URL set; will use SQLite fallback")
     
     try:
         # Create all tables

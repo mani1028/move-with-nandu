@@ -1,11 +1,12 @@
 // Frontend API configuration for FastAPI backend.
-// Auto-detect API base URL based on environment
-if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-  window.API_BASE = 'http://localhost:8000';
-} else {
-  window.API_BASE = 'https://movewithnandu.vercel.app';
-}
-window.WS_BASE = window.API_BASE.replace(/^http/, "ws");
+// Prefer explicit override, then same-origin, then localhost fallback.
+const configuredApiBase = (window.__API_BASE__ || '').trim();
+const sameOriginBase = location.origin && location.origin !== 'null' && !location.origin.startsWith('file:')
+  ? location.origin
+  : '';
+
+window.API_BASE = (configuredApiBase || sameOriginBase || 'http://localhost:8000').replace(/\/$/, '');
+window.WS_BASE = window.API_BASE.replace(/^http/, 'ws');
 
 window.authHeader = function authHeader(token) {
   return token ? { Authorization: `Bearer ${token}` } : {};

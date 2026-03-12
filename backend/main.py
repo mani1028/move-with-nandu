@@ -1,9 +1,9 @@
-import os
 import json
 import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import cast
 
 # ⚠️  load_dotenv MUST come before any router imports so that module-level
 # os.getenv() calls inside the routers (e.g. GOOGLE_CLIENT_ID in google_auth.py)
@@ -11,10 +11,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status as ws_status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from .config import settings
 from .database import init_db, get_db, Setting, AsyncSessionLocal
 from .routers import auth, google_auth, users, drivers, rides, locations, coupons, support, admin
 from .ws.manager import manager
@@ -25,13 +26,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-
 def _cors_origins() -> list[str]:
-    raw = os.getenv("CORS_ORIGINS", "*").strip()
-    if raw == "*":
-        return ["*"]
-    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return cast(list[str], settings["cors_origins"])
 
 # ─── Lifespan ─────────────────────────────────────────────────────────────────
 
@@ -43,9 +39,9 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 80)
     
     # Validate Google OAuth Configuration
-    google_client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
-    google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
-    google_redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    google_client_id = str(settings["google_client_id"])
+    google_client_secret = str(settings["google_client_secret"])
+    google_redirect_uri = str(settings["google_redirect_uri"])
     
     logger.info("\n🔐 Google OAuth Configuration Check:")
     if google_client_id and google_client_secret:
@@ -87,7 +83,7 @@ async def lifespan(app: FastAPI):
     
     logger.info("\n✅ All startup checks passed!")
     logger.info("=" * 80)
-    logger.info("📡 API Server Ready — http://localhost:8000/docs")
+    logger.info("📡 API Server Ready — %s/docs", settings["app_base_url"])
     logger.info("=" * 80 + "\n")
     
     yield
@@ -129,15 +125,21 @@ app.include_router(admin.router)
 
 @app.get("/api/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "environment": settings["environment"],
+        "database": "postgres" if "postgres" in str(settings["database_url"]).lower() else "sqlite",
+    }
 
 @app.get("/api/status", tags=["Health"])
-async def status():
+async def app_status():
     return {
         "status": "running",
         "app": "Travel With Nandu API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
+        "environment": settings["environment"],
+        "app_base_url": settings["app_base_url"],
     }
 
 # ─── WebSocket — Admin Live Feed ──────────────────────────────────────────────
@@ -149,13 +151,13 @@ async def ws_admin(websocket: WebSocket):
     try:
         auth_data = await asyncio.wait_for(websocket.receive_json(), timeout=10)
     except asyncio.TimeoutError:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        await websocket.close(code=ws_status.WS_1008_POLICY_VIOLATION)
         return
     from .auth import decode_token
     token = auth_data.get("token", "")
     payload = decode_token(token)
     if not payload or payload.get("role") != "admin":
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        await websocket.close(code=ws_status.WS_1008_POLICY_VIOLATION)
         return
 
     await manager.connect_admin(websocket)
@@ -176,13 +178,13 @@ async def ws_driver(websocket: WebSocket, driver_id: str):
     try:
         auth_data = await asyncio.wait_for(websocket.receive_json(), timeout=10)
     except asyncio.TimeoutError:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        await websocket.close(code=ws_status.WS_1008_POLICY_VIOLATION)
         return
     from .auth import decode_token
     token = auth_data.get("token", "")
     payload = decode_token(token)
     if not payload or payload.get("role") != "driver":
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        await websocket.close(code=ws_status.WS_1008_POLICY_VIOLATION)
         return
 
     await manager.connect_driver(driver_id, websocket)

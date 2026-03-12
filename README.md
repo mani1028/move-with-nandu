@@ -27,6 +27,7 @@ Ride-booking platform with separate passenger, driver, and admin portals.
 ## Local Setup
 1. Create environment file:
    - Copy `.env.example` to `.env` and update values.
+   - Leave `DATABASE_URL` as SQLite for fast local dev, or switch it to your Supabase Postgres URL to test production DB behavior locally.
 2. Install backend dependencies:
 ```bash
 pip install -r backend/requirements.txt
@@ -41,6 +42,7 @@ python app.py
 - Admin: `http://localhost:8000/admin.html`
 
 ## Notes
-- Static uploads are served from `public/uploads/`.
+- Uploads use `public/uploads/` locally, and switch to Supabase Storage automatically when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set.
 - Dev database defaults to SQLite (`nandu.db`) unless `DATABASE_URL` is changed.
+- Frontend API calls default to same-origin, so localhost and Vercel do not require code changes.
 - For planning a v2 rebuild, see files under `docs/planning/`.

@@ -6,39 +6,33 @@ from sqlalchemy import (Column, String, Integer, Float, Boolean,
                         DateTime, Text, ForeignKey, create_engine, text)
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import NullPool
 from dotenv import load_dotenv
+from .config import settings
 
 load_dotenv()
 
 # ─── DATABASE CONFIGURATION ────────────────────────────────────────────────────
 
-_ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+_ENVIRONMENT = str(settings["environment"])
+DATABASE_URL = str(settings["database_url"])
 
-if not DATABASE_URL:
-    if _ENVIRONMENT == "production":
-        raise ValueError(
-            "FATAL: DATABASE_URL environment variable must be set in production! "
-            "Format: postgresql+asyncpg://user:password@host:port/dbname or "
-            "mysql+aiomysql://user:password@host:port/dbname"
-        )
-    # Development fallback - use local SQLite
-    import warnings
-    warnings.warn(
-        "Using local SQLite database. For production, set DATABASE_URL to PostgreSQL/MySQL.",
-        RuntimeWarning
-    )
-    DATABASE_URL = "sqlite+aiosqlite:///./nandu.db"
+engine_kwargs: dict[str, object] = {"echo": False}
 
-# Warn if SQLite in production
-if _ENVIRONMENT == "production" and "sqlite" in DATABASE_URL.lower():
-    raise ValueError(
-        "FATAL: SQLite is not suitable for production (concurrency issues, no locking). "
-        "Use PostgreSQL, MySQL, or other production-grade database. "
-        "Set DATABASE_URL environment variable."
-    )
+if DATABASE_URL.startswith("postgresql"):
+    engine_kwargs["pool_pre_ping"] = True
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+    # Supabase transaction pooler (port 6543 / pooler hostname) does not work
+    # with asyncpg prepared statement caching. Disable statement caching and
+    # use NullPool so local dev and Vercel serverless behave consistently.
+    if "pooler.supabase.com" in DATABASE_URL or ":6543/" in DATABASE_URL:
+        engine_kwargs["poolclass"] = NullPool
+        engine_kwargs["connect_args"] = {
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0,
+        }
+
+engine = create_async_engine(DATABASE_URL, **engine_kwargs)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 Base = declarative_base()

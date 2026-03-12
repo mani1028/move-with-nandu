@@ -1,15 +1,15 @@
-import shutil
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Optional, cast
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from ..database import get_db, Driver, Ride, Expense, User, Admin
 from ..auth import get_current_driver
+from ..config import settings
+from ..storage import delete_public_file, read_validated_upload, save_public_file
 from ..ws.manager import manager
 
 router = APIRouter(prefix="/api/drivers", tags=["Drivers"])
@@ -152,32 +152,30 @@ async def upload_driver_profile_pic(
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db),
 ):
-    content_type = (file.content_type or "").lower()
     allowed_types = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
-    if content_type not in allowed_types:
-        raise HTTPException(400, "Only JPG, PNG, or WEBP images are allowed")
-
-    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "drivers"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    content, extension = await read_validated_upload(
+        file,
+        allowed_types=allowed_types,
+        label="Driver profile image",
+    )
 
     previous_picture = (driver.profile_pic or "").strip()
-    filename = f"{driver.id}_{uuid.uuid4().hex[:10]}{allowed_types[content_type]}"
-    target = upload_dir / filename
-
-    with target.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    driver.profile_pic = f"/uploads/drivers/{filename}"  # type: ignore
+    filename = f"{driver.id}_{uuid.uuid4().hex[:10]}{extension}"
+    cast(Any, driver).profile_pic = await save_public_file(
+        content=content,
+        content_type=(file.content_type or "application/octet-stream").lower(),
+        bucket=str(settings["profile_upload_bucket"]),
+        object_path=f"drivers/{filename}",
+        local_dir="drivers",
+    )
     await db.commit()
     await db.refresh(driver)
 
-    if previous_picture.startswith("/uploads/drivers/"):
-        old_file = upload_dir / previous_picture.replace("/uploads/drivers/", "", 1)
-        try:
-            if old_file.exists() and old_file.is_file() and old_file != target:
-                old_file.unlink()
-        except OSError:
-            pass
+    await delete_public_file(
+        current_url=previous_picture,
+        bucket=str(settings["profile_upload_bucket"]),
+        local_dir="drivers",
+    )
 
     return {"ok": True, "profile_pic": driver.profile_pic}
 
@@ -205,9 +203,6 @@ async def upload_driver_documents(
         "image/png": ".png",
         "image/webp": ".webp",
     }
-    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "driver-docs"
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
     # Capture previous files so we can clean up replaced documents.
     previous = {
         "license": (driver.license_url or "").strip(),
@@ -220,16 +215,15 @@ async def upload_driver_documents(
     for key, up in files.items():
         if not up:
             continue
-        content_type = (up.content_type or "").lower()
-        ext = allowed_types.get(content_type)
-        if not ext:
-            raise HTTPException(400, f"{key} must be JPG, PNG, or WEBP")
-
+        content, ext = await read_validated_upload(up, allowed_types=allowed_types, label=f"{key} document")
         filename = f"{driver.id}_{key}_{uuid.uuid4().hex[:10]}{ext}"
-        target = upload_dir / filename
-        with target.open("wb") as buffer:
-            shutil.copyfileobj(up.file, buffer)
-        saved[key] = f"/uploads/driver-docs/{filename}"
+        saved[key] = await save_public_file(
+            content=content,
+            content_type=(up.content_type or "application/octet-stream").lower(),
+            bucket=str(settings["driver_docs_bucket"]),
+            object_path=f"driver-docs/{filename}",
+            local_dir="driver-docs",
+        )
 
     if "license" in saved:
         driver.license_url = saved["license"]  # type: ignore
@@ -249,15 +243,13 @@ async def upload_driver_documents(
 
     for key, old_url in previous.items():
         new_url = saved.get(key)
-        if not new_url or not old_url.startswith("/uploads/driver-docs/"):
+        if not new_url:
             continue
-        old_file = upload_dir / old_url.replace("/uploads/driver-docs/", "", 1)
-        new_file = upload_dir / new_url.replace("/uploads/driver-docs/", "", 1)
-        try:
-            if old_file.exists() and old_file.is_file() and old_file != new_file:
-                old_file.unlink()
-        except OSError:
-            pass
+        await delete_public_file(
+            current_url=old_url,
+            bucket=str(settings["driver_docs_bucket"]),
+            local_dir="driver-docs",
+        )
 
     return {
         "ok": True,

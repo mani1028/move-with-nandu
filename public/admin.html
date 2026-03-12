@@ -741,8 +741,10 @@
 <div id="toast-container" class="fixed bottom-5 right-5 z-[200] space-y-2"></div>
 
 <!-- ===================== SCRIPT ===================== -->
+<script src="api-config.js"></script>
 <script>
-    const API = 'http://localhost:8000';
+    const API = (window.API_BASE && window.API_BASE.trim())
+        || (location.origin && location.origin !== 'null' ? location.origin : 'http://localhost:8000');
 
     let drivers = [], bookingsCache = [], customers = [], coupons = [], supportTickets = [], broadcasts = [];
     let cancelTargetId = null, docTargetId = null, supportTargetId = null;

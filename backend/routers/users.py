@@ -1,14 +1,14 @@
-import shutil
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional
+from typing import Any, Optional, cast
 from ..database import get_db, User, Driver, Admin
 from ..auth import get_current_user
+from ..config import settings
+from ..storage import delete_public_file, read_validated_upload, save_public_file
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -84,31 +84,28 @@ async def upload_profile_picture(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    content_type = (file.content_type or "").lower()
     allowed_types = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
-    if content_type not in allowed_types:
-        raise HTTPException(400, "Only JPG, PNG, or WEBP images are allowed")
-
-    upload_dir = Path(__file__).resolve().parent.parent.parent / "public" / "uploads" / "users"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    content, extension = await read_validated_upload(
+        file,
+        allowed_types=allowed_types,
+        label="Profile image",
+    )
 
     previous_picture = (user.picture or "").strip()
-
-    filename = f"{user.id}_{uuid.uuid4().hex[:10]}{allowed_types[content_type]}"
-    target = upload_dir / filename
-
-    with target.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    user.picture = f"/uploads/users/{filename}"  # type: ignore
+    filename = f"{user.id}_{uuid.uuid4().hex[:10]}{extension}"
+    cast(Any, user).picture = await save_public_file(
+        content=content,
+        content_type=(file.content_type or "application/octet-stream").lower(),
+        bucket=str(settings["profile_upload_bucket"]),
+        object_path=f"users/{filename}",
+        local_dir="users",
+    )
     await db.commit()
 
-    if previous_picture.startswith("/uploads/users/"):
-        old_file = upload_dir / previous_picture.replace("/uploads/users/", "", 1)
-        try:
-            if old_file.exists() and old_file.is_file() and old_file != target:
-                old_file.unlink()
-        except OSError:
-            pass
+    await delete_public_file(
+        current_url=previous_picture,
+        bucket=str(settings["profile_upload_bucket"]),
+        local_dir="users",
+    )
 
     return {"ok": True, "picture": user.picture}

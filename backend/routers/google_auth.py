@@ -20,14 +20,15 @@ from google.oauth2 import id_token
 
 from ..database import get_db, User, generate_custom_id
 from ..auth import create_access_token, hash_password
+from ..config import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth/google", tags=["Google OAuth"])
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+GOOGLE_CLIENT_ID = str(settings["google_client_id"])
+GOOGLE_CLIENT_SECRET = str(settings["google_client_secret"])
 
 # ─── UTILITIES ──────────────────────────────────────────────────────────────
 
