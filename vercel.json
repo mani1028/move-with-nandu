@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pip install -r backend/requirements.txt && python scripts/init_db.py",
+  "buildCommand": "python -m venv .vercel-venv && .vercel-venv/bin/python -m pip install --upgrade pip setuptools wheel && .vercel-venv/bin/pip install -r backend/requirements.txt && .vercel-venv/bin/python scripts/init_db.py",
   "env": {
     "PYTHONUNBUFFERED": "1"
   },
