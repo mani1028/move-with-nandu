@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "python scripts/init_db.py",
   "env": {
     "PYTHONUNBUFFERED": "1"
   },
