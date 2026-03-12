@@ -1,6 +1,7 @@
 import json
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import cast
@@ -63,23 +64,36 @@ async def lifespan(app: FastAPI):
     else:
         logger.info(f"  ✅ Allowed origins: {', '.join(cors_origins)}")
     
-    # Initialize database
-    await init_db()
-    logger.info("\n💾 Database initialized")
-    
-    async with AsyncSessionLocal() as db:
-        from sqlalchemy import select
-        defaults = {
-            "surge_multiplier": "1.0",
-            "auto_assign": "true",
-            "accept_bookings": "true",
-            "maintenance": "false",
-        }
-        for key, val in defaults.items():
-            existing = await db.execute(select(Setting).where(Setting.key == key))
-            if not existing.scalar_one_or_none():
-                db.add(Setting(key=key, value=val))
-        await db.commit()
+    # In production/serverless, schema init runs during build via scripts/init_db.py.
+    # Keep runtime startup lightweight unless explicitly overridden.
+    should_run_startup_db_init = (
+        str(settings["environment"]) != "production"
+        or os.getenv("RUN_STARTUP_DB_INIT", "false").strip().lower() == "true"
+    )
+
+    try:
+        if should_run_startup_db_init:
+            await init_db()
+            logger.info("\n💾 Database initialized")
+        else:
+            logger.info("\n💾 Skipping runtime DB init in production")
+
+        async with AsyncSessionLocal() as db:
+            from sqlalchemy import select
+            defaults = {
+                "surge_multiplier": "1.0",
+                "auto_assign": "true",
+                "accept_bookings": "true",
+                "maintenance": "false",
+            }
+            for key, val in defaults.items():
+                existing = await db.execute(select(Setting).where(Setting.key == key))
+                if not existing.scalar_one_or_none():
+                    db.add(Setting(key=key, value=val))
+            await db.commit()
+    except Exception as startup_error:
+        # Avoid serverless cold-start crashes from initialization paths.
+        logger.exception("Startup initialization issue: %s", startup_error)
     
     logger.info("\n✅ All startup checks passed!")
     logger.info("=" * 80)
