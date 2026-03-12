@@ -11,7 +11,8 @@
     <meta name="application-name" content="Nandu App">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="assets/lucide.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:,">
 
@@ -121,8 +122,7 @@
 
     </style>
 
-    <!-- Google Sign-In Script -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body class="text-slate-900 selection:bg-orange-100 selection:text-orange-700 h-screen overflow-hidden flex flex-col bg-slate-50">
 
@@ -149,7 +149,7 @@
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/3 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="relative min-h-screen flex flex-col items-center justify-center p-4 py-10">
+        <div class="relative min-h-screen flex flex-col items-center justify-start p-4 py-10">
 
             <!-- Brand Header -->
             <div class="text-center mb-8">
@@ -161,7 +161,7 @@
             </div>
 
             <!-- Auth Card -->
-            <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden">
+            <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl">
 
                 <!-- ── STEP 1: Login / Register Tabs ── -->
                 <div id="auth-step-1">
@@ -178,24 +178,6 @@
                     </div>
 
                     <div class="p-5 space-y-3">
-                        
-                        <!-- Top Google Auth -->
-                        <div id="google-btn-container" class="w-full flex justify-center min-h-[40px]">
-                            <!-- Google Sign-In button will be rendered here -->
-                        </div>
-                        <div id="google-error" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs font-medium"></div>
-                        <p class="text-center text-[10px] text-slate-400 font-semibold leading-relaxed">
-                            By continuing, you agree to our
-                            <a href="terms.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Terms &amp; Conditions</a>
-                            and
-                            <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer" class="text-orange-600 font-bold hover:underline">Privacy Policy</a>.
-                        </p>
-
-                        <!-- Divider -->
-                        <div class="relative py-1 my-1">
-                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
-                            <div class="relative flex justify-center text-[10px] uppercase font-bold"><span class="bg-white px-3 text-slate-400">or</span></div>
-                        </div>
 
                         <!-- LOGIN FORM -->
                         <div id="login-form">
@@ -232,44 +214,55 @@
                             </p>
                         </div>
 
+                        <!-- Google Sign-In Section (shared, shown after library loads) -->
+                        <div id="google-divider-section" class="hidden">
+                            <div class="flex items-center gap-3 my-1">
+                                <div class="flex-1 h-px bg-slate-200"></div>
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">or</span>
+                                <div class="flex-1 h-px bg-slate-200"></div>
+                            </div>
+                        </div>
+                        <div id="google-btn-container" class="hidden flex justify-center"></div>
+                        <p id="google-error" class="hidden text-xs text-red-500 font-bold text-center mt-1 bg-red-50 py-1.5 px-3 rounded-xl"></p>
+
                         <!-- REGISTER FORM -->
                         <div id="register-form" class="hidden">
-                            <div class="space-y-2.5 mb-3">
+                            <div class="space-y-3 mb-4">
                                 <div class="relative">
-                                    <i data-lucide="user" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="user" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="text" id="reg-name"
-                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Full name">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="phone" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="phone" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="tel" id="reg-phone" maxlength="10"
-                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="10-digit mobile number">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="mail" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="mail" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="email" id="reg-email"
-                                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Email address">
                                 </div>
                                 <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-3.5 top-3 h-4 w-4 text-slate-400"></i>
+                                    <i data-lucide="lock" class="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400"></i>
                                     <input type="password" id="reg-password"
-                                        class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
+                                        class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-sm focus:border-orange-400 focus:bg-white transition"
                                         placeholder="Create password (min 6 chars)"
                                         onkeydown="if(event.key==='Enter') registerWithEmail()">
                                     <button type="button" onclick="togglePassword('reg-password', this)"
-                                        class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+                                        class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600">
                                         <i data-lucide="eye" class="h-4 w-4"></i>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Error msg -->
-                            <p id="register-error" class="hidden text-xs text-red-500 font-bold text-center mb-2 bg-red-50 py-1.5 px-3 rounded-xl"></p>
+                            <p id="register-error" class="hidden text-xs text-red-500 font-bold text-center mb-3 bg-red-50 py-2 px-3 rounded-xl"></p>
 
-                            <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 mb-3 cursor-pointer">
+                            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 mb-4 cursor-pointer">
                                 <input id="reg-legal-consent" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500" />
                                 <span class="text-[11px] text-slate-600 font-semibold leading-relaxed">
                                     I agree to the
@@ -280,11 +273,11 @@
                             </label>
 
                             <button onclick="registerWithEmail()" id="btn-register"
-                                class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition text-sm flex items-center justify-center gap-2">
+                                class="w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 active:scale-95 transition text-sm flex items-center justify-center gap-2">
                                 <i data-lucide="user-plus" class="h-4 w-4"></i> Create My Account
                             </button>
 
-                            <p class="text-center text-[11px] text-slate-400 font-medium mt-3">
+                            <p class="text-center text-[11px] text-slate-400 font-medium mt-4 mb-0">
                                 Already have an account? <button onclick="switchAuthTab('login')" class="text-orange-600 font-bold hover:underline">Login →</button>
                             </p>
                         </div>
@@ -948,6 +941,7 @@
     </script>
 
     <!-- MAIN APP LOGIC — Python API Backend -->
+    <script src="api-config.js"></script>
     <script>
         // ── API CONFIG ────────────────────────────────────────────────────────
         const API = (window.API_BASE && window.API_BASE.trim())
@@ -1280,151 +1274,76 @@
             }
         }
 
-        // Google OAuth Initialization
+        // Google OAuth
         let googleInitialized = false;
         async function initGoogleSignIn(retryCount = 0) {
             if (googleInitialized) return;
             const container = document.getElementById('google-btn-container');
             const googleErrorDiv = document.getElementById('google-error');
-            
             if (!container) return;
-            
             try {
                 if (!window.google || !google.accounts || !google.accounts.id) {
-                    if (retryCount < 10) {
-                        setTimeout(() => initGoogleSignIn(retryCount + 1), 500);
-                        return;
-                    }
-                    throw new Error('❌ Google Sign-In library failed to load.');
+                    if (retryCount < 10) { setTimeout(() => initGoogleSignIn(retryCount + 1), 500); return; }
+                    throw new Error('Google Sign-In library failed to load.');
                 }
-
-                // Temporary loading state
-                container.innerHTML = '<div class="text-sm text-slate-500 font-medium py-2 flex items-center gap-2 animate-pulse"><i data-lucide="loader" class="h-4 w-4 animate-spin"></i> Loading Google...</div>';
-                lucide.createIcons();
-
-                // Check backend configuration
-                const config = await fetch('/api/auth/google/userinfo').then(r => {
+                const config = await fetch(API + '/api/auth/google/userinfo').then(r => {
                     if (!r.ok) throw new Error(`Server returned ${r.status}`);
                     return r.json();
                 });
-
-                if (!config.google_client_id) {
-                    throw new Error('🔧 Google Sign-In is not configured on this server.');
-                }
-
-                container.innerHTML = ''; // Clear loading
-                
-                // Initialize Standard Google Identity Services Button
+                if (!config.google_client_id) throw new Error('Google Sign-In is not configured on this server.');
+                container.classList.remove('hidden');
+                const dividerSec = document.getElementById('google-divider-section');
+                if (dividerSec) dividerSec.classList.remove('hidden');
                 google.accounts.id.initialize({
                     client_id: config.google_client_id,
                     callback: window.handleGoogleLoginResponse,
                     auto_select: false
                 });
-
-                // Render the official, fully functional Google button
-                google.accounts.id.renderButton(
-                    container,
-                    { theme: 'outline', size: 'large', type: 'standard', width: container.offsetWidth || 340 }
-                );
-
-                // Try One Tap as a bonus (only shows if conditions like cookies are met)
+                google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', width: container.offsetWidth || 320 });
                 google.accounts.id.prompt();
-                
                 googleInitialized = true;
                 if (googleErrorDiv) googleErrorDiv.classList.add('hidden');
-
             } catch(error) {
-                console.warn('❌ Google login setup error:', error);
-                container.innerHTML = '';
-                if (googleErrorDiv) {
-                    googleErrorDiv.classList.remove('hidden');
-                    googleErrorDiv.innerHTML = error.message || 'Google Sign-In unavailable. Use email login.';
-                }
+                console.warn('Google login unavailable:', error.message);
+                container.classList.add('hidden');
+                const dividerSection = document.getElementById('google-divider-section');
+                if (dividerSection) dividerSection.classList.add('hidden');
+                if (googleErrorDiv) googleErrorDiv.classList.add('hidden');
             }
         }
 
-        // Handle Google OAuth response
         window.handleGoogleLoginResponse = async (response) => {
             const errorDiv = document.getElementById('google-error');
-            const googleBtn = document.getElementById('btn-google-signin');
-            
             if (!response.credential) {
-                const errMsg = '❌ No credential received from Google. Did you cancel the sign-in?';
-                console.error(errMsg);
-                if (errorDiv) {
-                    errorDiv.classList.remove('hidden');
-                    errorDiv.innerText = errMsg;
-                }
+                if (errorDiv) { errorDiv.classList.remove('hidden'); errorDiv.innerText = 'No credential received from Google.'; }
                 return;
             }
-
             try {
-                console.log('📨 Received Google credential, sending to backend...');
-                
-                // Show loading state
                 const container = document.getElementById('google-btn-container');
                 if (container) {
                     container.innerHTML = '<div class="text-sm text-slate-500 font-medium py-2 flex items-center gap-2 animate-pulse"><i data-lucide="loader" class="h-4 w-4 animate-spin"></i> Signing in...</div>';
                     lucide.createIcons();
                 }
-
-                // Send token to backend for verification
-                const response_text = JSON.stringify({ id_token: response.credential });
-                console.log('📤 Sending POST to /api/auth/google/login');
-                
-                const res = await fetch('/api/auth/google/login', {
+                const res = await fetch(API + '/api/auth/google/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: response_text
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: response.credential })
                 });
-
                 if (!res.ok) {
                     const errData = await res.json().catch(() => ({ detail: 'Unknown error' }));
-                    throw new Error(`❌ Backend Error (${res.status}): ${errData.detail || errData.message || 'Unknown error'}`);
+                    throw new Error(`Backend Error (${res.status}): ${errData.detail || 'Unknown error'}`);
                 }
-
                 const data = await res.json();
-                console.log('✅ Login successful! Token received:', data.access_token.substring(0, 20) + '...');
-
-                // Success! Save token and user data
                 setToken(data.access_token);
                 userData = data.user;
                 localStorage.setItem('nandu_user', JSON.stringify(data.user));
-                console.log('✅ User saved:', data.user.email);
-
-                // Check if user needs to complete profile
-                if (!userData.phone) {
-                    console.log('📋 Phone missing, showing profile completion step...');
-                    showUserProfileCompletionScreen(userData);
-                } else {
-                    console.log('✅ Profile complete, initializing UI...');
-                    initUserUI();
-                }
-                
-                // Hide error if shown
-                if (errorDiv) {
-                    errorDiv.classList.add('hidden');
-                    errorDiv.innerHTML = '';
-                }
-                
+                if (!userData.phone) { showUserProfileCompletionScreen(userData); } else { initUserUI(); }
+                if (errorDiv) { errorDiv.classList.add('hidden'); errorDiv.innerHTML = ''; }
             } catch(error) {
-                console.error('❌ Google login processing failed:', error);
-                
-                if (errorDiv) {
-                    errorDiv.classList.remove('hidden');
-                    errorDiv.innerText = error.message || '⚠️ Error processing Google sign-in. Please try again.';
-                }
-                
-                
-                // Reset button state
+                console.error('Google login failed:', error);
+                if (errorDiv) { errorDiv.classList.remove('hidden'); errorDiv.innerText = error.message || 'Error processing Google sign-in.'; }
                 const container = document.getElementById('google-btn-container');
-                if (container) {
-                    googleInitialized = false; // Force re-render
-                    container.innerHTML = '';
-                    initGoogleSignIn();
-                }
+                if (container) { googleInitialized = false; container.innerHTML = ''; initGoogleSignIn(); }
             }
         }
 
@@ -1667,6 +1586,12 @@
             const list = document.getElementById('live-riders-list');
             const countEl = document.getElementById('live-online-riders-count');
             if (!list || !countEl) return;
+
+            if (!getToken()) {
+                list.innerHTML = '<p class="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-200 rounded-xl p-3">Login to view live riders.</p>';
+                countEl.innerText = '0';
+                return;
+            }
 
             const fromLoc = (document.getElementById('live-from-loc')?.value || '').trim();
             const toLoc = (document.getElementById('live-to-loc')?.value || '').trim();
@@ -2030,3 +1955,5 @@
         populateLocations();
         searchOnlineRiders();
     </script>
+</body>
+</html>
