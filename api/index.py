@@ -1,6 +1,8 @@
 import json
 import traceback
 
+_DEPLOY_VERSION = "v20260313-2"  # bump to verify new deployment is live
+
 _import_error: Exception | None = None
 _import_traceback = ""
 
@@ -17,6 +19,7 @@ except Exception as exc:  # pragma: no cover - only used for deployment diagnost
 			return
 
 		detail = {
+			"deploy_version": _DEPLOY_VERSION,
 			"error": "Application import/startup failed",
 			"exception": str(_import_error),
 			"traceback": _import_traceback.splitlines()[-25:],
