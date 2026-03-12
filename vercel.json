@@ -4,24 +4,10 @@
   "env": {
     "PYTHONUNBUFFERED": "1"
   },
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "^/api/(.*)$",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "^/ws/(.*)$",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "^/(.*)$",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ]
 }
