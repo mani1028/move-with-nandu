@@ -40,7 +40,7 @@ python app.py
 - Passenger: `http://localhost:8000/app.html`
 - Driver: `http://localhost:8000/driver-portal.html`
 - Admin: `http://localhost:8000/admin.html`
-
+SECRET_KEY = python -c "import secrets; print(secrets.token_urlsafe(48))"
 ## Notes
 - Uploads use `public/uploads/` locally, and switch to Supabase Storage automatically when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set.
 - Dev database defaults to SQLite (`nandu.db`) unless `DATABASE_URL` is changed.
