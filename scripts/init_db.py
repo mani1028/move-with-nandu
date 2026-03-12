@@ -31,6 +31,9 @@ from backend.database import init_db, AsyncSessionLocal, Setting, User, Admin
 from backend.auth import hash_password
 from sqlalchemy import select
 
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 async def main():
     """Initialize database schema and settings."""

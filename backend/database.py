@@ -17,20 +17,20 @@ load_dotenv()
 _ENVIRONMENT = str(settings["environment"])
 DATABASE_URL = str(settings["database_url"])
 
+# Vercel may use newer Python runtimes where asyncpg wheels can be unavailable.
+# Use psycopg async driver for PostgreSQL URLs to keep startup compatible.
+if DATABASE_URL.startswith("postgresql+asyncpg://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql+psycopg://", 1)
+
 engine_kwargs: dict[str, object] = {"echo": False}
 
 if DATABASE_URL.startswith("postgresql"):
     engine_kwargs["pool_pre_ping"] = True
 
-    # Supabase transaction pooler (port 6543 / pooler hostname) does not work
-    # with asyncpg prepared statement caching. Disable statement caching and
-    # use NullPool so local dev and Vercel serverless behave consistently.
+    # Supabase transaction pooler (port 6543 / pooler hostname) benefits from
+    # NullPool in serverless-style workloads to avoid stale pooled connections.
     if "pooler.supabase.com" in DATABASE_URL or ":6543/" in DATABASE_URL:
         engine_kwargs["poolclass"] = NullPool
-        engine_kwargs["connect_args"] = {
-            "statement_cache_size": 0,
-            "prepared_statement_cache_size": 0,
-        }
 
 engine = create_async_engine(DATABASE_URL, **engine_kwargs)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
