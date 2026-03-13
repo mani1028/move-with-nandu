@@ -1174,9 +1174,159 @@
         console.log('[App Startup] location.origin:', location.origin);
         console.log('[App Startup] User Agent:', navigator.userAgent);
 
-        function getToken() { return localStorage.getItem('nandu_driver_token'); }
-        function setToken(t) { localStorage.setItem('nandu_driver_token', t); }
-        function clearToken() { localStorage.removeItem('nandu_driver_token'); localStorage.removeItem('nandu_driver_profile'); }
+        // ── ITP-RESISTANT STORAGE LAYER ───────────────────────────────────────
+        // Uses IndexedDB (primary), localStorage (fallback), in-memory (last resort)
+        // Handles iOS/Safari Intelligent Tracking Prevention gracefully
+        
+        let _storageDB = null;
+        let _memoryStore = {}; // In-memory fallback when all storage blocked
+        let _storageMode = 'unknown'; // 'indexeddb' | 'localstorage' | 'memory'
+        
+        async function initStorage() {
+            try {
+                // Try IndexedDB first (most resistant to ITP)
+                const dbReq = indexedDB.open('nandu_driver_db', 1);
+                dbReq.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('kv')) {
+                        db.createObjectStore('kv', { keyPath: 'key' });
+                    }
+                };
+                _storageDB = await new Promise((resolve, reject) => {
+                    dbReq.onsuccess = () => resolve(dbReq.result);
+                    dbReq.onerror = () => reject(dbReq.error);
+                });
+                _storageMode = 'indexeddb';
+                console.log('[Storage] Using IndexedDB');
+            } catch (e) {
+                console.warn('[Storage] IndexedDB failed, trying localStorage:', e.message);
+                try {
+                    // Fallback to localStorage
+                    localStorage.setItem('test_nandu', '1');
+                    localStorage.removeItem('test_nandu');
+                    _storageMode = 'localstorage';
+                    console.log('[Storage] Using localStorage');
+                } catch (e2) {
+                    // Fallback to in-memory storage
+                    console.warn('[Storage] localStorage blocked (ITP), using in-memory storage:', e2.message);
+                    _storageMode = 'memory';
+                    console.log('[Storage] Using in-memory storage (data will not persist across sessions)');
+                }
+            }
+        }
+        
+        async function storageGet(key) {
+            if (_storageMode === 'indexeddb' && _storageDB) {
+                try {
+                    const tx = _storageDB.transaction(['kv'], 'readonly');
+                    const store = tx.objectStore('kv');
+                    return await new Promise((resolve) => {
+                        const req = store.get(key);
+                        req.onsuccess = () => resolve(req.result?.value || null);
+                        req.onerror = () => resolve(null);
+                    });
+                } catch (e) {
+                    console.warn('[Storage] IndexedDB get failed, trying fallback:', e.message);
+                    return null;
+                }
+            } else if (_storageMode === 'localstorage') {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn('[Storage] localStorage get blocked:', e.message);
+                    return null;
+                }
+            } else {
+                return _memoryStore[key] || null;
+            }
+        }
+        
+        async function storageSet(key, value) {
+            if (_storageMode === 'indexeddb' && _storageDB) {
+                try {
+                    const tx = _storageDB.transaction(['kv'], 'readwrite');
+                    const store = tx.objectStore('kv');
+                    return await new Promise((resolve) => {
+                        const req = store.put({ key, value });
+                        req.onsuccess = () => resolve(true);
+                        req.onerror = () => {
+                            console.warn('[Storage] IndexedDB put failed, trying fallback');
+                            resolve(false);
+                        };
+                    });
+                } catch (e) {
+                    console.warn('[Storage] IndexedDB set failed:', e.message);
+                    return false;
+                }
+            } else if (_storageMode === 'localstorage') {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (e) {
+                    console.warn('[Storage] localStorage set blocked (ITP):', e.message);
+                    return false;
+                }
+            } else {
+                _memoryStore[key] = value;
+                return true;
+            }
+        }
+        
+        async function storageRemove(key) {
+            if (_storageMode === 'indexeddb' && _storageDB) {
+                try {
+                    const tx = _storageDB.transaction(['kv'], 'readwrite');
+                    const store = tx.objectStore('kv');
+                    return await new Promise((resolve) => {
+                        const req = store.delete(key);
+                        req.onsuccess = () => resolve(true);
+                        req.onerror = () => resolve(false);
+                    });
+                } catch (e) {
+                    console.warn('[Storage] IndexedDB delete failed:', e.message);
+                    return false;
+                }
+            } else if (_storageMode === 'localstorage') {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (e) {
+                    console.warn('[Storage] localStorage delete blocked:', e.message);
+                    return false;
+                }
+            } else {
+                delete _memoryStore[key];
+                return true;
+            }
+        }
+        
+        // Synchronous wrappers for backward compatibility (used in init flow)
+        function getToken() { 
+            // Try synchronous access first (for already-loaded values)
+            if (_storageMode === 'localstorage') {
+                try { return localStorage.getItem('nandu_driver_token'); } catch (e) { }
+            } else if (_storageMode === 'indexeddb') {
+                // For IndexedDB, return from memory cache if available
+                return _memoryStore['nandu_driver_token'] || null;
+            } else {
+                return _memoryStore['nandu_driver_token'] || null;
+            }
+            return null;
+        }
+        
+        function setToken(t) { 
+            // Use async storage but don't await in login flow
+            _memoryStore['nandu_driver_token'] = t; // Always set in-memory
+            storageSet('nandu_driver_token', t).catch(e => console.warn('[Storage] setToken failed:', e));
+        }
+        
+        function clearToken() { 
+            // Use async storage for cleanup
+            delete _memoryStore['nandu_driver_token'];
+            delete _memoryStore['nandu_driver_profile'];
+            storageRemove('nandu_driver_token').catch(e => console.warn('[Storage] clearToken failed:', e));
+            storageRemove('nandu_driver_profile').catch(e => console.warn('[Storage] clearToken failed:', e));
+        }
 
         async function apiFetch(path, options = {}) {
             const token = getToken();
@@ -1239,7 +1389,9 @@
                     ignore401: true
                 });
                 setToken(data.access_token);
-                localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver));
+                await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
+                // Fallback to localStorage for synchronous access
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver)); } catch(e) { }
                 showToast('Welcome back!', 'success');
                 setTimeout(() => location.reload(), 500);
             } catch(error) {
@@ -1329,7 +1481,9 @@
                     body: JSON.stringify({ id_token: response.credential })
                 });
                 setToken(data.access_token);
-                localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver));
+                await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
+                // Fallback to localStorage for synchronous access
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver)); } catch(e) { }
                 showToast('Signed in with Google', 'success');
 
                 const missingCoreProfile = !data.driver.phone
@@ -1529,8 +1683,10 @@
                     }
                 }
 
-                // CRITICAL: Update localStorage so the reload picks up new data
-                localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile));
+                // CRITICAL: Update storage so the reload picks up new data
+                await storageSet('nandu_driver_profile', JSON.stringify(freshProfile));
+                // Fallback to localStorage for synchronous access
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile)); } catch(e) { }
                 pendingDriverProfilePic = freshProfile.profile_pic || pendingDriverProfilePic;
                 pendingDriverRegistration = null;
                 showToast('✅ Welcome Partner! Account created successfully!', 'success');
@@ -1603,9 +1759,49 @@
         }
 
         function init() {
-            const savedTheme = localStorage.getItem('nandu_theme');
-            if(savedTheme === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('dark-toggle').checked = true; }
-            else { document.documentElement.classList.remove('dark'); document.getElementById('dark-toggle').checked = false; }
+            // Initialize ITP-resistant storage first
+            initStorage().then(() => {
+                // Theme loading
+                const savedTheme = localStorage.getItem('nandu_theme');
+                if(savedTheme === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('dark-toggle').checked = true; }
+                else { document.documentElement.classList.remove('dark'); document.getElementById('dark-toggle').checked = false; }
+
+                // Bootstrap session from storage or API
+                const storedProfile = localStorage.getItem('nandu_driver_profile');
+                const token = getToken();
+                
+                if (storedProfile && token) {
+                    try {
+                        const profile = JSON.parse(storedProfile);
+                        if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
+                        else initDriverUI(profile);
+                    } catch(e) { 
+                        console.log("Stored profile parse error:", e);
+                        showLoginScreen(); 
+                    }
+                } else {
+                    if (token) {
+                        // Try to fetch fresh profile from API
+                        apiFetch('/api/drivers/me')
+                            .then(profile => {
+                                storageSet('nandu_driver_profile', JSON.stringify(profile));
+                                // Also save to localStorage for synchronous access
+                                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
+                                if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
+                                else initDriverUI(profile);
+                            })
+                            .catch((err) => {
+                                console.warn('Driver profile refresh failed:', err?.message || err);
+                                showLoginScreen();
+                            });
+                    } else {
+                        showLoginScreen();
+                    }
+                }
+            }).catch(e => {
+                console.warn('[Storage] Init failed:', e);
+                showLoginScreen();
+            });
 
             window.toggleAuthMode = (mode) => {
                 isRegistering = (mode === 'register');
@@ -1669,35 +1865,7 @@
                 const btn = e.target.closest('.job-options-btn');
                 if (btn) { e.stopPropagation(); pendingOptionsJobId = btn.getAttribute('data-jobid'); if (pendingOptionsJobId) document.getElementById('options-modal').classList.remove('hidden'); }
             });
-
-            // Bootstrap session from localStorage or API
-            const storedProfile = localStorage.getItem('nandu_driver_profile');
-            if (storedProfile && getToken()) {
-                try {
-                    const profile = JSON.parse(storedProfile);
-                    if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
-                    else initDriverUI(profile);
-                } catch(e) { 
-                    console.log("Stored profile parse error:", e);
-                    showLoginScreen(); 
-                }
-            } else {
-                if (getToken()) {
-                    // Try to fetch fresh profile from API
-                    apiFetch('/api/drivers/me')
-                        .then(profile => {
-                            localStorage.setItem('nandu_driver_profile', JSON.stringify(profile));
-                            if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
-                            else initDriverUI(profile);
-                        })
-                        .catch((err) => {
-                            console.warn('Driver profile refresh failed:', err?.message || err);
-                            showLoginScreen();
-                        });
-                } else {
-                    showLoginScreen();
-                }
-            }
+        }
         }
 
         function showLoginScreen() {
@@ -1725,7 +1893,9 @@
 
                 if (changed) {
                     driverProfile = { ...(driverProfile || {}), ...freshProfile };
-                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    await storageSet('nandu_driver_profile', JSON.stringify(driverProfile));
+                    // Fallback to localStorage
+                    try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
                     initDriverUI(driverProfile);
                 }
             } catch (e) {
@@ -3192,7 +3362,9 @@ Are you absolutely sure you want to proceed?`);
                     driverProfile.insurance_url = out.insurance_url;
                     driverProfile.doc_status = out.doc_status;
                     driverProfile.is_verified = out.is_verified;
-                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    storageSet('nandu_driver_profile', JSON.stringify(driverProfile)).catch(e => console.warn('[Storage] Profile update failed:', e));
+                    // Fallback to localStorage
+                    try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
                     initDriverUI(driverProfile, { skipDashboardReload: true });
                 }
                 const statusLine = document.getElementById('doc-upload-status-line');
@@ -3264,7 +3436,9 @@ Are you absolutely sure you want to proceed?`);
                 if (plate) body.plate = plate;
                 const updated = await apiFetch('/api/drivers/me', { method: 'PATCH', body: JSON.stringify(body) });
                 driverProfile = { ...driverProfile, ...body };
-                localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                storageSet('nandu_driver_profile', JSON.stringify(driverProfile)).catch(e => console.warn('[Storage] Profile update failed:', e));
+                // Fallback to localStorage
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
                 // Sync display fields
                 if (name) {
                     document.getElementById('prof-name').innerText = name;
@@ -3370,7 +3544,9 @@ Are you absolutely sure you want to proceed?`);
                 pendingDriverProfileFile = null;
                 if (driverProfile) {
                     driverProfile.profile_pic = pendingDriverProfilePic;
-                    localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile));
+                    storageSet('nandu_driver_profile', JSON.stringify(driverProfile)).catch(e => console.warn('[Storage] Profile update failed:', e));
+                    // Fallback to localStorage
+                    try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
                     updateDriverAvatarUI(driverProfile);
                 }
                 showToast('Profile photo updated!', 'success');
