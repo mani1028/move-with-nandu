@@ -1388,12 +1388,19 @@
                     body: JSON.stringify({ email, password }),
                     ignore401: true
                 });
-                setToken(data.access_token);
+                // Store token in memory first
+                _memoryStore['nandu_driver_token'] = data.access_token;
+                // Await storage writes before reloading
+                await storageSet('nandu_driver_token', data.access_token);
                 await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
                 // Fallback to localStorage for synchronous access
+                try { localStorage.setItem('nandu_driver_token', data.access_token); } catch(e) { }
                 try { localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver)); } catch(e) { }
                 showToast('Welcome back!', 'success');
-                setTimeout(() => location.reload(), 500);
+                driverId = data.driver.id;
+                driverProfile = data.driver;
+                // Show dashboard directly instead of reloading
+                initDriverUI(data.driver);
             } catch(error) {
                 showToast('Login failed: ' + error.message, 'error');
             }
