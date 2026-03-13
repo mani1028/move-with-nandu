@@ -1590,11 +1590,79 @@
                 };
 
                 const uploadPendingDriverDocs = async () => {
+                    // Helper: Compress image to reduce file size before upload
+                    const compressImage = async (file) => {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    let width = img.width;
+                                    let height = img.height;
+                                    
+                                    // Scale down to max 1200px on longest side
+                                    const maxDim = 1200;
+                                    if (width > height) {
+                                        if (width > maxDim) {
+                                            height = Math.round((height * maxDim) / width);
+                                            width = maxDim;
+                                        }
+                                    } else {
+                                        if (height > maxDim) {
+                                            width = Math.round((width * maxDim) / height);
+                                            height = maxDim;
+                                        }
+                                    }
+                                    
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    
+                                    // Convert canvas to Blob at 75% quality JPEG
+                                    canvas.toBlob(
+                                        (blob) => {
+                                            const compressedFile = new File(
+                                                [blob],
+                                                file.name,
+                                                { type: 'image/jpeg' }
+                                            );
+                                            const originalSize = (file.size / 1024).toFixed(1);
+                                            const compressedSize = (blob.size / 1024).toFixed(1);
+                                            console.log(`[Compression] ${file.name}: ${originalSize}KB → ${compressedSize}KB`);
+                                            resolve(compressedFile);
+                                        },
+                                        'image/jpeg',
+                                        0.75
+                                    );
+                                };
+                                img.onerror = () => resolve(file); // Fallback to original if error
+                                img.src = e.target.result;
+                            };
+                            reader.onerror = () => resolve(file); // Fallback to original if error
+                            reader.readAsDataURL(file);
+                        });
+                    };
+
                     const form = new FormData();
-                    if (pendingDriverDocFiles.license) form.append('license_file', pendingDriverDocFiles.license);
-                    if (pendingDriverDocFiles.aadhar) form.append('aadhar_file', pendingDriverDocFiles.aadhar);
-                    if (pendingDriverDocFiles.rc) form.append('rc_file', pendingDriverDocFiles.rc);
-                    if (pendingDriverDocFiles.insurance) form.append('insurance_file', pendingDriverDocFiles.insurance);
+                    // Compress each document file before adding to form
+                    if (pendingDriverDocFiles.license) {
+                        const compressedLicense = await compressImage(pendingDriverDocFiles.license);
+                        form.append('license_file', compressedLicense);
+                    }
+                    if (pendingDriverDocFiles.aadhar) {
+                        const compressedAadhar = await compressImage(pendingDriverDocFiles.aadhar);
+                        form.append('aadhar_file', compressedAadhar);
+                    }
+                    if (pendingDriverDocFiles.rc) {
+                        const compressedRc = await compressImage(pendingDriverDocFiles.rc);
+                        form.append('rc_file', compressedRc);
+                    }
+                    if (pendingDriverDocFiles.insurance) {
+                        const compressedInsurance = await compressImage(pendingDriverDocFiles.insurance);
+                        form.append('insurance_file', compressedInsurance);
+                    }
                     if (![...form.keys()].length) return null;
 
                     const uploadRes = await fetch(API + '/api/drivers/me/documents', {
@@ -3327,11 +3395,79 @@ Are you absolutely sure you want to proceed?`);
         };
 
         window.submitDriverDocuments = async () => {
+            // Helper: Compress image to reduce file size before upload
+            const compressImage = async (file) => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            // Scale down to max 1200px on longest side
+                            const maxDim = 1200;
+                            if (width > height) {
+                                if (width > maxDim) {
+                                    height = Math.round((height * maxDim) / width);
+                                    width = maxDim;
+                                }
+                            } else {
+                                if (height > maxDim) {
+                                    width = Math.round((width * maxDim) / height);
+                                    height = maxDim;
+                                }
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Convert canvas to Blob at 75% quality JPEG
+                            canvas.toBlob(
+                                (blob) => {
+                                    const compressedFile = new File(
+                                        [blob],
+                                        file.name,
+                                        { type: 'image/jpeg' }
+                                    );
+                                    const originalSize = (file.size / 1024).toFixed(1);
+                                    const compressedSize = (blob.size / 1024).toFixed(1);
+                                    console.log(`[Compression] ${file.name}: ${originalSize}KB → ${compressedSize}KB`);
+                                    resolve(compressedFile);
+                                },
+                                'image/jpeg',
+                                0.75
+                            );
+                        };
+                        img.onerror = () => resolve(file); // Fallback to original if error
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => resolve(file); // Fallback to original if error
+                    reader.readAsDataURL(file);
+                });
+            };
+
             const form = new FormData();
-            if (pendingDriverDocFiles.license) form.append('license_file', pendingDriverDocFiles.license);
-            if (pendingDriverDocFiles.aadhar) form.append('aadhar_file', pendingDriverDocFiles.aadhar);
-            if (pendingDriverDocFiles.rc) form.append('rc_file', pendingDriverDocFiles.rc);
-            if (pendingDriverDocFiles.insurance) form.append('insurance_file', pendingDriverDocFiles.insurance);
+            // Compress each document file before adding to form
+            if (pendingDriverDocFiles.license) {
+                const compressedLicense = await compressImage(pendingDriverDocFiles.license);
+                form.append('license_file', compressedLicense);
+            }
+            if (pendingDriverDocFiles.aadhar) {
+                const compressedAadhar = await compressImage(pendingDriverDocFiles.aadhar);
+                form.append('aadhar_file', compressedAadhar);
+            }
+            if (pendingDriverDocFiles.rc) {
+                const compressedRc = await compressImage(pendingDriverDocFiles.rc);
+                form.append('rc_file', compressedRc);
+            }
+            if (pendingDriverDocFiles.insurance) {
+                const compressedInsurance = await compressImage(pendingDriverDocFiles.insurance);
+                form.append('insurance_file', compressedInsurance);
+            }
             if (![...form.keys()].length) {
                 showToast('Please select at least one document', 'warning');
                 return;
