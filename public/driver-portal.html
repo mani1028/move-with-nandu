@@ -6,15 +6,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Driver Partner - Nandu Travels</title>
     
-    <!-- Styles: Using pre-built Tailwind CSS for production -->
-    <link rel="stylesheet" href="assets/tailwind.min.css">
-    
     <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
-    <!-- Google Fonts -->
+    <!-- Config & Styles -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        slate: { 850: '#151F32', 900: '#0F172A', 950: '#020617' },
+                        brand: { 500: '#f97316', 600: '#ea580c', 700: '#b45309' }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.2s ease-out forwards',
+                        'zoom-in': 'zoomIn 0.2s ease-out forwards',
+                        'progress': 'progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite'
+                    },
+                    keyframes: {
+                        slideUp: {
+                            'from': { transform: 'translateY(20px)', opacity: '0' },
+                            'to': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        fadeIn: {
+                            'from': { opacity: '0' },
+                            'to': { opacity: '1' }
+                        },
+                        zoomIn: {
+                            'from': { transform: 'scale(0.95)', opacity: '0' },
+                            'to': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        progress: {
+                            '0%': { transform: 'scaleX(0)' },
+                            '50%': { transform: 'scaleX(0.7)' },
+                            '100%': { transform: 'scaleX(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -494,10 +531,10 @@
                 <input type="password" id="auth-password" class="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-200 outline-none font-medium" placeholder="Password">
                 <button id="btn-proceed-login" onclick="isRegistering ? driverEmailRegister() : driverEmailAuth()" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg">Login</button>
                 <button id="btn-proceed-register" onclick="driverEmailRegister()" class="w-full py-4 bg-brand-600 text-white font-bold rounded-xl shadow-lg hidden">Register</button>
-                <button id="btn-google-login" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2">
+                <button id="btn-google-login" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     <img src="assets/google.svg" class="w-5 h-5" alt="Google"> Sign in with Google
                 </button>
-                <button id="btn-google-register" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 hidden">
+                <button id="btn-google-register" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hidden">
                     <img src="assets/google.svg" class="w-5 h-5" alt="Google"> Sign up with Google
                 </button>
                 <p class="text-xs text-slate-400 mt-4">Google or email login is required to access the driver portal.</p>
@@ -1394,6 +1431,13 @@
             setTimeout(() => lucide.createIcons(), 50);
         };
 
+        // Detect if device is mobile
+        function isMobileDevice() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            // Check for common mobile indicators
+            return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua.toLowerCase());
+        }
+
         async function initGoogleAuth() {
             try {
                 const cfg = await apiFetch('/api/auth/drivers/google/userinfo');
@@ -1426,15 +1470,29 @@
             }
 
             try {
+                // Detect mobile vs desktop for optimal UX
+                const isOnMobile = isMobileDevice();
+                console.log('[Google Auth] Device type: ' + (isOnMobile ? 'mobile' : 'desktop'));
+                
+                // Use different UX modes based on device type
+                const uxMode = isOnMobile ? 'redirect' : 'popup';
+                
                 window.google.accounts.id.initialize({
                     client_id: googleClientId,
                     callback: handleGoogleCredential,
-                    ux_mode: 'popup',
-                    auto_select: false
+                    ux_mode: uxMode,
+                    auto_select: false,
+                    itp_support: true // Enable ITP workaround for iOS Safari
                 });
                 
-                console.log('[Google Auth] Initialization complete. Setting up button rendering.');
+                console.log('[Google Auth] Initialization complete with ux_mode:', uxMode, 'ITP support enabled');
                 googleReady = true;
+                
+                // For mobile, set up One Tap UI with mobile-friendly settings
+                if (isOnMobile) {
+                    console.log('[Google Auth] Configuring One Tap for mobile...');
+                    // Will trigger One Tap on button click for mobile
+                }
             } catch (initErr) {
                 console.error('[Google Auth] Initialization failed:', initErr);
                 googleReady = false;
@@ -1552,21 +1610,40 @@
             if (btnGoogleRegister) btnGoogleRegister.disabled = true;
             
             googleSignInInProgress = true;
+            const isOnMobile = isMobileDevice();
 
-            // For mobile WebView, use One Tap flow instead of prompt
             try {
-                console.log('[Google SignIn] Attempting Google One Tap prompt');
-                // Trigger the One Tap UI suitable for mobile
-                window.google.accounts.id.prompt((notification) => {
-                    console.log('[Google SignIn] Prompt notification:', notification);
-                    // Re-enable buttons after prompt response
-                    if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                    if (btnGoogleRegister) btnGoogleRegister.disabled = false;
-                    // Only reset flag if user dismissed without selecting
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        googleSignInInProgress = false;
-                    }
-                });
+                console.log('[Google SignIn] Device type:', isOnMobile ? 'mobile' : 'desktop');
+                
+                if (isOnMobile) {
+                    // For mobile with redirect mode, use renderButton or direct prompt
+                    console.log('[Google SignIn] Using One Tap prompt for mobile...');
+                    window.google.accounts.id.prompt((notification) => {
+                        console.log('[Google SignIn] Prompt notification:', notification);
+                        // Re-enable buttons after prompt response
+                        if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                        if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                        // Only reset flag if user dismissed without selecting
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            console.log('[Google SignIn] User dismissed One Tap');
+                            googleSignInInProgress = false;
+                        }
+                    });
+                } else {
+                    // For desktop, use popup mode with One Tap
+                    console.log('[Google SignIn] Using One Tap popup for desktop...');
+                    window.google.accounts.id.prompt((notification) => {
+                        console.log('[Google SignIn] Prompt notification:', notification);
+                        // Re-enable buttons after prompt response
+                        if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                        if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                        // Only reset flag if user dismissed without selecting
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                            console.log('[Google SignIn] User dismissed One Tap');
+                            googleSignInInProgress = false;
+                        }
+                    });
+                }
             } catch (e) {
                 console.error('[Google SignIn] Prompt failed:', e);
                 showToast('Unable to show Google sign-in. Please check your internet connection.', 'error');
