@@ -1374,6 +1374,7 @@
         let pendingOptionsJobId = null;
         let googleClientId = null;
         let googleReady = false;
+        let googleSignInInProgress = false;
         let pendingDriverRegistration = null;
         let profileSyncInterval = null;
 
@@ -1478,20 +1479,35 @@
         }
 
         async function handleGoogleCredential(response) {
+            // Prevent duplicate processing
+            if (googleSignInInProgress) {
+                console.log('[Google SignIn] Request already in progress, ignoring duplicate credential');
+                return;
+            }
+            
             if (!response || !response.credential) {
                 showToast('Google login failed', 'error');
                 return;
             }
+            
+            googleSignInInProgress = true;
             try {
                 const data = await apiFetch('/api/auth/drivers/google/login', {
                     method: 'POST',
                     body: JSON.stringify({ id_token: response.credential })
                 });
-                setToken(data.access_token);
+                // Store token in memory first
+                _memoryStore['nandu_driver_token'] = data.access_token;
+                // Await storage writes
+                await storageSet('nandu_driver_token', data.access_token);
                 await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
                 // Fallback to localStorage for synchronous access
+                try { localStorage.setItem('nandu_driver_token', data.access_token); } catch(e) { }
                 try { localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver)); } catch(e) { }
                 showToast('Signed in with Google', 'success');
+
+                driverId = data.driver.id;
+                driverProfile = data.driver;
 
                 const missingCoreProfile = !data.driver.phone
                     || !data.driver.plate
@@ -1518,16 +1534,26 @@
                     
                     // Render lucide icons for the newly visible form
                     setTimeout(() => lucide.createIcons(), 100);
+                    googleSignInInProgress = false;
                     return;
                 }
 
-                setTimeout(() => location.reload(), 300);
+                // Show dashboard directly instead of reloading
+                initDriverUI(data.driver);
             } catch (error) {
                 showToast('Google login failed: ' + error.message, 'error');
+                googleSignInInProgress = false;
             }
         }
 
         window.signInWithGoogle = async () => {
+            // Prevent duplicate sign-in requests
+            if (googleSignInInProgress) {
+                console.log('[Google SignIn] Sign-in already in progress, ignoring duplicate click');
+                showToast('Please wait, sign-in is in progress...', 'info');
+                return;
+            }
+            
             console.log('[Google SignIn] Starting... googleReady:', googleReady);
             
             if (!googleReady) {
@@ -1541,16 +1567,34 @@
                 return;
             }
 
+            // Disable buttons while processing
+            const btnGoogleLogin = document.getElementById('btn-google-login');
+            const btnGoogleRegister = document.getElementById('btn-google-register');
+            if (btnGoogleLogin) btnGoogleLogin.disabled = true;
+            if (btnGoogleRegister) btnGoogleRegister.disabled = true;
+            
+            googleSignInInProgress = true;
+
             // For mobile WebView, use One Tap flow instead of prompt
             try {
                 console.log('[Google SignIn] Attempting Google One Tap prompt');
                 // Trigger the One Tap UI suitable for mobile
                 window.google.accounts.id.prompt((notification) => {
                     console.log('[Google SignIn] Prompt notification:', notification);
+                    // Re-enable buttons after prompt response
+                    if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                    if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                    // Only reset flag if user dismissed without selecting
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        googleSignInInProgress = false;
+                    }
                 });
             } catch (e) {
                 console.error('[Google SignIn] Prompt failed:', e);
                 showToast('Unable to show Google sign-in. Please check your internet connection.', 'error');
+                if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                googleSignInInProgress = false;
             }
         };
 
