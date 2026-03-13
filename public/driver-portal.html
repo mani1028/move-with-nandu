@@ -1431,11 +1431,46 @@
             setTimeout(() => lucide.createIcons(), 50);
         };
 
+        // ── PERFORMANCE OPTIMIZATIONS ──────────────────────────────────────────
+        // Cache frequently accessed DOM elements to avoid repeated queries
+        let _domCache = {};
+        function getCachedElement(id) {
+            if (!_domCache[id]) {
+                _domCache[id] = document.getElementById(id);
+            }
+            return _domCache[id];
+        }
+        
+        // Debounce function to prevent excessive API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // Throttle function for very frequent operations
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+        
         // Detect if device is mobile
         function isMobileDevice() {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             // Check for common mobile indicators
-            return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua.toLowerCase());
+            return /android|webos|iphone|ipad|ipot|blackberry|iemobile|opera mini/i.test(ua.toLowerCase());
         }
 
         async function initGoogleAuth() {
@@ -2221,19 +2256,21 @@
             pollWallet();
             pollDriverProfileStatus();
             
-            // Poll every 5 seconds
+            // Poll every 10 seconds (reduced from 5 for better performance)
+            // Stagger polls to avoid thundering herd
             if (window.pollInterval) clearInterval(window.pollInterval);
             window.pollInterval = setInterval(() => {
-                pollActiveJobs();
-                pollMarketJobs();
-                pollHistory();
-                pollWallet();
-            }, 5000);
+                // Only poll active tab to reduce server load
+                if (currentTab === 'new') pollMarketJobs();
+                if (currentTab === 'active') pollActiveJobs();
+                if (currentTab === 'history') pollHistory();
+                if (currentTab === 'wallet') pollWallet();
+            }, 10000);
 
             if (profileSyncInterval) clearInterval(profileSyncInterval);
             profileSyncInterval = setInterval(() => {
                 pollDriverProfileStatus();
-            }, 7000);
+            }, 15000); // Increased from 7s to reduce profile sync overhead
             
             updateSeatUI();
             updateWalletView();
@@ -2799,14 +2836,15 @@ Are you absolutely sure you want to proceed?`);
         };
 
         window.switchView = (viewId) => {
+            // Use cached DOM elements for better performance
             ['home', 'history', 'wallet', 'profile', 'docs'].forEach(v => {
-                const view = document.getElementById(`view-${v}`);
-                const nav = document.getElementById(`nav-${v}`);
+                const view = getCachedElement(`view-${v}`);
+                const nav = getCachedElement(`nav-${v}`);
                 if(view) view.classList.add('hidden');
                 if(nav) { nav.classList.remove('text-brand-600', 'dark:text-brand-500'); nav.classList.add('text-slate-400'); }
             });
-            const selectedView = document.getElementById(`view-${viewId}`);
-            const selectedNav = document.getElementById(`nav-${viewId}`);
+            const selectedView = getCachedElement(`view-${viewId}`);
+            const selectedNav = getCachedElement(`nav-${viewId}`);
             if(selectedView) { selectedView.classList.remove('hidden'); selectedView.classList.remove('animate-slide-up'); void selectedView.offsetWidth; selectedView.classList.add('animate-slide-up'); }
             if(selectedNav) { selectedNav.classList.add('text-brand-600', 'dark:text-brand-500'); selectedNav.classList.remove('text-slate-400'); }
             if(viewId === 'history') { pollHistory(); }
@@ -2815,9 +2853,31 @@ Are you absolutely sure you want to proceed?`);
         };
 
         window.openSeatModal = () => {
-            manualSeats = driverProfile ? (driverProfile.manualFilledSeats || 0) : 0;
+            manualSeats = driverProfile ? (driverProfile.manual_filled_seats || 0) : 0;
+            const capacity = getTotalCapacity();
+            
+            // Calculate booked seats from active jobs
+            const booked = myActiveJobs.filter(j => ['assigned','verified','started'].includes(j.status)).reduce((sum, j) => {
+                if (j.bookingType === 'full') return sum + capacity;
+                return sum + (parseInt(j.passengers)||1);
+            }, 0);
+            
+            // Update modal display
             const capEl = document.getElementById('seat-mod-cap');
-            if (capEl) capEl.innerText = getTotalCapacity();
+            const appEl = document.getElementById('seat-mod-app');
+            const barEl = document.getElementById('seat-mod-bar');
+            const totalEl = document.getElementById('manual-seat-count');
+            
+            if (capEl) capEl.innerText = capacity;
+            if (appEl) appEl.innerText = booked;
+            if (totalEl) totalEl.innerText = manualSeats;
+            
+            // Update progress bar
+            if (barEl) {
+                const filledPercent = Math.min((booked / capacity) * 100, 100);
+                barEl.style.width = filledPercent + '%';
+            }
+            
             updateSeatUI();
             document.getElementById('seat-modal').classList.remove('hidden');
         };
@@ -2832,7 +2892,16 @@ Are you absolutely sure you want to proceed?`);
             if (newManual < 0) newManual = 0;
             if (newManual + booked > capacity) newManual = capacity - booked;
             manualSeats = newManual;
-            document.getElementById('manual-seat-count').innerText = manualSeats;
+            
+            // Update display with visual feedback
+            const totalEl = document.getElementById('manual-seat-count');
+            const barEl = document.getElementById('seat-mod-bar');
+            if (totalEl) totalEl.innerText = manualSeats;
+            if (barEl) {
+                const totalFilled = booked + manualSeats;
+                const filledPercent = Math.min((totalFilled / capacity) * 100, 100);
+                barEl.style.width = filledPercent + '%';
+            }
         };
 
         window.saveManualSeats = async () => {
