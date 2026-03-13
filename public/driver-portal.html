@@ -1532,6 +1532,12 @@
                     document.getElementById('reg-type').value = data.driver.vehicle_type || '';
                     document.getElementById('reg-route').value = data.driver.route_pref || '';
                     
+                    // Re-enable buttons for incomplete profile registration
+                    const btnGoogleLogin = document.getElementById('btn-google-login');
+                    const btnGoogleRegister = document.getElementById('btn-google-register');
+                    if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                    if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                    
                     // Render lucide icons for the newly visible form
                     setTimeout(() => lucide.createIcons(), 100);
                     googleSignInInProgress = false;
@@ -1539,10 +1545,19 @@
                 }
 
                 // Show dashboard directly instead of reloading
+                // Hide login screen and show app screen
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
                 initDriverUI(data.driver);
+                googleSignInInProgress = false;
             } catch (error) {
                 showToast('Google login failed: ' + error.message, 'error');
                 googleSignInInProgress = false;
+                // Re-enable buttons on error
+                const btnGoogleLogin = document.getElementById('btn-google-login');
+                const btnGoogleRegister = document.getElementById('btn-google-register');
+                if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                if (btnGoogleRegister) btnGoogleRegister.disabled = false;
             }
         }
 
