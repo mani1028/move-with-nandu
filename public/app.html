@@ -1980,21 +1980,43 @@
 
         window.confirmCancel = (id) => {
             cancelTargetId = id;
+            const order = allUserOrders.find(o => o.id === id);
+            if (!order) {
+                alert('Ride not found');
+                return;
+            }
+            // Only allow cancellation for pending and assigned rides
+            if (!['pending', 'assigned'].includes(order.status)) {
+                alert(`Cannot cancel ${order.status} ride. Only pending and assigned rides can be cancelled.`);
+                return;
+            }
             document.getElementById('cancel-modal').style.display = 'flex';
             document.getElementById('cancel-reason').value = "";
         }
         document.getElementById('confirm-cancel-btn').onclick = async () => {
             const r = document.getElementById('cancel-reason').value;
-            if (!r) return alert('Select a reason');
+            if (!r) return alert('Please select a reason');
             try {
-                await apiFetch(`/api/rides/${cancelTargetId}/cancel`, { method: 'PATCH', body: JSON.stringify({ reason: r }) });
+                console.log('[Cancel Ride] Attempting to cancel:', cancelTargetId, 'reason:', r);
+                await apiFetch(`/api/rides/${cancelTargetId}/cancel`, { 
+                    method: 'PATCH', 
+                    body: JSON.stringify({ reason: r }),
+                    ignore401: false
+                });
                 const idx = allUserOrders.findIndex(o => o.id === cancelTargetId);
-                if (idx !== -1) { allUserOrders[idx].status = 'cancelled'; allUserOrders[idx].cancelReason = r; }
+                if (idx !== -1) { 
+                    allUserOrders[idx].status = 'cancelled'; 
+                    allUserOrders[idx].cancel_reason = r;
+                }
                 localStorage.setItem('userOrders', JSON.stringify(allUserOrders));
                 document.getElementById('cancel-modal').style.display = 'none';
                 document.getElementById('order-modal').style.display = 'none';
+                alert('✅ Ride cancelled successfully');
                 if (currentTrackingOrderId === cancelTargetId) { renderOrders(); switchView('orders'); }
-            } catch(e) { alert(e.message); }
+            } catch(e) { 
+                console.error('[Cancel Ride] Failed:', e);
+                alert('❌ Cancel failed: ' + (e.message || 'Unknown error')); 
+            }
         }
 
         window.switchView = (v) => {

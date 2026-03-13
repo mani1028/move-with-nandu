@@ -3167,6 +3167,7 @@ Are you absolutely sure you want to proceed?`);
                 statusColor = 'border-l-4 border-blue-500';
             } else {
                 if(job.status === 'assigned') {
+                    // Only show OTP button when driver is assigned to the job
                     btnAction = `<button onclick="openOtpModal('${job.id}')" class="w-full mt-3 py-2.5 bg-brand-600 text-white font-bold rounded-lg shadow-lg active:scale-95 transition">Verify OTP</button>`;
                     statusColor = 'border-l-4 border-yellow-500';
                 } else if (job.status === 'verified') {
@@ -3277,9 +3278,20 @@ Are you absolutely sure you want to proceed?`);
 
         window.openOtpModal = (id) => {
             pendingVerifyJobId = id;
+            const job = myActiveJobs.find(j => j.id === id);
+            if (!job) {
+                showToast('Job not found', 'error');
+                return;
+            }
+            // Ensure job is in assigned status (driver must be assigned first)
+            if (job.status !== 'assigned') {
+                showToast('Driver not yet assigned to this job', 'warning');
+                return;
+            }
             document.getElementById('otp-modal').classList.remove('hidden');
             document.querySelectorAll('#otp-modal .otp-input').forEach(i => i.value = '');
             document.querySelector('#otp-modal .otp-input').focus();
+            console.log('[OTP] Opening OTP modal for job:', id, 'status:', job.status);
         };
 
         window.submitOtp = async () => {
