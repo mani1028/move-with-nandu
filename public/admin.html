@@ -1515,13 +1515,18 @@
     window.confirmForceCancel = async () => {
         if (!cancelTargetId) return;
         const reason = document.getElementById('cancel-reason-input').value || 'Admin Forced';
-        await apiFetch(`/api/admin/bookings/${cancelTargetId}/cancel`, {
-            method: 'PATCH',
-            body: JSON.stringify({ reason })
-        });
-        closeModal('force-cancel-modal');
-        showToast('Booking cancelled successfully');
-        await loadDashboardData();
+        try {
+            await apiFetch(`/api/admin/bookings/${cancelTargetId}/cancel`, {
+                method: 'PATCH',
+                body: JSON.stringify({ reason })
+            });
+            closeModal('force-cancel-modal');
+            showToast('Booking cancelled successfully');
+            await loadDashboardData();
+        } catch (e) {
+            console.error('[Admin Cancel] Error:', e);
+            showToast('❌ Cancel failed: ' + (e.message || 'Unknown error'), 'error');
+        }
     };
 
     window.verifyDriver = async (id, val) => {

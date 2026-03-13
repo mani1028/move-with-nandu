@@ -113,7 +113,7 @@ async def force_cancel(
     ride = result.scalar_one_or_none()
     if not ride:
         raise HTTPException(404, "Ride not found.")
-    from services.state_machine import assert_transition
+    from ..services.state_machine import assert_transition
     assert_transition(str(ride.status), "cancelled")  # type: ignore
     ride.status = "cancelled"  # type: ignore
     ride.cancel_reason = body.reason  # type: ignore
@@ -284,7 +284,7 @@ async def patch_booking(
             raise HTTPException(400, "Invalid booking status")
         current = str(ride.status or "pending")
         if not body.force and current != next_status:
-            from services.state_machine import assert_transition
+            from ..services.state_machine import assert_transition
             assert_transition(current, next_status)
         ride.status = next_status  # type: ignore
         if next_status == "cancelled" and not (ride.cancel_reason or "").strip():
