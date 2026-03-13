@@ -1,5 +1,5 @@
 {
-  "buildCommand": "",
+  "buildCommand": "pip install -r api/requirements.txt",
   "builds": [
     {
       "src": "api/index.py",
