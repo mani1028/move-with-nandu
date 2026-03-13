@@ -1276,11 +1276,86 @@
 
         // Google OAuth
         let googleInitialized = false;
+        // ── ANDROID NATIVE GOOGLE AUTH CALLBACK ──
+        window.onGoogleAuthToken = async function(result) {
+            const errorDiv = document.getElementById('google-error');
+            
+            if (!result.success) {
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.innerText = 'Google Sign-In was cancelled or failed.';
+                }
+                return;
+            }
+
+            try {
+                const container = document.getElementById('google-btn-container');
+                if (container) {
+                    container.innerHTML = '<div class="text-sm text-slate-500 font-medium py-2 flex items-center gap-2 animate-pulse"><i data-lucide="loader" class="h-4 w-4 animate-spin"></i> Signing in...</div>';
+                    lucide.createIcons();
+                }
+
+                // Send the native Android Google ID token to your server
+                const res = await fetch(API + '/api/auth/google/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: result.idToken })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(`Backend Error (${res.status}): ${errData.detail || 'Unknown error'}`);
+                }
+
+                const data = await res.json();
+                setToken(data.access_token);
+                userData = data.user;
+                localStorage.setItem('nandu_user', JSON.stringify(data.user));
+                
+                if (!userData.phone) { 
+                    showUserProfileCompletionScreen(userData); 
+                } else { 
+                    initUserUI(); 
+                }
+                if (errorDiv) errorDiv.classList.add('hidden');
+                
+            } catch(error) {
+                console.error('Android Google login failed:', error);
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.innerText = error.message || 'Error processing Google sign-in.';
+                }
+                googleInitialized = false; 
+                initGoogleSignIn();
+            }
+        };
+
         async function initGoogleSignIn(retryCount = 0) {
             if (googleInitialized) return;
             const container = document.getElementById('google-btn-container');
             const googleErrorDiv = document.getElementById('google-error');
+            const dividerSec = document.getElementById('google-divider-section');
             if (!container) return;
+
+            // --- CHECK IF RUNNING INSIDE THE ANDROID APP ---
+            if (window.Android && window.Android.triggerGoogleSignIn) {
+                container.classList.remove('hidden');
+                if (dividerSec) dividerSec.classList.remove('hidden');
+                
+                // Render a custom button that calls the Android Java function
+                container.innerHTML = `
+                    <button type="button" onclick="window.Android.triggerGoogleSignIn()"
+                        class="w-full py-2.5 bg-white border border-slate-300 rounded-xl shadow-sm hover:bg-slate-50 transition flex items-center justify-center gap-3">
+                        <img src="assets/google.svg" class="w-5 h-5" alt="Google">
+                        <span class="font-bold text-slate-700 text-sm">Continue with Google</span>
+                    </button>
+                `;
+                googleInitialized = true;
+                return;
+            }
+            // -------------------------------------------
+
+            // STANDARD WEB BEHAVIOR (for mobile browsers/desktop)
             try {
                 if (!window.google || !google.accounts || !google.accounts.id) {
                     if (retryCount < 10) { setTimeout(() => initGoogleSignIn(retryCount + 1), 500); return; }
@@ -1292,7 +1367,6 @@
                 });
                 if (!config.google_client_id) throw new Error('Google Sign-In is not configured on this server.');
                 container.classList.remove('hidden');
-                const dividerSec = document.getElementById('google-divider-section');
                 if (dividerSec) dividerSec.classList.remove('hidden');
                 google.accounts.id.initialize({
                     client_id: config.google_client_id,
