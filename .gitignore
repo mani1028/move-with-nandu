@@ -72,3 +72,6 @@ __pycache__/
 
 # dataconnect generated files
 .dataconnect
+
+.vercel
+.env*.local
