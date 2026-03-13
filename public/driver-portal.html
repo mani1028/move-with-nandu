@@ -1828,23 +1828,41 @@
 
         function init() {
             // Initialize ITP-resistant storage first
-            initStorage().then(() => {
+            initStorage().then(async () => {
                 // Theme loading
                 const savedTheme = localStorage.getItem('nandu_theme');
                 if(savedTheme === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('dark-toggle').checked = true; }
                 else { document.documentElement.classList.remove('dark'); document.getElementById('dark-toggle').checked = false; }
 
                 // Bootstrap session from storage or API
-                const storedProfile = localStorage.getItem('nandu_driver_profile');
                 const token = getToken();
+                
+                // Try to get profile from storage (IndexedDB/localStorage/memory)
+                let storedProfile = null;
+                try {
+                    storedProfile = await storageGet('nandu_driver_profile');
+                    if (storedProfile && typeof storedProfile === 'string') {
+                        storedProfile = JSON.parse(storedProfile);
+                    }
+                } catch(e) {
+                    console.log('[Storage] Profile retrieval via storageGet failed:', e?.message || e);
+                    // Fallback to localStorage
+                    const fallback = localStorage.getItem('nandu_driver_profile');
+                    if (fallback) {
+                        try {
+                            storedProfile = JSON.parse(fallback);
+                        } catch(e2) {
+                            console.log('[Storage] localStorage fallback parse error:', e2);
+                        }
+                    }
+                }
                 
                 if (storedProfile && token) {
                     try {
-                        const profile = JSON.parse(storedProfile);
-                        if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
-                        else initDriverUI(profile);
+                        if (requiresDriverProfileCompletion(storedProfile)) showDriverProfileCompletion(storedProfile);
+                        else initDriverUI(storedProfile);
                     } catch(e) { 
-                        console.log("Stored profile parse error:", e);
+                        console.log("Stored profile init error:", e);
                         showLoginScreen(); 
                     }
                 } else {
@@ -1852,6 +1870,8 @@
                         // Try to fetch fresh profile from API
                         apiFetch('/api/drivers/me')
                             .then(profile => {
+                                driverProfile = profile;
+                                driverId = profile.id;
                                 storageSet('nandu_driver_profile', JSON.stringify(profile));
                                 // Also save to localStorage for synchronous access
                                 try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
