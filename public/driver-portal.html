@@ -1475,7 +1475,8 @@
 
         async function initGoogleAuth() {
             try {
-                const cfg = await apiFetch('/api/auth/drivers/google/userinfo');
+                // FIX: Remove 'drivers/' from path to match backend router at /api/auth/google/userinfo
+                const cfg = await apiFetch('/api/auth/google/userinfo');
                 googleClientId = cfg.google_client_id;
                 console.log('[Google Auth] Client ID initialized:', googleClientId ? 'yes' : 'failed');
             } catch (error) {
@@ -1548,30 +1549,35 @@
             
             googleSignInInProgress = true;
             try {
-                const data = await apiFetch('/api/auth/drivers/google/login', {
+                // FIX: Remove 'drivers/' from endpoint and add role: 'driver' for driver sign-in
+                const data = await apiFetch('/api/auth/google/login', {
                     method: 'POST',
-                    body: JSON.stringify({ id_token: response.credential })
+                    body: JSON.stringify({ id_token: response.credential, role: 'driver' })
                 });
+                
+                // Backend returns "user" key even for drivers based on google_auth.py response schema
+                const driverData = data.user || data.driver;
+                
                 // Store token in memory first
                 _memoryStore['nandu_driver_token'] = data.access_token;
                 // Await storage writes
                 await storageSet('nandu_driver_token', data.access_token);
-                await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
+                await storageSet('nandu_driver_profile', JSON.stringify(driverData));
                 // Fallback to localStorage for synchronous access
                 try { localStorage.setItem('nandu_driver_token', data.access_token); } catch(e) { }
-                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(data.driver)); } catch(e) { }
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverData)); } catch(e) { }
                 showToast('Signed in with Google', 'success');
 
-                driverId = data.driver.id;
-                driverProfile = data.driver;
+                driverId = driverData.id;
+                driverProfile = driverData;
 
-                const missingCoreProfile = !data.driver.phone
-                    || !data.driver.plate
-                    || !data.driver.profile_pic
-                    || !data.driver.license_url
-                    || !data.driver.aadhar_url
-                    || !data.driver.rc_url
-                    || !data.driver.insurance_url;
+                const missingCoreProfile = !driverData.phone
+                    || !driverData.plate
+                    || !driverData.profile_pic
+                    || !driverData.license_url
+                    || !driverData.aadhar_url
+                    || !driverData.rc_url
+                    || !driverData.insurance_url;
                 if (missingCoreProfile) {
                     isRegistering = true;
                     pendingDriverRegistration = null;
@@ -1581,12 +1587,12 @@
                     
                     document.getElementById('auth-step-1').classList.add('hidden');
                     document.getElementById('auth-step-3-register').classList.remove('hidden');
-                    document.getElementById('reg-name').value = data.driver.name || '';
-                    document.getElementById('reg-email').value = data.driver.email || '';
-                    document.getElementById('reg-phone').value = data.driver.phone || '';
-                    document.getElementById('reg-plate').value = data.driver.plate || '';
-                    document.getElementById('reg-type').value = data.driver.vehicle_type || '';
-                    document.getElementById('reg-route').value = data.driver.route_pref || '';
+                    document.getElementById('reg-name').value = driverData.name || '';
+                    document.getElementById('reg-email').value = driverData.email || '';
+                    document.getElementById('reg-phone').value = driverData.phone || '';
+                    document.getElementById('reg-plate').value = driverData.plate || '';
+                    document.getElementById('reg-type').value = driverData.vehicle_type || '';
+                    document.getElementById('reg-route').value = driverData.route_pref || '';
                     
                     // Re-enable buttons for incomplete profile registration
                     const btnGoogleLogin = document.getElementById('btn-google-login');
@@ -1604,7 +1610,7 @@
                 // Hide login screen and show app screen
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                initDriverUI(data.driver);
+                initDriverUI(driverData);
                 googleSignInInProgress = false;
             } catch (error) {
                 showToast('Google login failed: ' + error.message, 'error');
@@ -1622,6 +1628,13 @@
             if (googleSignInInProgress) {
                 console.log('[Google SignIn] Sign-in already in progress, ignoring duplicate click');
                 showToast('Please wait, sign-in is in progress...', 'info');
+                return;
+            }
+            
+            // FIX: Check if running inside Android app and trigger native login
+            if (window.Android && typeof window.Android.triggerGoogleSignIn === 'function') {
+                console.log('[Google SignIn] Triggering Native Android Auth');
+                window.Android.triggerGoogleSignIn();
                 return;
             }
             
@@ -1684,6 +1697,76 @@
                 showToast('Unable to show Google sign-in. Please check your internet connection.', 'error');
                 if (btnGoogleLogin) btnGoogleLogin.disabled = false;
                 if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                googleSignInInProgress = false;
+            }
+        };
+
+        // FIX: Missing Android receiver function. The Android app calls this after successful native login.
+        window.onGoogleAuthToken = async (result) => {
+            if (!result || !result.success || !result.idToken) {
+                showToast('Native Google Sign-In failed or was cancelled', 'error');
+                return;
+            }
+            
+            googleSignInInProgress = true;
+            try {
+                console.log('[Google SignIn] Received token from Android app');
+                showToast('Verifying with server...', 'info');
+                
+                // Send Android token to our backend with role: 'driver'
+                const data = await apiFetch('/api/auth/google/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ id_token: result.idToken, role: 'driver' })
+                });
+                
+                const driverData = data.user || data.driver;
+                
+                _memoryStore['nandu_driver_token'] = data.access_token;
+                await storageSet('nandu_driver_token', data.access_token);
+                await storageSet('nandu_driver_profile', JSON.stringify(driverData));
+                try { localStorage.setItem('nandu_driver_token', data.access_token); } catch(e) { }
+                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverData)); } catch(e) { }
+                
+                showToast('✅ Signed in via App successfully', 'success');
+                
+                driverId = driverData.id;
+                driverProfile = driverData;
+                
+                const missingCoreProfile = !driverData.phone || !driverData.plate || !driverData.profile_pic
+                    || !driverData.license_url || !driverData.aadhar_url || !driverData.rc_url || !driverData.insurance_url;
+                if (missingCoreProfile) {
+                    isRegistering = true;
+                    pendingDriverRegistration = null;
+                    const loginScreen = document.getElementById('login-screen');
+                    loginScreen.classList.remove('hidden');
+                    
+                    document.getElementById('auth-step-1').classList.add('hidden');
+                    document.getElementById('auth-step-3-register').classList.remove('hidden');
+                    document.getElementById('reg-name').value = driverData.name || '';
+                    document.getElementById('reg-email').value = driverData.email || '';
+                    document.getElementById('reg-phone').value = driverData.phone || '';
+                    document.getElementById('reg-plate').value = driverData.plate || '';
+                    document.getElementById('reg-type').value = driverData.vehicle_type || '';
+                    document.getElementById('reg-route').value = driverData.route_pref || '';
+                    
+                    const btnGoogleLogin = document.getElementById('btn-google-login');
+                    const btnGoogleRegister = document.getElementById('btn-google-register');
+                    if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                    if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                    
+                    setTimeout(() => lucide.createIcons(), 100);
+                    googleSignInInProgress = false;
+                    return;
+                }
+                
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                initDriverUI(driverData);
+                console.log('[Google SignIn] Successfully logged in driver:', driverId);
+            } catch(e) {
+                console.error('[Google SignIn] Android login error:', e);
+                showToast('❌ App Login Error: ' + e.message, 'error');
+            } finally {
                 googleSignInInProgress = false;
             }
         };

@@ -55,6 +55,7 @@ else:
 class GoogleTokenIn(BaseModel):
     """Frontend sends Google ID token from Google Sign-In button."""
     id_token: str
+    role: str = "user"  # Allow frontend to specify if this is a driver or user login
 
 
 class GoogleAuthResponse(BaseModel):
@@ -164,13 +165,16 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
             logger.info(f"👤 Using existing user: {mask_email(str(existing_user.email))}")
             user = existing_user
         else:
-            # Create new user
-            logger.info(f"✨ Creating new Google user: {mask_email(email)}")
+            # Create new user or driver based on role specified in request
+            logger.info(f"✨ Creating new Google account: {mask_email(email)} as {body.role}")
             # Generate a placeholder hash for OAuth-only users (passwords not supported)
             oauth_placeholder = hash_password(f"oauth_google_{secrets.token_urlsafe(32)}")
             
+            # Assign correct prefix and role based on request
+            id_prefix = "DRV" if body.role == "driver" else "USR"
+            
             user = User(
-                id=generate_custom_id("USR"),
+                id=generate_custom_id(id_prefix),
                 name=name,
                 email=email,
                 phone='',  # Google doesn't provide phone by default
@@ -179,7 +183,7 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
                 provider_id=google_sub,
                 email_verified=email_verified,
                 picture=picture,
-                role='user',
+                role=body.role,  # Use role from request (driver or user)
             )
             db.add(user)
     
