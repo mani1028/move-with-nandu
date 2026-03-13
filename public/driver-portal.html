@@ -1168,6 +1168,11 @@
         // ── API CONFIG ────────────────────────────────────────────────────────
         const API = (window.API_BASE && window.API_BASE.trim())
             || (location.origin && location.origin !== 'null' ? location.origin : 'http://localhost:8000');
+        
+        console.log('[App Startup] Initializing...');
+        console.log('[App Startup] API_BASE:', API);
+        console.log('[App Startup] location.origin:', location.origin);
+        console.log('[App Startup] User Agent:', navigator.userAgent);
 
         function getToken() { return localStorage.getItem('nandu_driver_token'); }
         function setToken(t) { localStorage.setItem('nandu_driver_token', t); }
@@ -1177,14 +1182,22 @@
             const token = getToken();
             const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
             if (token) headers['Authorization'] = `Bearer ${token}`;
-            const res = await fetch(API + path, { ...options, headers });
-            if (res.status === 401 && !options.ignore401) { clearToken(); location.reload(); }
-            if (!res.ok) {
-                let err = 'Request failed';
-                try { const d = await res.json(); err = d.detail || err; } catch(e) {}
-                throw new Error(err);
+            const fullUrl = API + path;
+            console.log('[API] Request:', { method: (options.method || 'GET'), path, url: fullUrl });
+            try {
+                const res = await fetch(fullUrl, { ...options, headers });
+                console.log('[API] Response:', { status: res.status, path });
+                if (res.status === 401 && !options.ignore401) { clearToken(); location.reload(); }
+                if (!res.ok) {
+                    let err = 'Request failed';
+                    try { const d = await res.json(); err = d.detail || err; } catch(e) {}
+                    throw new Error(err);
+                }
+                return res.json();
+            } catch (e) {
+                console.error('[API] Error:', { path, error: e.message });
+                throw e;
             }
-            return res.json();
         }
 
         // --- GLOBAL STATE ---
@@ -1262,23 +1275,47 @@
             try {
                 const cfg = await apiFetch('/api/auth/drivers/google/userinfo');
                 googleClientId = cfg.google_client_id;
+                console.log('[Google Auth] Client ID initialized:', googleClientId ? 'yes' : 'failed');
             } catch (error) {
+                console.error('[Google Auth] Failed to fetch config:', error);
                 googleReady = false;
                 return;
             }
 
-            if (!googleClientId || !window.google || !window.google.accounts || !window.google.accounts.id) {
+            if (!googleClientId) {
+                console.error('[Google Auth] No client ID available');
                 googleReady = false;
                 return;
             }
 
-            window.google.accounts.id.initialize({
-                client_id: googleClientId,
-                callback: handleGoogleCredential,
-                ux_mode: 'popup',
-                auto_select: false
-            });
-            googleReady = true;
+            // Wait for GSI library to load (up to 5 seconds)
+            let attempts = 0;
+            while (attempts < 50 && (!window.google || !window.google.accounts || !window.google.accounts.id)) {
+                console.log('[Google Auth] Waiting for GSI library to load... attempt', attempts + 1);
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+
+            if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+                console.error('[Google Auth] GSI library failed to load. Google object:', !!window.google, 'accounts:', !!window.google?.accounts);
+                googleReady = false;
+                return;
+            }
+
+            try {
+                window.google.accounts.id.initialize({
+                    client_id: googleClientId,
+                    callback: handleGoogleCredential,
+                    ux_mode: 'popup',
+                    auto_select: false
+                });
+                
+                console.log('[Google Auth] Initialization complete. Setting up button rendering.');
+                googleReady = true;
+            } catch (initErr) {
+                console.error('[Google Auth] Initialization failed:', initErr);
+                googleReady = false;
+            }
         }
 
         async function handleGoogleCredential(response) {
@@ -1330,14 +1367,31 @@
         }
 
         window.signInWithGoogle = async () => {
+            console.log('[Google SignIn] Starting... googleReady:', googleReady);
+            
             if (!googleReady) {
+                console.log('[Google SignIn] Not ready, initializing...');
                 await initGoogleAuth();
             }
+            
             if (!googleReady) {
-                showToast('Google sign-in is unavailable right now. Try email login.', 'warning');
+                console.error('[Google SignIn] Google not ready after init');
+                showToast('Google sign-in is unavailable. Try email login.', 'warning');
                 return;
             }
-            window.google.accounts.id.prompt();
+
+            // For mobile WebView, use One Tap flow instead of prompt
+            try {
+                console.log('[Google SignIn] Attempting Google One Tap prompt');
+                // Trigger the One Tap UI suitable for mobile
+                window.google.accounts.id.prompt((notification) => {
+                    console.log('[Google SignIn] Prompt notification:', notification);
+                });
+            } catch (e) {
+                console.error('[Google SignIn] Prompt failed:', e);
+                showToast('Unable to show Google sign-in. Please check your internet connection.', 'error');
+            }
+        };
         };
 
         window.driverRegSubmit = async () => {
