@@ -14,7 +14,7 @@ ALGORITHM = cast(str, settings["algorithm"])
 EXPIRE_MIN = cast(int, settings["access_token_expire_minutes"])
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/swagger-login", auto_error=False)
 
 
 def hash_password(password: str) -> str:

@@ -2,7 +2,7 @@ import os, secrets
 import datetime
 from typing import cast, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -447,3 +447,13 @@ async def refresh_token(
 async def logout():
     """JWT logout is handled client-side by deleting the token."""
     return {"ok": True}
+
+
+@router.post("/swagger-login", include_in_schema=False)
+async def swagger_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    """Adapter to allow Swagger Authorize to use existing JSON login logic."""
+    login_data = LoginIn(email=form_data.username, password=form_data.password)
+    return await login(body=login_data, db=db)
