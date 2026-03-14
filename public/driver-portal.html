@@ -105,8 +105,24 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-4 left-4 right-4 z-[110] pointer-events-none flex flex-col gap-2"></div>
 
+    <!-- Announcements Modal -->
+    <div id="announcements-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="bg-brand-100 dark:bg-brand-900/30 p-2 rounded-xl text-brand-600"><i data-lucide="megaphone" class="h-5 w-5"></i></div>
+                    <h3 class="text-lg font-bold dark:text-white">Announcements</h3>
+                </div>
+                <button onclick="document.getElementById('announcements-modal').classList.add('hidden')" class="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 transition">
+                    <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
+                </button>
+            </div>
+            <div id="announcements-list" class="flex-1 overflow-y-auto space-y-3 pr-1 pb-4"></div>
+        </div>
+    </div>
+
     <!-- 3-Dot Options Modal -->
-    <div id="options-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="options-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold dark:text-white">Trip Options</h3>
@@ -133,7 +149,7 @@
 
     <!-- Document Upload Modal -->
     <!-- Edit Profile Modal -->
-    <div id="edit-profile-modal" class="fixed inset-0 z-[106] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="edit-profile-modal" class="fixed inset-0 z-[106] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl animate-slide-up relative overflow-hidden max-h-[92vh] flex flex-col">
             <!-- Header gradient -->
             <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-5 text-white flex justify-between items-center shrink-0">
@@ -229,7 +245,7 @@
         </div>
     </div>
 
-    <div id="doc-upload-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="doc-upload-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold dark:text-white">Upload Documents</h3>
@@ -267,7 +283,7 @@
     </div>
 
     <!-- Job Accept Modal -->
-    <div id="accept-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="accept-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -308,7 +324,7 @@
     </div>
 
     <!-- OTP Verification Modal -->
-    <div id="otp-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="otp-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <button onclick="document.getElementById('otp-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:rotate-90 transition-transform">
                 <i data-lucide="x" class="h-4 w-4 text-slate-500"></i>
@@ -331,7 +347,7 @@
     </div>
 
     <!-- Start Ride Confirmation Modal -->
-    <div id="start-confirm-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="start-confirm-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -348,7 +364,7 @@
     </div>
 
     <!-- Bulk Complete Modal -->
-    <div id="complete-all-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="complete-all-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -365,7 +381,7 @@
     </div>
 
     <!-- Payment Collection Modal -->
-    <div id="payment-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="payment-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative flex flex-col max-h-[80vh]">
             <div class="text-center mb-4">
                 <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -389,7 +405,7 @@
     </div>
 
     <!-- FIX #5: Enhanced Offline Confirmation Modal -->
-    <div id="offline-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="offline-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-zoom-in relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -404,7 +420,7 @@
     </div>
 
     <!-- Trip Detail Modal (FIX #7: Full trip details with all passengers) -->
-    <div id="trip-detail-modal" class="fixed inset-0 z-[106] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="trip-detail-modal" class="fixed inset-0 z-[106] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative max-h-[85vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold dark:text-white">Trip Details</h3>
@@ -417,7 +433,7 @@
     </div>
 
     <!-- Driver Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 z-[105] bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
+    <div id="settings-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up relative">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold dark:text-white">Ride Preferences</h3>
@@ -483,7 +499,7 @@
     </div>
 
     <!-- Manual Seat Editor Modal -->
-    <div id="seat-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="seat-modal" class="fixed inset-0 z-[100] bg-black/70 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-xs animate-slide-up">
             <h3 class="text-lg font-bold mb-4 dark:text-white">Manage Seats</h3>
             <div class="mb-4 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
@@ -704,11 +720,18 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 cursor-pointer group" onclick="document.getElementById('status-toggle').click()">
-                <span id="status-label" class="text-[10px] font-bold text-slate-400 uppercase transition-colors">Offline</span>
-                <div class="relative inline-block w-11 h-6">
-                    <input type="checkbox" id="status-toggle" class="peer sr-only" onchange="toggleOnlineStatus(this)">
-                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shadow-inner"></div>
+            <div class="flex items-center gap-4">
+                <button onclick="openAnnouncements()" class="relative p-2 text-slate-400 hover:text-brand-600 transition">
+                    <i data-lucide="bell" class="h-6 w-6"></i>
+                    <span id="unread-badge" class="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full hidden border-2 border-white dark:border-slate-950"></span>
+                </button>
+
+                <div class="flex items-center gap-2 cursor-pointer group" onclick="document.getElementById('status-toggle').click()">
+                    <span id="status-label" class="text-[10px] font-bold text-slate-400 uppercase transition-colors">Offline</span>
+                    <div class="relative inline-block w-11 h-6">
+                        <input type="checkbox" id="status-toggle" class="peer sr-only" onchange="toggleOnlineStatus(this)">
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shadow-inner"></div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -1139,7 +1162,7 @@
         </main>
 
         <!-- Navigation Bar -->
-        <nav class="fixed bottom-0 w-full max-w-lg bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 flex justify-around py-2 px-1 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+        <nav class="fixed bottom-0 w-full max-w-lg bg-white/95 dark:bg-slate-950/95 border-t border-slate-200 dark:border-slate-800 flex justify-around py-2 px-1 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
             <button onclick="switchView('home')" id="nav-home" class="flex flex-col items-center gap-0.5 px-2 py-1.5 text-brand-600 dark:text-brand-500 transition-colors">
                 <i data-lucide="layout-grid" class="h-5 w-5"></i>
                 <span class="text-[9px] font-bold">Jobs</span>
@@ -1388,6 +1411,9 @@
         let googleSignInInProgress = false;
         let pendingDriverRegistration = null;
         let profileSyncInterval = null;
+        const ANNOUNCEMENT_SEEN_KEY = 'nandu_driver_ann_seen_at';
+        let _lastActiveJobsSignature = '';
+        let _lastMarketJobsSignature = '';
 
         // ── AUTH FUNCTIONS (API-based) ────────────────────────────────────────
         window.driverEmailAuth = async () => {
@@ -1451,6 +1477,27 @@
                 _domCache[id] = document.getElementById(id);
             }
             return _domCache[id];
+        }
+
+        function renderIconsIn(root) {
+            if (!window.lucide) return;
+            if (root) {
+                lucide.createIcons({ root });
+                return;
+            }
+            lucide.createIcons();
+        }
+
+        function buildJobsSignature(jobs) {
+            return JSON.stringify((jobs || []).map((j) => [
+                j.id,
+                j.status,
+                j.price || 0,
+                j.passengers || 0,
+                j.bookingType || 'shared',
+                j.from || '',
+                j.to || ''
+            ]));
         }
         
         // Debounce function to prevent excessive API calls
@@ -2161,7 +2208,16 @@
                                 showLoginScreen();
                             });
                     } else {
-                        showLoginScreen();
+                        if (window.Android) {
+                            console.log('[Init] Waiting for Android Native Auth to resolve...');
+                            setTimeout(() => {
+                                if (!driverId && !googleSignInInProgress) {
+                                    showLoginScreen();
+                                }
+                            }, 3000);
+                        } else {
+                            showLoginScreen();
+                        }
                     }
                 }
             }).catch(e => {
@@ -2199,6 +2255,7 @@
             };
 
             initGoogleAuth();
+            checkAnnouncementsBadge();
 
             window.driverRegNextStep = (currentStep) => {
                 if (currentStep === 1) {
@@ -2395,15 +2452,76 @@
             updateSeatUI();
             updateWalletView();
             setHomeTab('new');
+            checkAnnouncementsBadge();
             showToast("Welcome back!", "success");
         };
+
+        window.openAnnouncements = async () => {
+            const modal = document.getElementById('announcements-modal');
+            const badge = document.getElementById('unread-badge');
+            const list = document.getElementById('announcements-list');
+            if (!modal || !list) return;
+
+            modal.classList.remove('hidden');
+            if (badge) badge.classList.add('hidden');
+            list.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">Loading messages...</p>';
+
+            try {
+                const messages = await apiFetch('/api/admin/announcements', { ignore401: true });
+                const items = Array.isArray(messages) ? messages : [];
+
+                if (items.length === 0) {
+                    list.innerHTML = '<p class="text-center text-slate-400 text-xs py-10">No new announcements.</p>';
+                    return;
+                }
+
+                const latestSeen = items[0]?.created_at || new Date().toISOString();
+                try { localStorage.setItem(ANNOUNCEMENT_SEEN_KEY, latestSeen); } catch (e) { }
+
+                list.innerHTML = items.map(msg => `
+                    <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+                        <div class="flex justify-between items-start mb-2 gap-2">
+                            <h4 class="font-bold text-sm dark:text-white">${sanitizeInput(msg.title || 'Travel Nandu Update')}</h4>
+                            <span class="text-[9px] text-slate-400 font-bold bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded whitespace-nowrap">${msg.created_at ? new Date(msg.created_at).toLocaleDateString() : ''}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${sanitizeInput(msg.message || '')}</p>
+                    </div>
+                `).join('');
+                renderIconsIn(list);
+            } catch (e) {
+                list.innerHTML = '<p class="text-center text-red-500 text-xs py-10">Failed to load announcements.</p>';
+            }
+        };
+
+        async function checkAnnouncementsBadge() {
+            const badge = document.getElementById('unread-badge');
+            if (!badge) return;
+            try {
+                const messages = await apiFetch('/api/admin/announcements', { ignore401: true });
+                const items = Array.isArray(messages) ? messages : [];
+                if (items.length === 0) {
+                    badge.classList.add('hidden');
+                    return;
+                }
+
+                const latestCreatedAt = items[0]?.created_at;
+                const seenAt = localStorage.getItem(ANNOUNCEMENT_SEEN_KEY);
+                if (!seenAt || (latestCreatedAt && new Date(latestCreatedAt).getTime() > new Date(seenAt).getTime())) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (e) {
+                // Keep silent; announcement endpoint is non-critical.
+            }
+        }
 
         // ── POLLING FUNCTIONS (replace Firestore listeners) ──────────────────
         async function pollActiveJobs() {
             if (!driverId) return;
             try {
                 const rides = await apiFetch('/api/drivers/my-trips');
-                myActiveJobs = (rides || [])
+                const nextActiveJobs = (rides || [])
                     .filter(r => ['assigned', 'started'].includes(r.status))
                     .map(r => ({
                         id: r.id,
@@ -2416,11 +2534,18 @@
                         bookingType: r.booking_type || 'shared',
                         ...r
                     }));
+
+                const activeSignature = buildJobsSignature(nextActiveJobs);
+                const activeJobsChanged = activeSignature !== _lastActiveJobsSignature;
+                myActiveJobs = nextActiveJobs;
+                if (activeJobsChanged) {
+                    _lastActiveJobsSignature = activeSignature;
+                    updateCombinedJobList();
+                }
                 
                 if (myActiveJobs.length > 0 && currentTab !== 'active') {
                     document.getElementById('badge-active').classList.remove('hidden');
                 }
-                updateCombinedJobList();
                 updateSeatUI();
                 syncDriverState();
             } catch(e) { 
@@ -2430,15 +2555,18 @@
 
         async function pollMarketJobs() {
             if (!driverId || !driverProfile || driverProfile.status !== 'online') {
-                availableMarketJobs = [];
-                updateCombinedJobList();
+                if (availableMarketJobs.length > 0 || _lastMarketJobsSignature) {
+                    availableMarketJobs = [];
+                    _lastMarketJobsSignature = '';
+                    updateCombinedJobList();
+                }
                 return;
             }
             try {
                 const rides = await apiFetch('/api/drivers/trips/active');
                 const isAmbulanceDriver = (driverProfile.vehicle_type || '').toLowerCase().includes('ambulance');
                 
-                availableMarketJobs = (rides || [])
+                const nextMarketJobs = (rides || [])
                     .filter(r => {
                         // Never show ambulance jobs to non-ambulance drivers
                         if (!isAmbulanceDriver && (r.vehicle_type || '').toLowerCase().includes('ambulance')) return false;
@@ -2460,8 +2588,15 @@
                         bookingType: r.booking_type || 'shared',
                         ...r
                     }));
+
+                const marketSignature = buildJobsSignature(nextMarketJobs);
+                const marketJobsChanged = marketSignature !== _lastMarketJobsSignature;
+                availableMarketJobs = nextMarketJobs;
+                if (marketJobsChanged) {
+                    _lastMarketJobsSignature = marketSignature;
+                    updateCombinedJobList();
+                }
                 
-                updateCombinedJobList();
             } catch(e) { 
                 console.log("Market Jobs Poll Error:", e.message); 
             }
@@ -2537,7 +2672,7 @@
                 `;
                 container.appendChild(groupEl);
             }
-            lucide.createIcons();
+            renderIconsIn(container);
         }
 
         window.toggleHistoryGroup = (header) => {
@@ -3110,19 +3245,9 @@ Are you absolutely sure you want to proceed?`);
         window.cancelUnstartedAndGoOffline = async () => {
             document.getElementById('offline-modal').classList.add('hidden');
             const unstartedTrips = myActiveJobs.filter(j => ['assigned', 'verified'].includes(j.status));
-            try {
-                await Promise.all(unstartedTrips.map(job =>
-                    apiFetch(`/api/rides/${job.id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({
-                            status: 'cancelled',
-                            cancel_reason: 'Driver went offline',
-                            cancelled_by: 'driver'
-                        })
-                    })
-                ));
-                showToast(`${unstartedTrips.length} trip(s) cancelled`, 'warning');
-            } catch(e) { console.error(e); }
+            if (unstartedTrips.length > 0) {
+                showToast('Reassigning unstarted trips and going offline...', 'info');
+            }
             document.getElementById('status-toggle').checked = false;
             await performOffline();
         };
@@ -3246,13 +3371,15 @@ Are you absolutely sure you want to proceed?`);
             // FIX #3: If offline and on 'new' tab, show offline message
             if (currentTab === 'new' && driverProfile && driverProfile.status !== 'online') {
                 container.innerHTML = `<div class="text-center py-10 opacity-70"><div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="power-off" class="w-8 h-8 text-slate-400"></i></div><p class="text-sm font-bold text-slate-500">You are offline</p><p class="text-xs text-slate-400 mt-1">Go online to see available trips</p></div>`;
-                lucide.createIcons();
+                renderIconsIn(bulkBar);
+                renderIconsIn(container);
                 return;
             }
 
             if (listToRender.length === 0) {
                 container.innerHTML = `<div class="text-center py-10 opacity-50"><i data-lucide="${currentTab === 'new' ? 'inbox' : 'car'}" class="w-12 h-12 mx-auto mb-2 text-slate-300"></i><p class="text-sm font-bold text-slate-400">No ${currentTab} trips</p></div>`;
-                lucide.createIcons();
+                renderIconsIn(bulkBar);
+                renderIconsIn(container);
                 return;
             }
 
@@ -3273,7 +3400,8 @@ Are you absolutely sure you want to proceed?`);
             } else {
                 listToRender.forEach(job => renderJobCard(job, container));
             }
-            lucide.createIcons();
+            renderIconsIn(bulkBar);
+            renderIconsIn(container);
         }
 
         function renderJobCard(job, container) {
@@ -3474,7 +3602,7 @@ Are you absolutely sure you want to proceed?`);
                 // Show a dialog asking driver to confirm or add manual passengers
                 const modal = document.createElement('div');
                 modal.id = 'seat-warning-modal';
-                modal.className = 'fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in';
+                modal.className = 'fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 animate-fade-in';
                 modal.innerHTML = `
                     <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-zoom-in">
                         <div class="text-center mb-5">

@@ -11,6 +11,7 @@ from ..auth import get_current_driver
 from ..config import settings
 from ..storage import delete_public_file, read_validated_upload, save_public_file
 from ..ws.manager import manager
+from ..services.matching_engine import find_best_driver
 
 router = APIRouter(prefix="/api/drivers", tags=["Drivers"])
 
@@ -123,9 +124,12 @@ async def patch_me(
     if body.insurance_url is not None:
         driver.insurance_url = body.insurance_url.strip()  # type: ignore
         docs_updated = True
+    status_changing_to_offline = False
+
     if body.status is not None:
         if body.status not in ("online", "offline"):
             raise HTTPException(400, "status must be 'online' or 'offline'")
+        status_changing_to_offline = (body.status == "offline" and str(driver.status) != "offline")
         driver.status = body.status  # type: ignore
     if body.jobs_done is not None:
         driver.jobs_done = max(0, int(body.jobs_done))  # type: ignore
@@ -141,9 +145,15 @@ async def patch_me(
         driver.ac_pref = bool(body.ac_pref)  # type: ignore
     if docs_updated:
         driver.doc_status = "pending"  # type: ignore
+    reassign_summary = {"reassigned": 0, "pending": 0}
+    if status_changing_to_offline:
+        reassign_summary = await _reassign_assigned_rides_for_offline_driver(driver, db)
+
     await db.commit()
     await db.refresh(driver)
-    return _driver_dict(driver)
+    payload = _driver_dict(driver)
+    payload["reassignment"] = reassign_summary
+    return payload
 
 
 @router.post("/me/profile-pic")
@@ -270,9 +280,15 @@ async def toggle_status(
 ):
     if body.status not in ("online", "offline"):
         raise HTTPException(400, "status must be 'online' or 'offline'")
+    status_changing_to_offline = (body.status == "offline" and str(driver.status) != "offline")
     driver.status = body.status  # type: ignore
+
+    reassign_summary = {"reassigned": 0, "pending": 0}
+    if status_changing_to_offline:
+        reassign_summary = await _reassign_assigned_rides_for_offline_driver(driver, db)
+
     await db.commit()
-    return {"ok": True, "status": driver.status}
+    return {"ok": True, "status": driver.status, "reassignment": reassign_summary}
 
 
 @router.get("/trips/active")
@@ -426,3 +442,37 @@ def _ride_dict(r: Ride) -> dict:
         "started_at": r.started_at.isoformat() if r.started_at else None,  # type: ignore
         "completed_at": r.completed_at.isoformat() if r.completed_at else None,  # type: ignore
     }
+
+
+async def _reassign_assigned_rides_for_offline_driver(driver: Driver, db: AsyncSession) -> dict[str, int]:
+    """Move driver's assigned rides back to pending and try to auto-reassign."""
+    result = await db.execute(
+        select(Ride).where(
+            Ride.driver_id == driver.id,
+            Ride.status == "assigned",
+        )
+    )
+    rides = result.scalars().all()
+
+    reassigned_count = 0
+    pending_count = 0
+
+    for ride in rides:
+        # Clear current assignment and return to pending pool.
+        ride.driver_id = None  # type: ignore
+        ride.driver_name = None  # type: ignore
+        ride.status = "pending"  # type: ignore
+
+        next_driver = await find_best_driver(ride, db)
+        if next_driver and str(next_driver.id) != str(driver.id):
+            ride.driver_id = next_driver.id  # type: ignore
+            ride.driver_name = next_driver.name  # type: ignore
+            ride.status = "assigned"  # type: ignore
+            reassigned_count += 1
+            await manager.notify_driver(str(next_driver.id), "new_job", _ride_dict(ride))
+        else:
+            pending_count += 1
+
+        await manager.broadcast_admin("ride_updated", _ride_dict(ride))
+
+    return {"reassigned": reassigned_count, "pending": pending_count}

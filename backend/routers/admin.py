@@ -449,6 +449,25 @@ async def list_broadcasts(
             for b in result.scalars().all()]
 
 
+@router.get("/announcements")
+async def list_announcements(
+    db: AsyncSession = Depends(get_db)
+):
+    """Public read endpoint for driver app announcement inbox."""
+    result = await db.execute(
+        select(Broadcast).order_by(Broadcast.created_at.desc()).limit(50)
+    )
+    return [
+        {
+            "id": b.id,
+            "title": "Travel Nandu Update",
+            "message": b.message,
+            "created_at": b.created_at.isoformat() if b.created_at is not None else None,  # type: ignore
+        }
+        for b in result.scalars().all()
+    ]
+
+
 # ─── Helpers ─────────────────────────────────────────────────────────────────────
 
 async def _count(db, model, *conditions):
