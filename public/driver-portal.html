@@ -1602,7 +1602,6 @@
                     
                     // Render lucide icons for the newly visible form
                     setTimeout(() => lucide.createIcons(), 100);
-                    googleSignInInProgress = false;
                     return;
                 }
 
@@ -1611,15 +1610,16 @@
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 initDriverUI(driverData);
-                googleSignInInProgress = false;
             } catch (error) {
                 showToast('Google login failed: ' + error.message, 'error');
-                googleSignInInProgress = false;
                 // Re-enable buttons on error
                 const btnGoogleLogin = document.getElementById('btn-google-login');
                 const btnGoogleRegister = document.getElementById('btn-google-register');
                 if (btnGoogleLogin) btnGoogleLogin.disabled = false;
                 if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+            } finally {
+                // FIX: Always reset the flag when done, regardless of success/failure
+                googleSignInInProgress = false;
             }
         }
 
@@ -1672,6 +1672,7 @@
                         if (btnGoogleLogin) btnGoogleLogin.disabled = false;
                         if (btnGoogleRegister) btnGoogleRegister.disabled = false;
                         // Only reset flag if user dismissed without selecting
+                        // Note: When credential_returned, handleGoogleCredential will reset the flag
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap');
                             googleSignInInProgress = false;
@@ -1686,6 +1687,7 @@
                         if (btnGoogleLogin) btnGoogleLogin.disabled = false;
                         if (btnGoogleRegister) btnGoogleRegister.disabled = false;
                         // Only reset flag if user dismissed without selecting
+                        // Note: When credential_returned, handleGoogleCredential will reset the flag
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap');
                             googleSignInInProgress = false;
