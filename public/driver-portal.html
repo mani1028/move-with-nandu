@@ -1415,6 +1415,31 @@
         let _lastActiveJobsSignature = '';
         let _lastMarketJobsSignature = '';
 
+        function getDriverCacheKey(bucket) {
+            const did = String(driverId || 'anonymous');
+            return `nandu_driver_cache_${did}_${bucket}`;
+        }
+
+        function saveDriverCache(bucket, value) {
+            try {
+                localStorage.setItem(getDriverCacheKey(bucket), JSON.stringify(value));
+            } catch (e) {
+                console.warn('[Cache] Save failed for', bucket, e?.message || e);
+            }
+        }
+
+        function loadDriverCache(bucket, fallback = []) {
+            try {
+                const raw = localStorage.getItem(getDriverCacheKey(bucket));
+                if (!raw) return fallback;
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : fallback;
+            } catch (e) {
+                console.warn('[Cache] Load failed for', bucket, e?.message || e);
+                return fallback;
+            }
+        }
+
         // ── AUTH FUNCTIONS (API-based) ────────────────────────────────────────
         window.driverEmailAuth = async () => {
             const email = document.getElementById('auth-email').value.trim();
@@ -2426,6 +2451,19 @@
         }
 
         window.loadDashboard = function() {
+            // Optimistic hydration: render latest cached lists instantly.
+            myActiveJobs = loadDriverCache('active_jobs', []);
+            availableMarketJobs = loadDriverCache('market_jobs', []);
+            historyJobs = loadDriverCache('history_jobs', []);
+            expenseList = loadDriverCache('wallet_expenses', []);
+            _lastActiveJobsSignature = buildJobsSignature(myActiveJobs);
+            _lastMarketJobsSignature = buildJobsSignature(availableMarketJobs);
+
+            updateCombinedJobList();
+            updateSeatUI();
+            renderGroupedHistory(document.getElementById('history-list'));
+            updateWalletView();
+
             // Start polling for jobs and history
             pollActiveJobs();
             pollMarketJobs();
@@ -2542,6 +2580,7 @@
                     _lastActiveJobsSignature = activeSignature;
                     updateCombinedJobList();
                 }
+                saveDriverCache('active_jobs', myActiveJobs);
                 
                 if (myActiveJobs.length > 0 && currentTab !== 'active') {
                     document.getElementById('badge-active').classList.remove('hidden');
@@ -2596,6 +2635,7 @@
                     _lastMarketJobsSignature = marketSignature;
                     updateCombinedJobList();
                 }
+                saveDriverCache('market_jobs', availableMarketJobs);
                 
             } catch(e) { 
                 console.log("Market Jobs Poll Error:", e.message); 
@@ -2621,6 +2661,7 @@
                         endTime: r.completed_at ? { seconds: Math.floor(new Date(r.completed_at).getTime() / 1000) } : null,
                         ...r
                     }));
+                saveDriverCache('history_jobs', historyJobs);
                 
                 renderGroupedHistory(document.getElementById('history-list'));
             } catch(e) { 
@@ -2764,6 +2805,7 @@
                         date: e.date ? { seconds: Math.floor(new Date(e.date).getTime() / 1000) } : null,
                         ...e
                     }));
+                saveDriverCache('wallet_expenses', expenseList);
                 updateWalletView();
             } catch(e) { 
                 console.log("Wallet Poll Error:", e.message); 
@@ -3201,6 +3243,7 @@ Are you absolutely sure you want to proceed?`);
                     card.classList.remove('hidden');
                     if (window.Android) Android.driverOnline(driverProfile.phone || driverId);
                     startKeepAlive();
+                    startGpsTracking();
                     showToast("You are now ONLINE", "success");
                     // Re-poll to get market jobs now that we're online
                     pollMarketJobs();
@@ -3289,6 +3332,7 @@ Are you absolutely sure you want to proceed?`);
                 
                 if (window.Android) Android.driverOffline(driverProfile.phone || driverId);
                 stopKeepAlive();
+                stopGpsTracking();
                 showToast("Logged out & seats cleared", "success");
             } catch(e) { 
                 console.error(e); 
@@ -3297,7 +3341,8 @@ Are you absolutely sure you want to proceed?`);
         }
 
         window.logout = async function() {
-            stopKeepAlive(); // ✅ Cleanup interval to prevent memory leak
+            stopKeepAlive();
+            stopGpsTracking(); // ✅ Cleanup GPS watcher on logout
             if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
             if (window.pollInterval) { clearInterval(window.pollInterval); window.pollInterval = null; }
             if(confirm("Are you sure you want to log out?")) {
@@ -4281,6 +4326,33 @@ Are you absolutely sure you want to proceed?`);
             const label = document.getElementById('status-label');
             if (label) { label.textContent = 'Offline'; label.className = "text-[10px] font-bold text-red-500 uppercase"; }
         };
+
+        // GPS location tracking — posts driver coords to backend while online
+        let _gpsWatchId = null;
+
+        function startGpsTracking() {
+            if (_gpsWatchId !== null || !navigator.geolocation) return;
+            _gpsWatchId = navigator.geolocation.watchPosition(
+                async (pos) => {
+                    if (!driverId || !driverProfile || driverProfile.status !== 'online') return;
+                    try {
+                        await apiFetch('/api/driver/location', {
+                            method: 'POST',
+                            body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                        });
+                    } catch(e) { /* silent — don't disrupt UI on GPS post failure */ }
+                },
+                (err) => { console.warn('[GPS] watchPosition error:', err.message); },
+                { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+            );
+        }
+
+        function stopGpsTracking() {
+            if (_gpsWatchId !== null) {
+                navigator.geolocation.clearWatch(_gpsWatchId);
+                _gpsWatchId = null;
+            }
+        }
 
         // FIX #6: Keep driver online when app goes to background/recent apps
         // This prevents the OS from marking driver offline when app is minimized

@@ -15,6 +15,24 @@ class LocationIn(BaseModel):
     lng: float
 
 
+@router.get("/location")
+async def get_own_location(
+    driver: Driver = Depends(get_current_driver),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get the authenticated driver's own last known location."""
+    result = await db.execute(
+        select(DriverLocation)
+        .where(DriverLocation.driver_id == driver.id)
+        .order_by(DriverLocation.timestamp.desc())
+    )
+    loc = result.scalars().first()
+    if not loc:
+        raise HTTPException(404, "No location data found.")
+    return {"driver_id": driver.id, "lat": loc.lat, "lng": loc.lng,
+            "timestamp": loc.timestamp.isoformat()}
+
+
 @router.post("/location")
 async def update_location(
     body: LocationIn,
