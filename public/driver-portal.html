@@ -1571,14 +1571,22 @@
                 driverId = driverData.id;
                 driverProfile = driverData;
 
-                const missingCoreProfile = !driverData.phone
-                    || !driverData.plate
-                    || !driverData.profile_pic
-                    || !driverData.license_url
-                    || !driverData.aadhar_url
-                    || !driverData.rc_url
-                    || !driverData.insurance_url;
-                if (missingCoreProfile) {
+                // Check if this is a new account or incomplete profile
+                // New/incomplete accounts will be missing critical fields: phone AND plate
+                // Existing accounts may have some optional fields but should have at least phone or plate
+                const hasCriticalFields = (driverData.phone && driverData.phone.trim()) 
+                    || (driverData.plate && driverData.plate.trim());
+                
+                const isNewOrIncomplete = !hasCriticalFields;
+                
+                console.log('[Google SignIn] Account analysis:', {
+                    phone: driverData.phone,
+                    plate: driverData.plate,
+                    hasCriticalFields,
+                    isNewOrIncomplete
+                });
+                
+                if (isNewOrIncomplete) {
                     isRegistering = true;
                     pendingDriverRegistration = null;
                     // Ensure login screen is visible
@@ -1605,8 +1613,8 @@
                     return;
                 }
 
-                // Show dashboard directly instead of reloading
-                // Hide login screen and show app screen
+                // Existing account - load dashboard
+                console.log('[Google SignIn] Existing account found, loading dashboard');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 initDriverUI(driverData);
@@ -1735,9 +1743,22 @@
                 driverId = driverData.id;
                 driverProfile = driverData;
                 
-                const missingCoreProfile = !driverData.phone || !driverData.plate || !driverData.profile_pic
-                    || !driverData.license_url || !driverData.aadhar_url || !driverData.rc_url || !driverData.insurance_url;
-                if (missingCoreProfile) {
+                // Check if this is a new account or incomplete profile
+                // New/incomplete accounts will be missing critical fields: phone AND plate
+                // Existing accounts may have some optional fields but should have at least phone or plate
+                const hasCriticalFields = (driverData.phone && driverData.phone.trim()) 
+                    || (driverData.plate && driverData.plate.trim());
+                
+                const isNewOrIncomplete = !hasCriticalFields;
+                
+                console.log('[Google SignIn] Android account analysis:', {
+                    phone: driverData.phone,
+                    plate: driverData.plate,
+                    hasCriticalFields,
+                    isNewOrIncomplete
+                });
+                
+                if (isNewOrIncomplete) {
                     isRegistering = true;
                     pendingDriverRegistration = null;
                     const loginScreen = document.getElementById('login-screen');
@@ -1758,7 +1779,6 @@
                     if (btnGoogleRegister) btnGoogleRegister.disabled = false;
                     
                     setTimeout(() => lucide.createIcons(), 100);
-                    googleSignInInProgress = false;
                     return;
                 }
                 
