@@ -1319,6 +1319,16 @@
             _memoryStore['nandu_driver_token'] = t; // Always set in-memory
             storageSet('nandu_driver_token', t).catch(e => console.warn('[Storage] setToken failed:', e));
         }
+
+        function syncDriverTokenToAndroid(token) {
+            if (window.Android && typeof window.Android.setDriverToken === 'function') {
+                try {
+                    window.Android.setDriverToken(token || '');
+                } catch (e) {
+                    console.warn('[Android Bridge] setDriverToken failed:', e);
+                }
+            }
+        }
         
         function clearToken() { 
             // Use async storage for cleanup
@@ -1326,6 +1336,7 @@
             delete _memoryStore['nandu_driver_profile'];
             storageRemove('nandu_driver_token').catch(e => console.warn('[Storage] clearToken failed:', e));
             storageRemove('nandu_driver_profile').catch(e => console.warn('[Storage] clearToken failed:', e));
+            syncDriverTokenToAndroid('');
         }
 
         async function apiFetch(path, options = {}) {
@@ -1391,6 +1402,7 @@
                 });
                 // Store token in memory first
                 _memoryStore['nandu_driver_token'] = data.access_token;
+                syncDriverTokenToAndroid(data.access_token);
                 // Await storage writes before reloading
                 await storageSet('nandu_driver_token', data.access_token);
                 await storageSet('nandu_driver_profile', JSON.stringify(data.driver));
@@ -1560,6 +1572,7 @@
                 
                 // Store token in memory first
                 _memoryStore['nandu_driver_token'] = data.access_token;
+                syncDriverTokenToAndroid(data.access_token);
                 // Await storage writes
                 await storageSet('nandu_driver_token', data.access_token);
                 await storageSet('nandu_driver_profile', JSON.stringify(driverData));
@@ -1733,6 +1746,7 @@
                 const driverData = data.user || data.driver;
                 
                 _memoryStore['nandu_driver_token'] = data.access_token;
+                syncDriverTokenToAndroid(data.access_token);
                 await storageSet('nandu_driver_token', data.access_token);
                 await storageSet('nandu_driver_profile', JSON.stringify(driverData));
                 try { localStorage.setItem('nandu_driver_token', data.access_token); } catch(e) { }
