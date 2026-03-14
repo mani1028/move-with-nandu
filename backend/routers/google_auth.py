@@ -18,7 +18,7 @@ from sqlalchemy import select
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
-from ..database import get_db, User, generate_custom_id
+from ..database import get_db, User, Driver, generate_custom_id
 from ..auth import create_access_token, hash_password
 from ..config import settings
 
@@ -134,10 +134,14 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
     
     logger.info(f"📧 Google user: {mask_email(email)}")
     
+    # Select correct model based on role
+    Model = Driver if body.role == "driver" else User
+    id_prefix = "DRV" if body.role == "driver" else "USR"
+    
     # Find existing user by provider ID (most reliable)
     r = await db.execute(
-        select(User).where(
-            (User.provider == 'google') & (User.provider_id == google_sub)
+        select(Model).where(
+            (Model.provider == 'google') & (Model.provider_id == google_sub)
         )
     )
     user = r.scalar_one_or_none()
@@ -148,7 +152,7 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
     # If not found by provider ID, check by email (allow merging/linking)
     if user is None:
         logger.info(f"🔍 Checking for existing user with email: {mask_email(email)}")
-        r = await db.execute(select(User).where(User.email == email))
+        r = await db.execute(select(Model).where(Model.email == email))
         existing_user = r.scalar_one_or_none()
         
         if existing_user and existing_user.provider == 'local':
@@ -170,10 +174,7 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
             # Generate a placeholder hash for OAuth-only users (passwords not supported)
             oauth_placeholder = hash_password(f"oauth_google_{secrets.token_urlsafe(32)}")
             
-            # Assign correct prefix and role based on request
-            id_prefix = "DRV" if body.role == "driver" else "USR"
-            
-            user = User(
+            user = Model(
                 id=generate_custom_id(id_prefix),
                 name=name,
                 email=email,
