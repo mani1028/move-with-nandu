@@ -135,8 +135,9 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
     logger.info(f"📧 Google user: {mask_email(email)}")
     
     # Select correct model based on role
-    Model = Driver if body.role == "driver" else User
-    id_prefix = "DRV" if body.role == "driver" else "USR"
+    requested_role = "driver" if body.role == "driver" else "user"
+    Model = Driver if requested_role == "driver" else User
+    id_prefix = "DRV" if requested_role == "driver" else "USR"
     
     # Find existing user by provider ID (most reliable)
     r = await db.execute(
@@ -162,7 +163,10 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
             existing_user.provider_id = google_sub
             existing_user.email_verified = email_verified
             if picture:
-                existing_user.picture = picture
+                if requested_role == "driver":
+                    existing_user.profile_pic = picture
+                else:
+                    existing_user.picture = picture
             user = existing_user
         elif existing_user:
             # User already has provider set; just use them
@@ -174,18 +178,23 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
             # Generate a placeholder hash for OAuth-only users (passwords not supported)
             oauth_placeholder = hash_password(f"oauth_google_{secrets.token_urlsafe(32)}")
             
-            user = Model(
-                id=generate_custom_id(id_prefix),
-                name=name,
-                email=email,
-                phone='',  # Google doesn't provide phone by default
-                password_hash=oauth_placeholder,  # OAuth placeholder - passwords not supported
-                provider='google',
-                provider_id=google_sub,
-                email_verified=email_verified,
-                picture=picture,
-                role=body.role,  # Use role from request (driver or user)
-            )
+            create_kwargs = {
+                "id": generate_custom_id(id_prefix),
+                "name": name,
+                "email": email,
+                "phone": "",  # Google doesn't provide phone by default
+                "password_hash": oauth_placeholder,  # OAuth placeholder - passwords not supported
+                "provider": "google",
+                "provider_id": google_sub,
+                "email_verified": email_verified,
+            }
+            if requested_role == "driver":
+                create_kwargs["profile_pic"] = picture
+            else:
+                create_kwargs["picture"] = picture
+                create_kwargs["role"] = "user"
+
+            user = Model(**create_kwargs)
             db.add(user)
     
     # Commit changes
@@ -200,7 +209,7 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
     
     # Issue JWT token for app
     user_id_str = str(user.id)
-    user_role_str = str(user.role or "user")
+    user_role_str = "driver" if requested_role == "driver" else str(getattr(user, "role", "user") or "user")
     token = create_access_token({"sub": user_id_str, "role": user_role_str})
     logger.info(f"🎫 JWT token issued for user: {user_id_str}")
     
@@ -212,7 +221,7 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
             "name": str(user.name),
             "email": str(user.email),
             "phone": str(user.phone or ""),
-            "picture": str(user.picture or ""),
+            "picture": str(getattr(user, "picture", "") or getattr(user, "profile_pic", "")),
             "role": user_role_str,
             "email_verified": bool(user.email_verified),
         }
