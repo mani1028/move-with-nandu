@@ -13,6 +13,11 @@
   "routes": [
     { "src": "/favicon.ico", "status": 200, "dest": "/public/favicon.ico" },
     { "src": "/assets/(.*)", "status": 200, "dest": "/public/assets/$1" },
+    { "src": "/docs", "dest": "/api/index.py" },
+    { "src": "/redoc", "dest": "/api/index.py" },
+    { "src": "/openapi.json", "dest": "/api/index.py" },
+    { "src": "/api/(.*)", "dest": "/api/index.py" },
+    { "src": "/ws/(.*)", "dest": "/api/index.py" },
     { "src": "/(.*)\\.js", "status": 200, "dest": "/public/$1.js" },
     { "src": "/(.*)\\.json", "status": 200, "dest": "/public/$1.json" },
     { "src": "/(.*)\\.css", "status": 200, "dest": "/public/$1.css" },
