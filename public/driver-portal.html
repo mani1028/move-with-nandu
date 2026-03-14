@@ -1657,7 +1657,10 @@
             if (btnGoogleLogin) btnGoogleLogin.disabled = true;
             if (btnGoogleRegister) btnGoogleRegister.disabled = true;
             
-            googleSignInInProgress = true;
+            // FIX: Do NOT set googleSignInInProgress = true here!
+            // The flag should only be set when credential is ACTUALLY received in handleGoogleCredential()
+            // Setting it here blocks the incoming credential from being processed.
+            
             const isOnMobile = isMobileDevice();
 
             try {
@@ -1668,30 +1671,28 @@
                     console.log('[Google SignIn] Using One Tap prompt for mobile...');
                     window.google.accounts.id.prompt((notification) => {
                         console.log('[Google SignIn] Prompt notification:', notification);
-                        // Re-enable buttons after prompt response
-                        if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                        if (btnGoogleRegister) btnGoogleRegister.disabled = false;
-                        // Only reset flag if user dismissed without selecting
-                        // Note: When credential_returned, handleGoogleCredential will reset the flag
+                        // User dismissed without selecting
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                            console.log('[Google SignIn] User dismissed One Tap');
-                            googleSignInInProgress = false;
+                            console.log('[Google SignIn] User dismissed One Tap prompt');
+                            // Re-enable buttons since no login will happen
+                            if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                            if (btnGoogleRegister) btnGoogleRegister.disabled = false;
                         }
+                        // When credential_returned, handleGoogleCredential() will be called automatically
                     });
                 } else {
                     // For desktop, use popup mode with One Tap
                     console.log('[Google SignIn] Using One Tap popup for desktop...');
                     window.google.accounts.id.prompt((notification) => {
                         console.log('[Google SignIn] Prompt notification:', notification);
-                        // Re-enable buttons after prompt response
-                        if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                        if (btnGoogleRegister) btnGoogleRegister.disabled = false;
-                        // Only reset flag if user dismissed without selecting
-                        // Note: When credential_returned, handleGoogleCredential will reset the flag
+                        // User dismissed without selecting
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                            console.log('[Google SignIn] User dismissed One Tap');
-                            googleSignInInProgress = false;
+                            console.log('[Google SignIn] User dismissed One Tap prompt');
+                            // Re-enable buttons since no login will happen
+                            if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                            if (btnGoogleRegister) btnGoogleRegister.disabled = false;
                         }
+                        // When credential_returned, handleGoogleCredential() will be called automatically
                     });
                 }
             } catch (e) {
