@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Any, Optional, cast
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from ..database import get_db, Driver, Ride, Expense, User, Admin
 from ..auth import get_current_driver
 from ..config import settings
@@ -32,6 +32,7 @@ class PrefPatch(BaseModel):
     insurance_url: Optional[str] = None
     status: Optional[str] = None
     jobs_done: Optional[int] = None
+    seats_total: Optional[int] = None
     filled_seats: Optional[int] = None
     manual_filled_seats: Optional[int] = None
     manualFilledSeats: Optional[int] = None
@@ -68,6 +69,8 @@ async def patch_me(
     db: AsyncSession = Depends(get_db)
 ):
     docs_updated = False
+    status_changing_to_offline = False
+
     if body.route_pref is not None:
         driver.route_pref = body.route_pref  # type: ignore
     if body.ac_pref is not None:
@@ -96,9 +99,12 @@ async def patch_me(
         driver.phone = phone  # type: ignore
     if body.profile_pic is not None:
         driver.profile_pic = body.profile_pic.strip()  # type: ignore
+
+    current_seats_total = int(cast(Any, driver).seats_total or 7)
+    requested_seats_total: Optional[int] = current_seats_total
     if body.vehicle_type is not None:
         driver.vehicle_type = body.vehicle_type.strip()  # type: ignore
-        # Auto-update seat count to match the new vehicle type
+
         def _seats_for_type(vt: str) -> int:
             v = vt.lower()
             if any(x in v for x in ('12', 'tempo')): return 12
@@ -106,7 +112,44 @@ async def patch_me(
             if any(x in v for x in ('4', 'mini')): return 4
             if any(x in v for x in ('ambulance',)): return 2
             return 5
-        driver.seats_total = _seats_for_type(body.vehicle_type.strip())  # type: ignore
+
+        requested_seats_total = _seats_for_type(body.vehicle_type.strip())
+    if body.seats_total is not None:
+        requested_seats_total = int(body.seats_total)
+    if requested_seats_total is not None and (requested_seats_total < 1 or requested_seats_total > 12):
+        raise HTTPException(400, "seats_total must be between 1 and 12")
+
+    requested_filled_seats: Optional[int] = None
+    if body.filled_seats is not None:
+        requested_filled_seats = int(body.filled_seats)
+    if body.manual_filled_seats is not None:
+        requested_filled_seats = int(body.manual_filled_seats)
+    if body.manualFilledSeats is not None:
+        requested_filled_seats = int(body.manualFilledSeats)
+    if requested_filled_seats is not None and requested_filled_seats < 0:
+        raise HTTPException(400, "Filled seats cannot be negative.")
+
+    current_filled_seats = int(cast(Any, driver).filled_seats or 0)
+    target_seats_total = int(requested_seats_total if requested_seats_total is not None else current_seats_total)
+    target_filled_seats = int(requested_filled_seats if requested_filled_seats is not None else current_filled_seats)
+    if target_filled_seats > target_seats_total:
+        raise HTTPException(400, "Filled seats cannot exceed total vehicle seats.")
+
+    if requested_filled_seats is not None:
+        active_app_passengers = await _get_active_app_passengers(db, str(driver.id))
+        if target_filled_seats < active_app_passengers:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Action blocked! You currently have {active_app_passengers} passengers assigned via the app. "
+                    f"You cannot set filled seats to {target_filled_seats}."
+                )
+            )
+
+    driver.seats_total = target_seats_total  # type: ignore
+    if requested_filled_seats is not None:
+        driver.filled_seats = target_filled_seats  # type: ignore
+
     if body.plate is not None:
         plate = body.plate.upper().strip()
         if not plate:
@@ -124,8 +167,6 @@ async def patch_me(
     if body.insurance_url is not None:
         driver.insurance_url = body.insurance_url.strip()  # type: ignore
         docs_updated = True
-    status_changing_to_offline = False
-
     if body.status is not None:
         if body.status not in ("online", "offline"):
             raise HTTPException(400, "status must be 'online' or 'offline'")
@@ -133,12 +174,6 @@ async def patch_me(
         driver.status = body.status  # type: ignore
     if body.jobs_done is not None:
         driver.jobs_done = max(0, int(body.jobs_done))  # type: ignore
-    if body.filled_seats is not None:
-        driver.filled_seats = max(0, int(body.filled_seats))  # type: ignore
-    if body.manual_filled_seats is not None:
-        driver.filled_seats = max(0, int(body.manual_filled_seats))  # type: ignore
-    if body.manualFilledSeats is not None:
-        driver.filled_seats = max(0, int(body.manualFilledSeats))  # type: ignore
     if body.route_pref is not None:
         driver.route_pref = body.route_pref.strip()  # type: ignore
     if body.ac_pref is not None:
@@ -476,3 +511,13 @@ async def _reassign_assigned_rides_for_offline_driver(driver: Driver, db: AsyncS
         await manager.broadcast_admin("ride_updated", _ride_dict(ride))
 
     return {"reassigned": reassigned_count, "pending": pending_count}
+
+
+async def _get_active_app_passengers(db: AsyncSession, driver_id: str) -> int:
+    result = await db.execute(
+        select(func.sum(Ride.passengers)).where(
+            Ride.driver_id == driver_id,
+            Ride.status.in_(["assigned", "verified", "started"]),
+        )
+    )
+    return int(result.scalar() or 0)

@@ -54,6 +54,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        html, body { overscroll-behavior-y: none; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
@@ -2245,7 +2246,12 @@
                 else { document.documentElement.classList.remove('dark'); document.getElementById('dark-toggle').checked = false; }
 
                 // Bootstrap session from storage or API
-                const token = getToken();
+                let token = await storageGet('nandu_driver_token');
+                if (token) {
+                    _memoryStore['nandu_driver_token'] = token;
+                } else {
+                    token = getToken();
+                }
                 
                 // Try to get profile from storage (IndexedDB/localStorage/memory)
                 let storedProfile = null;
@@ -4340,13 +4346,12 @@ Are you absolutely sure you want to proceed?`);
         window.cancelTripReason = async () => {
             if (!pendingOptionsJobId) return;
             document.getElementById('options-modal').classList.add('hidden');
-            const reason = prompt('Reason (optional):');
             try {
                 await apiFetch(`/api/rides/${pendingOptionsJobId}`, {
                     method: 'PATCH',
                     body: JSON.stringify({
                         status: 'cancelled',
-                        cancel_reason: reason || 'Cancelled by driver',
+                        cancel_reason: 'Cancelled by driver (other reason)',
                         cancelled_by: 'driver'
                     })
                 });
