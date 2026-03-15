@@ -3,6 +3,8 @@ Pricing service — mirrors the frontend PRICES object but lives server-side.
 All fare calculations are done here so the frontend cannot manipulate prices.
 """
 
+from decimal import Decimal, ROUND_HALF_UP
+
 BASE_PRICES = {
     "shared": {
         "7 Seater": {"non-ac": 350, "ac": 400},
@@ -41,7 +43,9 @@ def calculate_fare(
         variant = "suv" if "7" in vehicle_size or "suv" in vehicle_size.lower() else "sedan"
         base = BASE_PRICES["full_cab"].get(variant, {}).get(ac_key, 3500)
 
-    return int(base * surge_multiplier)
+    # Money math must be deterministic; avoid float artifacts by using Decimal.
+    fare = Decimal(str(base)) * Decimal(str(surge_multiplier))
+    return int(fare.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
 def apply_coupon(price: int, discount: int, min_fare: int) -> int:

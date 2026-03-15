@@ -5,7 +5,8 @@ from fastapi import HTTPException
 # Maps current status → allowed next statuses
 TRANSITIONS = {
     "pending":   ["assigned", "cancelled"],
-    "assigned":  ["pending", "started", "cancelled"],
+    "assigned":  ["pending", "verified", "cancelled"],
+    "verified":  ["started", "cancelled"],
     "started":   ["completed", "cancelled"],
     "completed": [],
     "cancelled": [],

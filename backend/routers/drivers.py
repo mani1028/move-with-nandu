@@ -170,6 +170,10 @@ async def patch_me(
     if body.status is not None:
         if body.status not in ("online", "offline"):
             raise HTTPException(400, "status must be 'online' or 'offline'")
+        if body.status == "online":
+            doc_status = str(driver.doc_status or "").lower()
+            if not (bool(driver.is_verified) and doc_status == "approved"):
+                raise HTTPException(403, "Documents under verification. You cannot go online yet.")
         status_changing_to_offline = (body.status == "offline" and str(driver.status) != "offline")
         driver.status = body.status  # type: ignore
     if body.jobs_done is not None:
@@ -316,6 +320,10 @@ async def toggle_status(
 ):
     if body.status not in ("online", "offline"):
         raise HTTPException(400, "status must be 'online' or 'offline'")
+    if body.status == "online":
+        doc_status = str(driver.doc_status or "").lower()
+        if not (bool(driver.is_verified) and doc_status == "approved"):
+            raise HTTPException(403, "Documents under verification. You cannot go online yet.")
     status_changing_to_offline = (body.status == "offline" and str(driver.status) != "offline")
     driver.status = body.status  # type: ignore
 
@@ -334,6 +342,10 @@ async def active_trips(
     db: AsyncSession = Depends(get_db)
 ):
     """Trips matching driver preferences that are still pending."""
+    doc_status = str(driver.doc_status or "").lower()
+    if not (bool(driver.is_verified) and doc_status == "approved"):
+        return []
+
     result = await db.execute(
         select(Ride).where(Ride.status == "pending").order_by(Ride.created_at.desc())
     )

@@ -246,6 +246,10 @@ async def accept_ride(
     if not locked_driver:
         raise HTTPException(404, "Driver not found.")
 
+    doc_status = str(locked_driver.doc_status or "").lower()
+    if not (bool(locked_driver.is_verified) and doc_status == "approved"):
+        raise HTTPException(403, "Documents under verification. Ride acceptance is locked.")
+
     if ride.driver_id and str(ride.driver_id) != driver.id:  # type: ignore
         raise HTTPException(409, "Ride already taken by another driver.")
     if not _has_seat_capacity(locked_driver, ride):
@@ -271,6 +275,8 @@ async def start_ride(
     db: AsyncSession = Depends(get_db)
 ):
     ride = await _get_ride(ride_id, db)
+    if ride.status == "started":
+        return _ride_dict(ride)
     assert_transition(str(ride.status), "started")  # type: ignore
     if ride.driver_id != driver.id:
         raise HTTPException(403, "Not your ride.")
@@ -298,9 +304,14 @@ async def complete_ride(
     if not ride:
         raise HTTPException(404, "Ride not found.")
 
-    assert_transition(str(ride.status), "completed")  # type: ignore
     if ride.driver_id != driver.id:
         raise HTTPException(403, "Not your ride.")
+
+    # Idempotent completion: repeated taps/retries must not duplicate side effects.
+    if str(ride.status) == "completed":
+        return {**_ride_dict(ride), "already_completed": True}
+
+    assert_transition(str(ride.status), "completed")  # type: ignore
 
     driver_result = await db.execute(
         select(Driver).where(Driver.id == driver.id).with_for_update()
@@ -470,6 +481,14 @@ async def _verify_ride_otp(ride_id: str, otp: str, driver: Driver, db: AsyncSess
         raise HTTPException(403, "Not your ride.")
     if ride.otp != otp:
         raise HTTPException(400, "Invalid OTP.")
+    if str(ride.status) == "verified":
+        return {"ok": True, "message": "OTP already verified. You may start the ride."}
+
+    assert_transition(str(ride.status), "verified")  # type: ignore
+    ride.status = "verified"  # type: ignore
+    await db.commit()
+    await db.refresh(ride)
+    await manager.broadcast_admin("ride_updated", _ride_dict(ride))
     return {"ok": True, "message": "OTP verified. You may start the ride."}
 
 

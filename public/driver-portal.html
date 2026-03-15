@@ -737,6 +737,21 @@
             </div>
         </header>
 
+        <!-- Verification Lock Screen -->
+        <div id="verification-lock-screen" class="fixed inset-0 z-[95] bg-white/95 dark:bg-slate-950/95 backdrop-blur-md hidden flex items-center justify-center p-6">
+            <div class="w-full max-w-sm bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800 rounded-3xl shadow-2xl p-6 text-center">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-4">
+                    <i data-lucide="shield-alert" class="h-8 w-8"></i>
+                </div>
+                <h3 class="text-xl font-black dark:text-white mb-2">Documents Under Verification</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">Your account is secure, but ride acceptance is temporarily locked until admin verification is complete.</p>
+                <div class="space-y-2">
+                    <button onclick="switchView('docs')" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl">Review Documents</button>
+                    <button onclick="pollDriverProfileStatus()" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl">Check Verification Status</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content Area -->
         <main class="flex-1 p-4 space-y-5">
             <!-- HOME TAB -->
@@ -1537,6 +1552,31 @@
                 j.from || '',
                 j.to || ''
             ]));
+        }
+
+        function isDriverVerificationApproved(profile = driverProfile) {
+            if (!profile) return false;
+            const docStatus = String(profile.doc_status || profile.verification_status || '').toLowerCase();
+            return !!profile.is_verified && docStatus === 'approved';
+        }
+
+        function updateVerificationLockUI(profile = driverProfile) {
+            const lock = document.getElementById('verification-lock-screen');
+            const toggle = document.getElementById('status-toggle');
+            const label = document.getElementById('status-label');
+            const card = document.getElementById('trip-status-card');
+            const approved = isDriverVerificationApproved(profile);
+            if (lock) lock.classList.toggle('hidden', approved);
+            if (toggle) {
+                toggle.disabled = !approved;
+                if (!approved) toggle.checked = false;
+            }
+            if (label && !approved) {
+                label.innerText = 'Verification';
+                label.className = 'text-[10px] font-bold text-amber-500 uppercase transition-colors';
+            }
+            if (card && !approved) card.classList.add('hidden');
+            if (!approved && driverProfile) driverProfile.status = 'offline';
         }
         
         // Debounce function to prevent excessive API calls
@@ -2583,6 +2623,7 @@
             finishInitialLoading();
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
+            updateVerificationLockUI(profile);
             updateRegistrationDocStatusUI();
 
             if (!skipDashboardReload) loadDashboard();
@@ -2708,7 +2749,7 @@
             try {
                 const rides = await apiFetch('/api/drivers/my-trips');
                 const nextActiveJobs = (rides || [])
-                    .filter(r => ['assigned', 'started'].includes(r.status))
+                    .filter(r => ['assigned', 'verified', 'started'].includes(r.status))
                     .map(r => ({
                         id: r.id,
                         userName: r.user?.name || r.user_name || 'Guest',
@@ -2741,7 +2782,7 @@
         }
 
         async function pollMarketJobs() {
-            if (!driverId || !driverProfile || driverProfile.status !== 'online') {
+            if (!driverId || !driverProfile || driverProfile.status !== 'online' || !isDriverVerificationApproved(driverProfile)) {
                 if (availableMarketJobs.length > 0 || _lastMarketJobsSignature) {
                     availableMarketJobs = [];
                     _lastMarketJobsSignature = '';
@@ -3411,6 +3452,12 @@ Are you absolutely sure you want to proceed?`);
             const label = document.getElementById('status-label');
             const card = document.getElementById('trip-status-card');
             if (isOnline) {
+                if (!isDriverVerificationApproved(driverProfile)) {
+                    checkbox.checked = false;
+                    updateVerificationLockUI(driverProfile);
+                    showToast('Documents under verification. You cannot go online yet.', 'warning');
+                    return;
+                }
                 const selectedRoute = (driverProfile?.route_pref || '').trim();
                 if (!selectedRoute) {
                     checkbox.checked = false;
@@ -3619,6 +3666,13 @@ Are you absolutely sure you want to proceed?`);
             container.innerHTML = '';
             let listToRender = currentTab === 'new' ? availableMarketJobs : activeList;
 
+            if (currentTab === 'new' && !isDriverVerificationApproved(driverProfile)) {
+                container.innerHTML = `<div class="text-center py-10 opacity-80"><div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="shield-alert" class="w-8 h-8 text-amber-500"></i></div><p class="text-sm font-bold text-slate-600 dark:text-slate-300">Documents Under Verification</p><p class="text-xs text-slate-400 mt-1">Ride acceptance will unlock after admin approval.</p><button onclick="switchView('docs')" class="mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg">Open Documents</button></div>`;
+                renderIconsIn(bulkBar);
+                renderIconsIn(container);
+                return;
+            }
+
             // FIX #3: If offline and on 'new' tab, show offline message
             if (currentTab === 'new' && driverProfile && driverProfile.status !== 'online') {
                 container.innerHTML = `<div class="text-center py-10 opacity-70"><div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="power-off" class="w-8 h-8 text-slate-400"></i></div><p class="text-sm font-bold text-slate-500">You are offline</p><p class="text-xs text-slate-400 mt-1">Go online to see available trips</p></div>`;
@@ -3724,6 +3778,11 @@ Are you absolutely sure you want to proceed?`);
 
         // FIX #6: openAcceptModal - properly handle full cab bookings
         window.openAcceptModal = (id) => {
+            if (!isDriverVerificationApproved(driverProfile)) {
+                updateVerificationLockUI(driverProfile);
+                showToast('Documents under verification. Ride acceptance is locked.', 'warning');
+                return;
+            }
             pendingAcceptJobId = id;
             const job = availableMarketJobs.find(j => j.id === id);
             if (job) {
@@ -3748,6 +3807,13 @@ Are you absolutely sure you want to proceed?`);
         // FIX #4: confirmAcceptJob with proper null checks and error handling
         window.confirmAcceptJob = async () => {
             if(!pendingAcceptJobId) { showToast('No job selected', 'error'); return; }
+            if (!isDriverVerificationApproved(driverProfile)) {
+                pendingAcceptJobId = null;
+                document.getElementById('accept-modal').classList.add('hidden');
+                updateVerificationLockUI(driverProfile);
+                showToast('Documents under verification. Ride acceptance is locked.', 'warning');
+                return;
+            }
             const jobId = pendingAcceptJobId;
             try {
                 document.getElementById('accept-modal').classList.add('hidden');
