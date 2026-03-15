@@ -1880,6 +1880,21 @@
             }
         };
 
+        window.handleGoogleLogin = async (response) => {
+            if (typeof response === 'string') {
+                return handleGoogleCredential({ credential: response });
+            }
+            if (response?.credential) {
+                return handleGoogleCredential(response);
+            }
+            if (response?.idToken) {
+                return handleGoogleCredential({ credential: response.idToken });
+            }
+            showToast('Google login failed', 'error');
+        };
+
+        window.handleGoogleLoginResponse = window.handleGoogleLogin;
+
         window.driverRegSubmit = async () => {
             const name = document.getElementById('reg-name').value.trim();
             const email = document.getElementById('reg-email').value.trim();
@@ -2145,9 +2160,54 @@
                 || !((profile?.insurance_url || '').trim());
         }
 
+        let initialSessionCheckPending = false;
+
+        function hideNativeLoading() {
+            if (window.Android && typeof window.Android.hideNativeLoading === 'function') {
+                try {
+                    window.Android.hideNativeLoading();
+                } catch (error) {
+                    console.warn('[Android Bridge] hideNativeLoading failed:', error);
+                }
+            }
+        }
+
+        function finishInitialLoading() {
+            initialSessionCheckPending = false;
+            const splash = document.getElementById('splash-screen');
+            if (splash) splash.classList.add('hidden');
+            hideNativeLoading();
+        }
+
+        function requestAndroidInitialSession() {
+            if (!(window.Android && typeof window.Android.checkInitialSession === 'function')) {
+                return false;
+            }
+
+            initialSessionCheckPending = true;
+            try {
+                window.Android.checkInitialSession();
+            } catch (error) {
+                console.warn('[Android Bridge] checkInitialSession failed:', error);
+                initialSessionCheckPending = false;
+                return false;
+            }
+
+            setTimeout(() => {
+                if (!initialSessionCheckPending && (driverId || getToken())) return;
+                window.showLoginDirectly();
+            }, 2500);
+            return true;
+        }
+
+        window.showLoginDirectly = function() {
+            finishInitialLoading();
+            showLoginScreen();
+        };
+
         function showDriverProfileCompletion(profile = {}) {
             isRegistering = true;
-            document.getElementById('splash-screen').classList.add('hidden');
+            finishInitialLoading();
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('hidden');
 
@@ -2233,14 +2293,7 @@
                                 showLoginScreen();
                             });
                     } else {
-                        if (window.Android) {
-                            console.log('[Init] Waiting for Android Native Auth to resolve...');
-                            setTimeout(() => {
-                                if (!driverId && !googleSignInInProgress) {
-                                    showLoginScreen();
-                                }
-                            }, 3000);
-                        } else {
+                        if (!requestAndroidInitialSession()) {
                             showLoginScreen();
                         }
                     }
@@ -2317,7 +2370,7 @@
 
         function showLoginScreen() {
             if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
-            document.getElementById('splash-screen').classList.add('hidden');
+            finishInitialLoading();
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('hidden');
             lucide.createIcons();
@@ -2442,7 +2495,7 @@
             document.getElementById('home-pref-ac').innerText = profile.ac_pref ? "AC Only" : "Any Type";
             document.getElementById('prof-pref-ac').innerText = profile.ac_pref ? "AC Only" : "Any Type";
 
-            document.getElementById('splash-screen').classList.add('hidden');
+            finishInitialLoading();
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             updateRegistrationDocStatusUI();
