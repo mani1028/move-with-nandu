@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,7 @@ from ..services.state_machine import assert_transition
 from ..services.matching_engine import find_best_driver, get_auto_assign_setting, get_surge_multiplier
 from ..services.fraud import check_duplicate_booking, check_booking_rate_limit, log_driver_cancel
 from ..services.pricing import calculate_fare, apply_coupon
+from ..services.rate_limit import enforce_rate_limit, get_client_ip
 from ..ws.manager import manager
 
 router = APIRouter(prefix="/api/rides", tags=["Rides"])
@@ -433,18 +434,34 @@ async def rate_ride(
 async def verify_otp(
     ride_id: str,
     otp: str,
+    request: Request,
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db)
 ):
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(
+        key=f"ride-otp:{ride_id}:{client_ip}",
+        limit=6,
+        window_seconds=60,
+        message="Too many OTP attempts. Please wait and try again.",
+    )
     return await _verify_ride_otp(ride_id=ride_id, otp=otp, driver=driver, db=db)
 
 @router.post("/{ride_id}/verify")
 async def verify_otp_from_body(
     ride_id: str,
     body: VerifyOtpIn,
+    request: Request,
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db)
 ):
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(
+        key=f"ride-otp:{ride_id}:{client_ip}",
+        limit=6,
+        window_seconds=60,
+        message="Too many OTP attempts. Please wait and try again.",
+    )
     return await _verify_ride_otp(ride_id=ride_id, otp=body.otp, driver=driver, db=db)
 
 async def _verify_ride_otp(ride_id: str, otp: str, driver: Driver, db: AsyncSession):

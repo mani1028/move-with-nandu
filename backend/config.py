@@ -89,6 +89,7 @@ def get_settings() -> dict[str, object]:
         "profile_upload_bucket": _clean(os.getenv("SUPABASE_PROFILE_BUCKET"), "user-profiles"),
         "driver_docs_bucket": _clean(os.getenv("SUPABASE_DRIVER_DOCS_BUCKET"), "driver-docs"),
         "max_file_size_bytes": int(_clean(os.getenv("MAX_FILE_SIZE_BYTES"), "5242880")),
+        "min_driver_app_version": _clean(os.getenv("MIN_DRIVER_APP_VERSION"), "1.0.0"),
         "cors_origins": cors_origins,
         "app_base_url": app_base_url.rstrip("/"),
     }

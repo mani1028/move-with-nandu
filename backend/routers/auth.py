@@ -1,7 +1,7 @@
 import os, secrets
 import datetime
 from typing import cast, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from google.oauth2 import id_token
 from ..database import get_db, User, Driver, Setting, Admin
 from ..auth import hash_password, verify_password, create_access_token, decode_token
 from ..config import settings
+from ..services.rate_limit import enforce_rate_limit, get_client_ip, is_version_below
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -244,7 +245,28 @@ async def driver_register(body: DriverRegisterIn, db: AsyncSession = Depends(get
 # ─── Driver Login ────────────────────────────────────────────────────────────────
 
 @router.post("/drivers/login")
-async def driver_login(body: LoginIn, db: AsyncSession = Depends(get_db)):
+async def driver_login(body: LoginIn, request: Request, db: AsyncSession = Depends(get_db)):
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(
+        key=f"driver-login:{client_ip}",
+        limit=5,
+        window_seconds=60,
+        message="Too many login attempts. Please wait and try again.",
+    )
+
+    app_version = request.headers.get("App-Version", "")
+    min_required = str(settings.get("min_driver_app_version") or "1.0.0")
+    if app_version and is_version_below(app_version, min_required):
+        raise HTTPException(
+            status_code=426,
+            detail={
+                "code": "APP_UPDATE_REQUIRED",
+                "message": "Please update the app to continue driving.",
+                "min_version": min_required,
+                "current_version": app_version,
+            },
+        )
+
     email = body.email.lower().strip()
     # Search by email or phone
     r = await db.execute(select(Driver).where((Driver.email == email) | (Driver.phone == email)))
