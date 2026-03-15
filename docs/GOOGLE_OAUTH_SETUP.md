@@ -1,4 +1,4 @@
-# Google OAuth Setup Guide for Travel With Nandu
+# Google OAuth Setup Guide for Move With Nandu
 
 This guide walks you through setting up Google OAuth login/signup from scratch.
 

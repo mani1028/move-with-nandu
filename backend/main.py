@@ -109,7 +109,7 @@ async def lifespan(app: FastAPI):
 # ─── App ──────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
-    title="Travel With Nandu — API",
+    title="Move With Nandu — API",
     description="Production-ready ride-booking backend. Firebase → FastAPI migration.",
     version="1.0.0",
     lifespan=lifespan,
@@ -149,7 +149,7 @@ async def health():
 async def app_status():
     return {
         "status": "running",
-        "app": "Travel With Nandu API",
+        "app": "Move With Nandu API",
         "version": "1.0.0",
         "docs": "/docs",
         "environment": settings["environment"],

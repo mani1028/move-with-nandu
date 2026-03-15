@@ -141,7 +141,7 @@ curl https://movewithnandu.vercel.app/api/health
 ### 2. Test Database Connection
 ```bash
 curl https://movewithnandu.vercel.app/api/status
-# Output: {"status":"running", "app":"Travel With Nandu API", ...}
+# Output: {"status":"running", "app":"Move With Nandu API", ...}
 ```
 
 ### 2b. Test Upload Storage Path
