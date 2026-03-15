@@ -629,6 +629,115 @@
     </div>
 </div>
 
+<!-- Driver Manage Modal -->
+<div id="driver-modal" class="fixed inset-0 bg-black/50 modal-overlay hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-3xl w-full max-w-2xl p-6 mx-4 border border-indigo-100 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-black text-slate-900">Driver Profile Manager</h3>
+            <button onclick="closeModal('driver-modal')" class="text-slate-400 hover:text-slate-900"><i data-lucide="x" class="h-5 w-5"></i></button>
+        </div>
+
+        <!-- Hero card -->
+        <div class="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-700 text-white p-5 mb-5 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-12 -top-10 w-44 h-44 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute -left-10 -bottom-10 w-36 h-36 rounded-full bg-purple-200/20 blur-2xl"></div>
+            <div class="relative flex flex-col sm:flex-row items-center gap-4">
+                <div id="driver-modal-avatar" class="w-20 h-20 rounded-2xl bg-indigo-400 flex items-center justify-center text-white font-black text-3xl border-2 border-white/30 shadow-lg shrink-0 overflow-hidden">D</div>
+                <div class="text-center sm:text-left flex-1">
+                    <p class="text-[11px] font-black uppercase tracking-[0.24em] text-indigo-200">Driver Profile</p>
+                    <h4 id="driver-modal-display-name" class="text-2xl font-black mt-1">Driver</h4>
+                    <p id="driver-modal-display-email" class="text-sm text-indigo-100 mt-0.5">—</p>
+                    <div class="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <span id="driver-modal-status-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">OFFLINE</span>
+                        <span id="driver-modal-verified-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">UNVERIFIED</span>
+                        <span id="driver-modal-jobs-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">0 trips</span>
+                        <span id="driver-modal-rating-badge" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-white/20 border border-white/20">⭐ —</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta info -->
+        <div id="driver-modal-meta" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 mb-4"></div>
+
+        <!-- Editable fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Full Name</label>
+                <input type="text" id="driver-name-input" oninput="updateDriverModalHeader()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Email</label>
+                <input type="email" id="driver-email-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Phone</label>
+                <input type="tel" id="driver-phone-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Vehicle Type</label>
+                <select id="driver-vehicle-type-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="7 Seater">7 Seater</option>
+                    <option value="5 Seater">5 Seater</option>
+                    <option value="Ambulance">Ambulance</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Plate Number</label>
+                <input type="text" id="driver-plate-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Route Preference</label>
+                <select id="driver-route-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="Karimnagar">Karimnagar</option>
+                    <option value="JBS-Hyderabad">JBS-Hyderabad</option>
+                    <option value="Hyderabad-City">Hyderabad City</option>
+                    <option value="Airport-RGI">Airport RGI</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Seats Total</label>
+                <input type="number" id="driver-seats-input" min="1" max="12" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Online Status</label>
+                <select id="driver-status-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Verification section -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+            <p class="text-[11px] font-black text-amber-700 uppercase tracking-wider mb-3">Verification & Documents</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase block mb-1">Doc Status</label>
+                    <select id="driver-doc-status-input" class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400">
+                        <option value="pending">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-3">
+                    <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
+                        <input type="checkbox" id="driver-verified-input" class="w-4 h-4 rounded border-slate-300 accent-indigo-600">
+                        Mark as Verified
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="deleteDriverByModal()" class="py-3 px-4 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold text-sm hover:bg-red-100 transition">Delete Driver</button>
+            <button onclick="closeModal('driver-modal')" class="flex-1 py-3 bg-slate-100 font-bold rounded-xl text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+            <button onclick="saveDriverByModal()" class="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition">Save Changes</button>
+        </div>
+    </div>
+</div>
+
 <!-- Customer Manage Modal -->
 <div id="customer-modal" class="fixed inset-0 bg-black/50 modal-overlay hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-3xl w-full max-w-2xl p-6 mx-4 border border-blue-100 shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
@@ -1100,6 +1209,7 @@
                     <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase ${statusColor}">${d.isBlocked ? 'Blocked' : (d.status || 'offline')}</span>
                 </td>
                 <td class="px-4 py-3 text-right flex justify-end items-center gap-2">
+                    <button onclick="openDriverModal('${d.id}')" class="text-blue-600 font-bold text-xs hover:bg-blue-50 px-2 py-1 rounded border border-blue-200">Manage</button>
                     <button onclick="openDocModal('${d.id}')" class="text-slate-500 font-bold text-xs hover:bg-slate-100 px-2 py-1 rounded border border-slate-200">📄 Docs</button>
                     ${verifyBtn}
                     ${blockBtn}
@@ -1300,6 +1410,137 @@
             await loadDashboardData();
         } catch (e) {
             showToast('Failed to delete customer: ' + e.message, 'error');
+        }
+    };
+
+    // ==================== DRIVER MODAL ====================
+
+    let driverTargetId = null;
+
+    window.openDriverModal = (id) => {
+        driverTargetId = id;
+        const d = drivers.find(x => x.id === id);
+        if (!d) return;
+
+        const tripCount = bookingsCache.filter(b => b.driver_id === d.id || b.driverName === d.name).length;
+
+        document.getElementById('driver-modal-meta').innerHTML = `
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <p><span class="font-bold text-slate-500">ID:</span> <span class="font-mono text-xs">${sanitize(d.id)}</span></p>
+                <p><span class="font-bold text-slate-500">Joined:</span> ${sanitize(fmtDateTime(d.created_at))}</p>
+                <p><span class="font-bold text-slate-500">Jobs Done:</span> ${d.jobs_done || 0}</p>
+                <p><span class="font-bold text-slate-500">Rating:</span> ⭐ ${d.rating ? parseFloat(d.rating).toFixed(1) : 'N/A'}</p>
+                <p><span class="font-bold text-slate-500">Bookings:</span> ${tripCount}</p>
+                <p><span class="font-bold text-slate-500">Seats:</span> ${d.filledSeats || 0} / ${d.seatsTotal || 7} filled</p>
+            </div>
+        `;
+
+        document.getElementById('driver-name-input').value = d.name || '';
+        document.getElementById('driver-email-input').value = d.email || '';
+        document.getElementById('driver-phone-input').value = d.phone || '';
+        const vtSel = document.getElementById('driver-vehicle-type-input');
+        Array.from(vtSel.options).forEach(o => o.selected = o.value === (d.vehicleType || d.vehicle_type || '7 Seater'));
+        document.getElementById('driver-plate-input').value = d.vehicleNo || d.plate || '';
+        const routeSel = document.getElementById('driver-route-input');
+        Array.from(routeSel.options).forEach(o => o.selected = o.value === (d.route_pref || 'Karimnagar'));
+        document.getElementById('driver-seats-input').value = d.seatsTotal || d.seats_total || 7;
+        const statusSel = document.getElementById('driver-status-input');
+        const statusVal = d.isBlocked ? 'blocked' : (d.status || 'offline');
+        Array.from(statusSel.options).forEach(o => o.selected = o.value === statusVal);
+        const docSel = document.getElementById('driver-doc-status-input');
+        Array.from(docSel.options).forEach(o => o.selected = o.value === (d.docStatus || d.doc_status || 'pending'));
+        document.getElementById('driver-verified-input').checked = !!(d.isVerified || d.is_verified);
+
+        updateDriverModalHeader();
+        document.getElementById('driver-modal').classList.remove('hidden');
+        lucide.createIcons();
+    };
+
+    window.updateDriverModalHeader = () => {
+        const name = document.getElementById('driver-name-input')?.value || 'Driver';
+        const email = document.getElementById('driver-email-input')?.value || '—';
+        const statusVal = document.getElementById('driver-status-input')?.value || 'offline';
+        const verified = document.getElementById('driver-verified-input')?.checked;
+        const d = drivers.find(x => x.id === driverTargetId);
+
+        const avatarEl = document.getElementById('driver-modal-avatar');
+        if (avatarEl) {
+            const pic = d?.profilePic || d?.profile_pic || '';
+            if (pic) {
+                avatarEl.innerHTML = `<img src="${sanitize(pic)}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\\'text-3xl font-black\\'>${sanitize(name[0]?.toUpperCase()||'D')}</span>'">`;
+            } else {
+                avatarEl.innerHTML = `<span class="text-3xl font-black">${sanitize(name[0]?.toUpperCase() || 'D')}</span>`;
+            }
+        }
+        const dN = document.getElementById('driver-modal-display-name');
+        if (dN) dN.innerText = name;
+        const dE = document.getElementById('driver-modal-display-email');
+        if (dE) dE.innerText = email;
+        const sB = document.getElementById('driver-modal-status-badge');
+        if (sB) {
+            const colors = { online: 'bg-green-500/30', offline: 'bg-slate-500/30', blocked: 'bg-red-500/30' };
+            sB.className = `px-2.5 py-1 rounded-full text-[10px] font-black border border-white/20 ${colors[statusVal] || colors.offline}`;
+            sB.innerText = statusVal.toUpperCase();
+        }
+        const vB = document.getElementById('driver-modal-verified-badge');
+        if (vB) {
+            vB.className = `px-2.5 py-1 rounded-full text-[10px] font-black border border-white/20 ${verified ? 'bg-green-500/30' : 'bg-red-500/30'}`;
+            vB.innerText = verified ? '✓ VERIFIED' : 'UNVERIFIED';
+        }
+        if (d) {
+            const jB = document.getElementById('driver-modal-jobs-badge');
+            if (jB) jB.innerText = `${d.jobs_done || 0} trips`;
+            const rB = document.getElementById('driver-modal-rating-badge');
+            if (rB) rB.innerText = `⭐ ${d.rating ? parseFloat(d.rating).toFixed(1) : 'N/A'}`;
+        }
+    };
+
+    window.saveDriverByModal = async () => {
+        if (!driverTargetId) return;
+        const body = {
+            name: document.getElementById('driver-name-input').value.trim(),
+            email: document.getElementById('driver-email-input').value.trim(),
+            phone: document.getElementById('driver-phone-input').value.trim(),
+            vehicle_type: document.getElementById('driver-vehicle-type-input').value,
+            plate: document.getElementById('driver-plate-input').value.trim().toUpperCase(),
+            route_pref: document.getElementById('driver-route-input').value,
+            seats_total: parseInt(document.getElementById('driver-seats-input').value || '7'),
+            status: document.getElementById('driver-status-input').value,
+            doc_status: document.getElementById('driver-doc-status-input').value,
+            is_verified: document.getElementById('driver-verified-input').checked,
+        };
+        const saveBtn = document.querySelector('#driver-modal button[onclick="saveDriverByModal()"]');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerText = 'Saving…'; }
+        try {
+            await apiFetch(`/api/admin/drivers/${driverTargetId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(body)
+            });
+            closeModal('driver-modal');
+            showToast('Driver updated successfully');
+            await loadDashboardData();
+        } catch (e) {
+            showToast('Failed to update driver: ' + e.message, 'error');
+        } finally {
+            if (saveBtn) { saveBtn.disabled = false; saveBtn.innerText = 'Save Changes'; }
+        }
+    };
+
+    window.deleteDriverByModal = async () => {
+        if (!driverTargetId) return;
+        const d = drivers.find(x => x.id === driverTargetId);
+        if (!confirm(`Delete driver "${d?.name || driverTargetId}"? Any assigned/started rides will be reset to pending.`)) return;
+        const delBtn = document.querySelector('#driver-modal button[onclick="deleteDriverByModal()"]');
+        if (delBtn) { delBtn.disabled = true; delBtn.innerText = 'Deleting…'; }
+        try {
+            await apiFetch(`/api/admin/drivers/${driverTargetId}`, { method: 'DELETE' });
+            closeModal('driver-modal');
+            showToast('Driver deleted', 'warn');
+            await loadDashboardData();
+        } catch (e) {
+            showToast('Failed to delete driver: ' + e.message, 'error');
+        } finally {
+            if (delBtn) { delBtn.disabled = false; delBtn.innerText = 'Delete Driver'; }
         }
     };
 

@@ -39,6 +39,12 @@ class TicketReplyIn(BaseModel):
     status: str = "resolved"
 
 class DriverPatchIn(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    vehicle_type: Optional[str] = None
+    plate: Optional[str] = None
+    route_pref: Optional[str] = None
     is_verified: Optional[bool] = None
     status: Optional[str] = None
     seats_total: Optional[int] = None
@@ -144,6 +150,28 @@ async def patch_driver(
     driver = result.scalar_one_or_none()
     if not driver:
         raise HTTPException(404, "Driver not found.")
+    if body.name is not None:
+        driver.name = body.name.strip()  # type: ignore
+    if body.email is not None:
+        email = str(body.email).lower().strip()
+        if email != (driver.email or ""):
+            existing = await db.execute(select(Driver).where(Driver.email == email, Driver.id != driver_id).limit(1))
+            if existing.scalar_one_or_none():
+                raise HTTPException(400, "Email already in use by another driver")
+        driver.email = email  # type: ignore
+    if body.phone is not None:
+        phone = body.phone.strip()
+        if phone and phone != (driver.phone or ""):
+            existing = await db.execute(select(Driver).where(Driver.phone == phone, Driver.id != driver_id).limit(1))
+            if existing.scalar_one_or_none():
+                raise HTTPException(400, "Phone already in use by another driver")
+        driver.phone = phone  # type: ignore
+    if body.vehicle_type is not None:
+        driver.vehicle_type = body.vehicle_type.strip()  # type: ignore
+    if body.plate is not None:
+        driver.plate = body.plate.strip()  # type: ignore
+    if body.route_pref is not None:
+        driver.route_pref = body.route_pref.strip()  # type: ignore
     if body.is_verified is not None:
         driver.is_verified = body.is_verified  # type: ignore
     if body.status is not None:
@@ -172,6 +200,30 @@ async def patch_driver(
         driver.rc_url = body.rc_url.strip()  # type: ignore
     if body.insurance_url is not None:
         driver.insurance_url = body.insurance_url.strip()  # type: ignore
+    await db.commit()
+    await db.refresh(driver)
+    return _driver_dict(driver)
+
+
+@router.delete("/drivers/{driver_id}")
+async def delete_driver(
+    driver_id: str,
+    admin: object = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Driver).where(Driver.id == driver_id))
+    driver = result.scalar_one_or_none()
+    if not driver:
+        raise HTTPException(404, "Driver not found")
+    # Unassign any open rides before deleting
+    open_ride_result = await db.execute(
+        select(Ride).where(Ride.driver_id == driver_id, Ride.status.in_(["assigned", "started"]))
+    )
+    for ride in open_ride_result.scalars().all():
+        ride.driver_id = None  # type: ignore
+        ride.driver_name = None  # type: ignore
+        ride.status = "pending"  # type: ignore
+    await db.delete(driver)
     await db.commit()
     return {"ok": True}
 

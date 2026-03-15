@@ -965,6 +965,24 @@
             return res.json();
         }
 
+        // ── BUTTON LOADING HELPER ─────────────────────────────────────────────
+        const _SPINNER = `<svg class="inline animate-spin h-4 w-4 mr-1 -mt-0.5" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+        function btnLoad(btn, loading, originalHTML) {
+            if (!btn) return;
+            if (loading) {
+                btn._origHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = _SPINNER + 'Please wait...';
+                btn.style.opacity = '0.75';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML !== undefined ? originalHTML : (btn._origHTML || btn.innerHTML);
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+            }
+        }
+
         // ── STATE ─────────────────────────────────────────────────────────────
         let userData = null, allUserOrders = [], activeDrivers = [];
         let liveSearchResults = [];
@@ -1601,6 +1619,8 @@
         }
         window.submitRating = async () => {
             if (!currentRating) return alert('Please select stars');
+            const btn = document.querySelector('#rating-modal button[onclick="submitRating()"]');
+            btnLoad(btn, true);
             try {
                 await apiFetch(`/api/rides/${rateOrderId}/rate`, {
                     method: 'POST',
@@ -1609,6 +1629,7 @@
                 localStorage.setItem(`rated_${rateOrderId}`, true);
                 document.getElementById('rating-modal').style.display = 'none';
             } catch(e) { alert(e.message); }
+            finally { btnLoad(btn, false); }
         }
 
         // ── SUPPORT ───────────────────────────────────────────────────────────
@@ -1617,11 +1638,14 @@
             const issue = document.getElementById('ticket-type').value;
             const desc = document.getElementById('ticket-desc').value;
             if (!desc) return alert('Please describe the issue');
+            const btn = document.querySelector('#support-modal button[onclick="submitTicket()"]');
+            btnLoad(btn, true);
             try {
                 await apiFetch('/api/support/', { method: 'POST', body: JSON.stringify({ issue_type: issue, description: desc, ride_id: ticketOrderId || '' }) });
                 alert('✅ Ticket Raised! We\'ll respond soon.');
                 document.getElementById('support-modal').style.display = 'none';
             } catch(e) { alert(e.message); }
+            finally { btnLoad(btn, false); }
         }
 
         // ── CHAT ──────────────────────────────────────────────────────────────
@@ -1851,15 +1875,19 @@
             if (!navigator.onLine) { alert('You are offline. Please connect to book.'); return; }
             const active = allUserOrders.find(o => ['pending', 'assigned', 'started'].includes(o.status));
             if (active) { document.getElementById('duplicate-booking-modal').style.display = 'flex'; return; }
-            await executeBooking();
+            const btn = document.getElementById('submit-btn');
+            btnLoad(btn, true);
+            try { await executeBooking(); } finally { btnLoad(btn, false); }
         }
-        document.getElementById('confirm-duplicate-btn').onclick = async () => {
+        document.getElementById('confirm-duplicate-btn').onclick = async (e) => {
             document.getElementById('duplicate-booking-modal').style.display = 'none';
-            await executeBooking();
+            btnLoad(e.target, true);
+            try { await executeBooking(); } finally { btnLoad(e.target, false); }
         }
-        document.getElementById('confirm-fallback-btn').onclick = async () => {
+        document.getElementById('confirm-fallback-btn').onclick = async (e) => {
             document.getElementById('fallback-booking-modal').style.display = 'none';
-            await executeBooking();
+            btnLoad(e.target, true);
+            try { await executeBooking(); } finally { btnLoad(e.target, false); }
         }
 
         async function executeBooking() {
@@ -2056,9 +2084,10 @@
             document.getElementById('cancel-modal').style.display = 'flex';
             document.getElementById('cancel-reason').value = "";
         }
-        document.getElementById('confirm-cancel-btn').onclick = async () => {
+        document.getElementById('confirm-cancel-btn').onclick = async (e) => {
             const r = document.getElementById('cancel-reason').value;
             if (!r) return alert('Please select a reason');
+            btnLoad(e.target, true);
             try {
                 console.log('[Cancel Ride] Attempting to cancel:', cancelTargetId, 'reason:', r);
                 await apiFetch(`/api/rides/${cancelTargetId}/cancel`, { 
@@ -2079,6 +2108,8 @@
             } catch(e) { 
                 console.error('[Cancel Ride] Failed:', e);
                 alert('❌ Cancel failed: ' + (e.message || 'Unknown error')); 
+            } finally {
+                btnLoad(e.target, false);
             }
         }
 

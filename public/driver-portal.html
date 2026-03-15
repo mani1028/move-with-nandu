@@ -1410,6 +1410,24 @@
             }
         }
 
+        // ── BUTTON LOADING HELPER ─────────────────────────────────────────────
+        const _SPINNER = `<svg class="inline animate-spin h-4 w-4 mr-1 -mt-0.5" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
+        function btnLoad(btn, loading) {
+            if (!btn) return;
+            if (loading) {
+                btn._origHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = _SPINNER + 'Please wait...';
+                btn.style.opacity = '0.75';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btn._origHTML || btn.innerHTML;
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+            }
+        }
+
         // --- GLOBAL STATE ---
         let driverProfile = null;
         let driverId = null;
@@ -3815,6 +3833,8 @@ Are you absolutely sure you want to proceed?`);
                 return;
             }
             const jobId = pendingAcceptJobId;
+            const btn = document.querySelector('#accept-modal button[onclick="confirmAcceptJob()"], #accept-modal button[type="button"]');
+            btnLoad(btn, true);
             try {
                 document.getElementById('accept-modal').classList.add('hidden');
                 pendingAcceptJobId = null;
@@ -3828,6 +3848,8 @@ Are you absolutely sure you want to proceed?`);
             } catch(e) { 
                 console.error(e); 
                 showToast("Error accepting: " + e.message, "error"); 
+            } finally {
+                btnLoad(btn, false);
             }
         };
 
@@ -3857,7 +3879,7 @@ Are you absolutely sure you want to proceed?`);
             if (enteredPin.length < 4) { showToast("Please enter all 4 digits", "warning"); return; }
 
             const btn = document.getElementById('btn-verify-submit');
-            if (btn) { btn.disabled = true; btn.innerText = "Verifying..."; }
+            btnLoad(btn, true);
 
             try {
                 // Verify OTP via API
@@ -3886,7 +3908,7 @@ Are you absolutely sure you want to proceed?`);
                 inputs[0].focus();
                 showToast("❌ Wrong PIN! Ask passenger again.", "error");
             } finally {
-                if (btn) { btn.disabled = false; btn.innerText = "Verify PIN"; }
+                btnLoad(btn, false);
             }
         };
 
@@ -3932,6 +3954,8 @@ Are you absolutely sure you want to proceed?`);
                 return;
             }
 
+            const startBtn = document.querySelector('#start-confirm-modal button[onclick="confirmStartRide()"]');
+            btnLoad(startBtn, true);
             try {
                 await Promise.all(jobsToStart.map(job => 
                     apiFetch(`/api/rides/${job.id}/start`, {
@@ -3942,6 +3966,8 @@ Are you absolutely sure you want to proceed?`);
             } catch(e) { 
                 console.error(e); 
                 showToast("Error starting trip", "error"); 
+            } finally {
+                btnLoad(startBtn, false);
             }
         };
 
@@ -3980,22 +4006,28 @@ Are you absolutely sure you want to proceed?`);
             if(!pendingPaymentJobId) return;
             const job = myActiveJobs.find(j => j.id === pendingPaymentJobId);
             if(!job) { showToast("Error finding job", "error"); return; }
+            const btn = document.querySelector('#payment-modal button[onclick="confirmCompleteRide()"]');
+            btnLoad(btn, true);
             try {
                 await completeSingleJob(job);
                 showToast("Trip Completed!", "success");
                 document.getElementById('payment-modal').classList.add('hidden');
                 pendingPaymentJobId = null;
             } catch(e) { console.error(e); showToast("Error completing", "error"); }
+            finally { btnLoad(btn, false); }
         };
 
         window.confirmCompleteAllRides = async () => {
+            const btn = document.querySelector('#complete-all-modal button[onclick="confirmCompleteAllRides()"]');
             document.getElementById('complete-all-modal').classList.add('hidden');
             const jobsToEnd = myActiveJobs.filter(j => j.status === 'started');
             if(jobsToEnd.length === 0) return;
+            btnLoad(btn, true);
             try {
                 await Promise.all(jobsToEnd.map(job => completeSingleJob(job)));
                 showToast("All Trips Completed!", "success");
             } catch(e) { console.error(e); showToast("Error completing all", "error"); }
+            finally { btnLoad(btn, false); }
         };
 
         // FIX #2: After completing, update driver's location to the drop point and reset seats to 0
@@ -4491,7 +4523,9 @@ Are you absolutely sure you want to proceed?`);
         
         window.reportNoResponse = async () => {
             if (!pendingOptionsJobId) return;
+            const btn = document.querySelector('#options-modal button[onclick="reportNoResponse()"]');
             document.getElementById('options-modal').classList.add('hidden');
+            btnLoad(btn, true);
             try {
                 await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
@@ -4501,12 +4535,14 @@ Are you absolutely sure you want to proceed?`);
                 });
                 showToast('Reported: Not Responding', 'warning');
             } catch(e) { showToast('Error', 'error'); }
-            pendingOptionsJobId = null;
+            finally { btnLoad(btn, false); pendingOptionsJobId = null; }
         };
 
         window.reportNotInterested = async () => {
             if (!pendingOptionsJobId) return;
+            const btn = document.querySelector('#options-modal button[onclick="reportNotInterested()"]');
             document.getElementById('options-modal').classList.add('hidden');
+            btnLoad(btn, true);
             try {
                 await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
@@ -4516,12 +4552,14 @@ Are you absolutely sure you want to proceed?`);
                 });
                 showToast('Reported: Not Interested', 'warning');
             } catch(e) { showToast('Error', 'error'); }
-            pendingOptionsJobId = null;
+            finally { btnLoad(btn, false); pendingOptionsJobId = null; }
         };
 
         window.cancelTripReason = async () => {
             if (!pendingOptionsJobId) return;
+            const btn = document.querySelector('#options-modal button[onclick="cancelTripReason()"]');
             document.getElementById('options-modal').classList.add('hidden');
+            btnLoad(btn, true);
             try {
                 await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
@@ -4531,7 +4569,7 @@ Are you absolutely sure you want to proceed?`);
                 });
                 showToast('Trip Cancelled', 'success');
             } catch(e) { showToast('Error cancelling', 'error'); }
-            pendingOptionsJobId = null;
+            finally { btnLoad(btn, false); pendingOptionsJobId = null; }
         };
 
         function androidSetDriver(phone) { if (window.Android && phone) Android.setDriverPhone(phone); }
