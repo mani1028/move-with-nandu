@@ -3277,12 +3277,10 @@ Are you absolutely sure you want to proceed?`);
                 }
                 try {
                     await Promise.all(assignedCustomers.map(job => 
-                        apiFetch(`/api/rides/${job.id}`, {
+                        apiFetch(`/api/rides/${job.id}/cancel`, {
                             method: 'PATCH',
                             body: JSON.stringify({
-                                status: 'cancelled',
-                                cancel_reason: 'Driver changed location — auto cancelled',
-                                cancelled_by: 'system'
+                                reason: 'Driver changed location - auto cancelled'
                             })
                         })
                     ));
@@ -3752,21 +3750,11 @@ Are you absolutely sure you want to proceed?`);
             if(!pendingAcceptJobId) { showToast('No job selected', 'error'); return; }
             const jobId = pendingAcceptJobId;
             try {
-                const vNo = (driverProfile && driverProfile.plate) ? driverProfile.plate : "TS--";
-                const dName = (driverProfile && driverProfile.name) ? driverProfile.name : "Driver";
-                const dPhone = (driverProfile && driverProfile.phone) ? driverProfile.phone : "";
                 document.getElementById('accept-modal').classList.add('hidden');
                 pendingAcceptJobId = null;
                 
-                await apiFetch(`/api/rides/${jobId}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({
-                        status: 'assigned',
-                        driver_id: driverId,
-                        driver_name: dName,
-                        driver_phone: dPhone,
-                        driver_vehicle: vNo
-                    })
+                await apiFetch(`/api/rides/${jobId}/accept`, {
+                    method: 'PATCH'
                 });
                 
                 showToast("Request Accepted!", "success");
@@ -3880,9 +3868,8 @@ Are you absolutely sure you want to proceed?`);
 
             try {
                 await Promise.all(jobsToStart.map(job => 
-                    apiFetch(`/api/rides/${job.id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ status: 'started' })
+                    apiFetch(`/api/rides/${job.id}/start`, {
+                        method: 'PATCH'
                     })
                 ));
                 showToast("Trip Started! ✅", "success");
@@ -3947,46 +3934,24 @@ Are you absolutely sure you want to proceed?`);
 
         // FIX #2: After completing, update driver's location to the drop point and reset seats to 0
         async function completeSingleJob(job) {
-            const cap = getTotalCapacity();
             const isLastJob = myActiveJobs.filter(j => j.id !== job.id && ['assigned','verified','started'].includes(j.status)).length === 0;
 
             try {
                 // Complete the ride via API
-                await apiFetch(`/api/rides/${job.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'completed' })
+                await apiFetch(`/api/rides/${job.id}/complete`, {
+                    method: 'PATCH'
                 });
 
-                // Update driver profile if last job
+                // Keep only seat-reset on final trip; jobs_done and payment are backend-managed.
                 if (isLastJob) {
                     await apiFetch('/api/drivers/me', {
                         method: 'PATCH',
                         body: JSON.stringify({
-                            jobs_done: (driverProfile.jobs_done || 0) + 1,
                             manual_filled_seats: 0,
-                            filled_seats: 0,
-                            current_location: job.to || driverProfile.route_pref
-                        })
-                    });
-                } else {
-                    await apiFetch('/api/drivers/me', {
-                        method: 'PATCH',
-                        body: JSON.stringify({
-                            jobs_done: (driverProfile.jobs_done || 0) + 1
+                            filled_seats: 0
                         })
                     });
                 }
-
-                // Record wallet transaction via API
-                await apiFetch('/api/drivers/me/wallet', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        amount: parseInt(job.price),
-                        ride_id: job.id,
-                        type: 'credit',
-                        description: `Trip: ${job.from} → ${job.to}`
-                    })
-                }).catch(e => console.log('Wallet transaction failed:', e));
 
                 if (driverProfile) {
                     driverProfile.jobs_done = (driverProfile.jobs_done || 0) + 1;
@@ -4462,12 +4427,10 @@ Are you absolutely sure you want to proceed?`);
             if (!pendingOptionsJobId) return;
             document.getElementById('options-modal').classList.add('hidden');
             try {
-                await apiFetch(`/api/rides/${pendingOptionsJobId}`, {
+                await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
                     body: JSON.stringify({
-                        status: 'cancelled',
-                        cancel_reason: 'Customer not responding',
-                        cancelled_by: 'driver'
+                        reason: 'Customer not responding'
                     })
                 });
                 showToast('Reported: Not Responding', 'warning');
@@ -4479,12 +4442,10 @@ Are you absolutely sure you want to proceed?`);
             if (!pendingOptionsJobId) return;
             document.getElementById('options-modal').classList.add('hidden');
             try {
-                await apiFetch(`/api/rides/${pendingOptionsJobId}`, {
+                await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
                     body: JSON.stringify({
-                        status: 'cancelled',
-                        cancel_reason: 'Customer not interested',
-                        cancelled_by: 'driver'
+                        reason: 'Customer not interested'
                     })
                 });
                 showToast('Reported: Not Interested', 'warning');
@@ -4496,12 +4457,10 @@ Are you absolutely sure you want to proceed?`);
             if (!pendingOptionsJobId) return;
             document.getElementById('options-modal').classList.add('hidden');
             try {
-                await apiFetch(`/api/rides/${pendingOptionsJobId}`, {
+                await apiFetch(`/api/rides/${pendingOptionsJobId}/cancel`, {
                     method: 'PATCH',
                     body: JSON.stringify({
-                        status: 'cancelled',
-                        cancel_reason: 'Cancelled by driver (other reason)',
-                        cancelled_by: 'driver'
+                        reason: 'Cancelled by driver (other reason)'
                     })
                 });
                 showToast('Trip Cancelled', 'success');

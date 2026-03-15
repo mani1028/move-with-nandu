@@ -234,14 +234,17 @@ async def accept_ride(
     if not ride:
         raise HTTPException(404, "Ride not found.")
 
+    # Only pending rides can be accepted. This prevents double-assignment races.
+    if str(ride.status) != "pending":
+        raise HTTPException(409, "Ride already accepted by another driver")
+
     dr_result = await db.execute(
         select(Driver).where(Driver.id == driver.id).with_for_update()
     )
     locked_driver = dr_result.scalar_one_or_none()
     if not locked_driver:
         raise HTTPException(404, "Driver not found.")
-    
-    assert_transition(str(ride.status), "assigned")  # type: ignore
+
     if ride.driver_id and str(ride.driver_id) != driver.id:  # type: ignore
         raise HTTPException(409, "Ride already taken by another driver.")
     if not _has_seat_capacity(locked_driver, ride):
@@ -286,24 +289,50 @@ async def complete_ride(
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db)
 ):
-    ride = await _get_ride(ride_id, db)
+    # Lock both ride and driver rows so completion side effects are committed atomically.
+    ride_result = await db.execute(
+        select(Ride).where(Ride.id == ride_id).with_for_update()
+    )
+    ride = ride_result.scalar_one_or_none()
+    if not ride:
+        raise HTTPException(404, "Ride not found.")
+
     assert_transition(str(ride.status), "completed")  # type: ignore
     if ride.driver_id != driver.id:
         raise HTTPException(403, "Not your ride.")
+
+    driver_result = await db.execute(
+        select(Driver).where(Driver.id == driver.id).with_for_update()
+    )
+    locked_driver = driver_result.scalar_one_or_none()
+    if not locked_driver:
+        raise HTTPException(404, "Driver not found.")
+
     ride.status = "completed"  # type: ignore
     ride.completed_at = datetime.now(timezone.utc)  # type: ignore
 
-    # Update driver stats
-    driver.jobs_done = (driver.jobs_done or 0) + 1  # type: ignore
+    # Update driver stats in the same DB transaction.
+    locked_driver.jobs_done = (locked_driver.jobs_done or 0) + 1  # type: ignore
 
-    # Mark payment collected
-    pay_result = await db.execute(select(Payment).where(Payment.ride_id == ride_id))
+    # Mark payment collected using server-side fare from DB (never from client input).
+    fare_amount = int(getattr(ride, "price", 0) or 0)
+    pay_result = await db.execute(
+        select(Payment).where(Payment.ride_id == ride_id).with_for_update()
+    )
     pay = pay_result.scalar_one_or_none()
     if pay:
+        pay.amount = fare_amount  # type: ignore
         pay.status = "collected"  # type: ignore
+    else:
+        db.add(Payment(
+            ride_id=ride.id,
+            amount=fare_amount,
+            method="cash",
+            status="collected",
+        ))
 
     if ride.booking_type == "shared":
-        driver.filled_seats = max(0, (driver.filled_seats or 0) - (ride.passengers or 1))  # type: ignore
+        locked_driver.filled_seats = max(0, (locked_driver.filled_seats or 0) - (ride.passengers or 1))  # type: ignore
 
     await db.commit()
     await db.refresh(ride)

@@ -412,16 +412,11 @@ async def record_wallet_txn(
     body: WalletTxnIn,
     driver: Driver = Depends(get_current_driver),
 ):
-    # Compatibility endpoint for frontend wallet logging.
-    return {
-        "ok": True,
-        "driver_id": driver.id,
-        "amount": body.amount,
-        "ride_id": body.ride_id,
-        "type": body.type or "credit",
-        "description": body.description or "",
-        "recorded_at": datetime.now(timezone.utc).isoformat(),
-    }
+    # Client-driven wallet credits are disabled for security.
+    raise HTTPException(
+        status_code=410,
+        detail="Wallet updates are handled automatically by ride completion endpoints.",
+    )
 
 
 @router.post("/me/ping")
