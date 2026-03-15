@@ -51,7 +51,7 @@ async def live_search_riders(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
+    query = (
         select(Ride, User.picture)
         .join(User, Ride.user_id == User.id)
         .where(
@@ -59,15 +59,20 @@ async def live_search_riders(
             Ride.status.in_(["pending", "assigned", "started"]),
             Ride.user_id != user.id,
         )
-        .order_by(Ride.created_at.desc())
-        .limit(100)
+    )
+
+    q_date = travel_date.strip()
+    if q_date:
+        query = query.where(Ride.travel_date == q_date)
+
+    result = await db.execute(
+        query.order_by(Ride.created_at.desc()).limit(100)
     )
 
     rows = result.all()
     out = []
     q_from = from_loc.strip().lower()
     q_to = to_loc.strip().lower()
-    q_date = travel_date.strip()
     q_time = time_slot.strip().lower()
 
     for ride, picture in rows:
@@ -77,9 +82,6 @@ async def live_search_riders(
             continue
         if q_to and q_to not in ride_to.lower():
             continue
-        if q_date and (ride.travel_date or "") != q_date:
-            continue
-
         if q_time in {"morning", "afternoon", "evening", "night"}:
             dt = ride.created_at
             hour = dt.hour if dt else 12
@@ -175,13 +177,20 @@ async def create_ride(
     if auto_assign:
         assigned_driver = await find_best_driver(ride, db)
         if assigned_driver:
-            ride.driver_id = assigned_driver.id  # type: ignore
-            ride.driver_name = assigned_driver.name  # type: ignore
-            ride.status = "assigned"  # type: ignore
-            await db.commit()
-            await db.refresh(ride)
-            # Push to driver via WebSocket
-            await manager.notify_driver(str(assigned_driver.id), "new_job", _ride_dict(ride))
+            dr_result = await db.execute(
+                select(Driver).where(Driver.id == assigned_driver.id).with_for_update()
+            )
+            locked_driver = dr_result.scalar_one_or_none()
+            if locked_driver and _has_seat_capacity(locked_driver, ride):
+                ride.driver_id = locked_driver.id  # type: ignore
+                ride.driver_name = locked_driver.name  # type: ignore
+                ride.status = "assigned"  # type: ignore
+                if ride.booking_type == "shared":
+                    locked_driver.filled_seats = (locked_driver.filled_seats or 0) + (ride.passengers or 1)  # type: ignore
+                await db.commit()
+                await db.refresh(ride)
+                # Push to driver via WebSocket
+                await manager.notify_driver(str(locked_driver.id), "new_job", _ride_dict(ride))
 
     # Notify admin
     await manager.broadcast_admin("new_booking", _ride_dict(ride))
@@ -221,13 +230,24 @@ async def accept_ride(
     ride = result.scalar_one_or_none()
     if not ride:
         raise HTTPException(404, "Ride not found.")
+
+    dr_result = await db.execute(
+        select(Driver).where(Driver.id == driver.id).with_for_update()
+    )
+    locked_driver = dr_result.scalar_one_or_none()
+    if not locked_driver:
+        raise HTTPException(404, "Driver not found.")
     
     assert_transition(str(ride.status), "assigned")  # type: ignore
     if ride.driver_id and str(ride.driver_id) != driver.id:  # type: ignore
         raise HTTPException(409, "Ride already taken by another driver.")
-    ride.driver_id = driver.id  # type: ignore
-    ride.driver_name = driver.name  # type: ignore
+    if not _has_seat_capacity(locked_driver, ride):
+        raise HTTPException(400, "Not enough empty seats in your vehicle.")
+    ride.driver_id = locked_driver.id  # type: ignore
+    ride.driver_name = locked_driver.name  # type: ignore
     ride.status = "assigned"  # type: ignore
+    if ride.booking_type == "shared":
+        locked_driver.filled_seats = (locked_driver.filled_seats or 0) + (ride.passengers or 1)  # type: ignore
     await db.commit()
     await db.refresh(ride)
 
@@ -279,6 +299,9 @@ async def complete_ride(
     if pay:
         pay.status = "collected"  # type: ignore
 
+    if ride.booking_type == "shared":
+        driver.filled_seats = max(0, (driver.filled_seats or 0) - (ride.passengers or 1))  # type: ignore
+
     await db.commit()
     await db.refresh(ride)
     await manager.broadcast_admin("ride_updated", _ride_dict(ride))
@@ -314,6 +337,14 @@ async def cancel_ride(
             raise HTTPException(403, "Not your ride.")
         if uid:
             await log_driver_cancel(str(uid), ride_id, body.reason, db)  # type: ignore
+
+    if ride.booking_type == "shared" and ride.driver_id and str(ride.status) in ["assigned", "started"]:
+        dr_res = await db.execute(
+            select(Driver).where(Driver.id == ride.driver_id).with_for_update()
+        )
+        driver_to_update = dr_res.scalar_one_or_none()
+        if driver_to_update:
+            driver_to_update.filled_seats = max(0, (driver_to_update.filled_seats or 0) - (ride.passengers or 1))  # type: ignore
 
     ride.status = "cancelled"  # type: ignore
     ride.cancel_reason = body.reason  # type: ignore
@@ -389,6 +420,15 @@ async def _get_ride(ride_id: str, db: AsyncSession) -> Ride:
     if not ride:
         raise HTTPException(404, "Ride not found.")
     return ride
+
+
+def _has_seat_capacity(driver: Driver, ride: Ride) -> bool:
+    if ride.booking_type != "shared":
+        return True
+    filled_seats = int(driver.filled_seats or 0)  # type: ignore[arg-type]
+    seats_total = int(driver.seats_total or 7)  # type: ignore[arg-type]
+    passengers = int(ride.passengers or 1)  # type: ignore[arg-type]
+    return (filled_seats + passengers) <= seats_total
 
 
 def _ride_dict(r: Ride) -> dict:

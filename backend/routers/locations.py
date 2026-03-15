@@ -39,13 +39,26 @@ async def update_location(
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db)
 ):
-    loc = DriverLocation(
-        driver_id=driver.id,
-        lat=body.lat,
-        lng=body.lng,
-        timestamp=datetime.now(timezone.utc)
+    result = await db.execute(
+        select(DriverLocation)
+        .where(DriverLocation.driver_id == driver.id)
+        .order_by(DriverLocation.timestamp.desc())
     )
-    db.add(loc)
+    loc = result.scalars().first()
+
+    if loc:
+        loc.lat = body.lat  # type: ignore
+        loc.lng = body.lng  # type: ignore
+        loc.timestamp = datetime.now(timezone.utc)  # type: ignore
+    else:
+        loc = DriverLocation(
+            driver_id=driver.id,
+            lat=body.lat,
+            lng=body.lng,
+            timestamp=datetime.now(timezone.utc)
+        )
+        db.add(loc)
+
     await db.commit()
     return {"ok": True}
 

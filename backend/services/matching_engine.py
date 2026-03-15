@@ -19,30 +19,41 @@ ROUTE_MAP = {
 def _driver_matches_ride(driver: Driver, ride: Ride) -> bool:
     """Check if driver preferences match the ride requirements."""
     # AC matching
-    ac_required = ride.ac
-    if ac_required and not driver.ac_pref:
+    ac_required = bool(ride.ac)
+    if ac_required and not bool(driver.ac_pref):
         return False
 
     # Route matching (driver's hub should match ride's from_loc or to_loc)
-    driver_hub = driver.route_pref  # e.g. "Karimnagar"
-    from_std = ROUTE_MAP.get(ride.from_loc, ride.from_loc)
-    to_std   = ROUTE_MAP.get(ride.to_loc, ride.to_loc)
+    driver_hub = str(driver.route_pref or "")  # e.g. "Karimnagar"
+    from_loc = str(ride.from_loc or "")
+    to_loc = str(ride.to_loc or "")
+    from_std = ROUTE_MAP.get(from_loc, from_loc)
+    to_std = ROUTE_MAP.get(to_loc, to_loc)
 
     hub_matches = (driver_hub in from_std or driver_hub in to_std or
                    from_std in driver_hub or to_std in driver_hub)
     if not hub_matches:
         return False
 
+    # Shared rides must respect vehicle seat capacity.
+    if ride.booking_type == "shared":
+        filled_seats = int(driver.filled_seats or 0)  # type: ignore[arg-type]
+        seats_total = int(driver.seats_total or 7)  # type: ignore[arg-type]
+        passengers = int(ride.passengers or 1)  # type: ignore[arg-type]
+        if (filled_seats + passengers) > seats_total:
+            return False
+
     # Vehicle type matching for shared rides
     if ride.booking_type == "shared":
-        needed_size = ride.vehicle_size  # "7 Seater" or "5 Seater"
-        if "7" in needed_size and "7" not in driver.vehicle_type:
+        needed_size = str(ride.vehicle_size or "")  # "7 Seater" or "5 Seater"
+        vehicle_type = str(driver.vehicle_type or "")
+        if "7" in needed_size and "7" not in vehicle_type:
             return False
-        if "5" in needed_size and "5" not in driver.vehicle_type:
+        if "5" in needed_size and "5" not in vehicle_type:
             return False
 
     # Ambulance matching
-    if ride.service_type == "ambulance" and driver.vehicle_type != "Ambulance":
+    if str(ride.service_type or "") == "ambulance" and str(driver.vehicle_type or "") != "Ambulance":
         return False
 
     return True
@@ -75,7 +86,7 @@ async def get_auto_assign_setting(db: AsyncSession) -> bool:
         select(Setting).where(Setting.key == "auto_assign")
     )
     setting = result.scalar_one_or_none()
-    return setting.value.lower() == "true" if setting else True
+    return str(setting.value).lower() == "true" if setting else True
 
 
 async def get_surge_multiplier(db: AsyncSession) -> float:
@@ -84,6 +95,6 @@ async def get_surge_multiplier(db: AsyncSession) -> float:
     )
     setting = result.scalar_one_or_none()
     try:
-        return float(setting.value) if setting else 1.0
+        return float(str(setting.value)) if setting else 1.0
     except Exception:
         return 1.0
