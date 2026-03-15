@@ -180,9 +180,10 @@ async def patch_me(
         driver.ac_pref = bool(body.ac_pref)  # type: ignore
     if docs_updated:
         driver.doc_status = "pending"  # type: ignore
-    reassign_summary = {"reassigned": 0, "pending": 0}
+    reassign_summary = {"reassigned": 0, "pending": 0, "cancelled": 0}
     if status_changing_to_offline:
         reassign_summary = await _reassign_assigned_rides_for_offline_driver(driver, db)
+        driver.filled_seats = 0  # type: ignore
 
     await db.commit()
     await db.refresh(driver)
@@ -318,9 +319,10 @@ async def toggle_status(
     status_changing_to_offline = (body.status == "offline" and str(driver.status) != "offline")
     driver.status = body.status  # type: ignore
 
-    reassign_summary = {"reassigned": 0, "pending": 0}
+    reassign_summary = {"reassigned": 0, "pending": 0, "cancelled": 0}
     if status_changing_to_offline:
         reassign_summary = await _reassign_assigned_rides_for_offline_driver(driver, db)
+        driver.filled_seats = 0  # type: ignore
 
     await db.commit()
     return {"ok": True, "status": driver.status, "reassignment": reassign_summary}
@@ -480,20 +482,28 @@ def _ride_dict(r: Ride) -> dict:
 
 
 async def _reassign_assigned_rides_for_offline_driver(driver: Driver, db: AsyncSession) -> dict[str, int]:
-    """Move driver's assigned rides back to pending and try to auto-reassign."""
+    """Strict offline: block if any trip is started; clear assigned/verified rides and reassign if possible."""
     result = await db.execute(
         select(Ride).where(
             Ride.driver_id == driver.id,
-            Ride.status == "assigned",
+            Ride.status.in_(["assigned", "verified", "started"]),
         )
     )
     rides = result.scalars().all()
 
+    started_rides = [r for r in rides if str(r.status) == "started"]
+    if started_rides:
+        raise HTTPException(409, "Cannot go offline while a trip is in progress.")
+
+    rides = [r for r in rides if str(r.status) in ("assigned", "verified")]
+
     reassigned_count = 0
     pending_count = 0
+    cancelled_count = 0
 
     for ride in rides:
         # Clear current assignment and return to pending pool.
+        cancelled_count += 1
         ride.driver_id = None  # type: ignore
         ride.driver_name = None  # type: ignore
         ride.status = "pending"  # type: ignore
@@ -510,7 +520,7 @@ async def _reassign_assigned_rides_for_offline_driver(driver: Driver, db: AsyncS
 
         await manager.broadcast_admin("ride_updated", _ride_dict(ride))
 
-    return {"reassigned": reassigned_count, "pending": pending_count}
+    return {"reassigned": reassigned_count, "pending": pending_count, "cancelled": cancelled_count}
 
 
 async def _get_active_app_passengers(db: AsyncSession, driver_id: str) -> int:

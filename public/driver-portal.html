@@ -2697,6 +2697,14 @@
         // ── POLLING FUNCTIONS (replace Firestore listeners) ──────────────────
         async function pollActiveJobs() {
             if (!driverId) return;
+            if (driverProfile && driverProfile.status !== 'online') {
+                if (myActiveJobs.length > 0 || _lastActiveJobsSignature) {
+                    myActiveJobs = [];
+                    _lastActiveJobsSignature = '';
+                    updateCombinedJobList();
+                }
+                return;
+            }
             try {
                 const rides = await apiFetch('/api/drivers/my-trips');
                 const nextActiveJobs = (rides || [])
@@ -3111,6 +3119,7 @@
             { name: 'JBS', lat: 17.4448, lng: 78.4983, aliases: ['jbs', 'secunderabad', 'jubilee'] },
             { name: 'Hyderabad', lat: 17.3850, lng: 78.4867, aliases: ['hyderabad', 'hyd', 'ameerpet', 'mehdipatnam'] }
         ];
+        let _lastKnownDriverCoords = null;
 
         function getDistanceKm(lat1, lng1, lat2, lng2) {
             const R = 6371;
@@ -3130,6 +3139,34 @@
             return { hub: nearest, distKm: Math.round(minDist) };
         }
 
+        function renderHubDistanceHints(lat, lng) {
+            document.querySelectorAll('input[name="route_pref"]').forEach((radio) => {
+                const label = radio.closest('label');
+                if (!label) return;
+                const info = label.querySelector('span.text-[10px]');
+                if (!info) return;
+                const hub = HUB_LOCATIONS.find(h => h.name === radio.value);
+                if (!hub) return;
+                const km = Math.round(getDistanceKm(lat, lng, hub.lat, hub.lng));
+                if (!info.dataset.baseText) info.dataset.baseText = info.textContent || '';
+                info.textContent = `${info.dataset.baseText} · ${km} km away`;
+            });
+        }
+
+        function updateSelectedRouteDistanceHint() {
+            const locationHint = document.getElementById('location-detect-hint');
+            const checked = document.querySelector('input[name="route_pref"]:checked');
+            if (!locationHint || !checked) return;
+            if (!_lastKnownDriverCoords) {
+                locationHint.innerHTML = `<span class="text-slate-400 text-[10px]">Selected hub: <strong>${checked.value}</strong>. Enable location to view distance.</span>`;
+                return;
+            }
+            const hub = HUB_LOCATIONS.find(h => h.name === checked.value);
+            if (!hub) return;
+            const km = Math.round(getDistanceKm(_lastKnownDriverCoords.lat, _lastKnownDriverCoords.lng, hub.lat, hub.lng));
+            locationHint.innerHTML = `<span class="text-green-600 font-bold">📍 Selected hub: <strong>${checked.value}</strong> (~${km} km away). You can change this anytime.</span>`;
+        }
+
         window.openSettingsModal = () => {
             document.getElementById('settings-modal').classList.remove('hidden');
             // FIX #5: Auto-detect location and suggest nearest hub
@@ -3141,7 +3178,9 @@
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
                         const { latitude, longitude } = pos.coords;
+                        _lastKnownDriverCoords = { lat: latitude, lng: longitude };
                         const { hub, distKm } = detectNearestHub(latitude, longitude);
+                        renderHubDistanceHints(latitude, longitude);
                         if (locationHint) {
                             locationHint.innerHTML = `<span class="text-green-600 font-bold">📍 You are near: <strong>${hub.name}</strong> (~${distKm} km away)</span>`;
                         }
@@ -3171,6 +3210,10 @@
                                 }
                                 // Auto-select nearest hub
                                 radioEl.checked = true;
+                                updateSelectedRouteDistanceHint();
+                            }
+                            else {
+                                updateSelectedRouteDistanceHint();
                             }
                         }
                     },
@@ -3184,6 +3227,12 @@
             }
         };
         window.closeSettingsModal = () => document.getElementById('settings-modal').classList.add('hidden');
+
+        document.addEventListener('change', (e) => {
+            const target = e.target;
+            if (!(target instanceof HTMLInputElement)) return;
+            if (target.name === 'route_pref') updateSelectedRouteDistanceHint();
+        });
 
         window.saveSettings = async () => {
             const ac = document.getElementById('setting-ac').checked;
@@ -3364,6 +3413,13 @@ Are you absolutely sure you want to proceed?`);
             const label = document.getElementById('status-label');
             const card = document.getElementById('trip-status-card');
             if (isOnline) {
+                const selectedRoute = (driverProfile?.route_pref || '').trim();
+                if (!selectedRoute) {
+                    checkbox.checked = false;
+                    openSettingsModal();
+                    showToast('Select your Ride Preference hub before going online.', 'warning');
+                    return;
+                }
                 try {
                     label.innerText = "Syncing...";
                     const cap = getTotalCapacity();
@@ -3446,14 +3502,12 @@ Are you absolutely sure you want to proceed?`);
             const card = document.getElementById('trip-status-card');
             try {
                 label.innerText = "Syncing...";
-                const capacity = getTotalCapacity();
                 
-                await apiFetch('/api/drivers/me', {
+                const offlineRes = await apiFetch('/api/drivers/me', {
                     method: 'PATCH',
                     body: JSON.stringify({
                         status: 'offline',
                         filled_seats: 0,
-                        seats_available: capacity,
                         manual_filled_seats: 0
                     })
                 });
@@ -3467,16 +3521,29 @@ Are you absolutely sure you want to proceed?`);
                 updateSeatUI();
                 
                 // Clear market jobs when going offline
+                myActiveJobs = [];
                 availableMarketJobs = [];
                 updateCombinedJobList();
                 
                 if (window.Android) Android.driverOffline(driverProfile.phone || driverId);
                 stopKeepAlive();
                 stopGpsTracking();
-                showToast("Logged out & seats cleared", "success");
+
+                const reassign = offlineRes?.reassignment || {};
+                const cancelled = parseInt(reassign.cancelled || 0);
+                const reassigned = parseInt(reassign.reassigned || 0);
+                const pending = parseInt(reassign.pending || 0);
+
+                if (cancelled > 0) {
+                    alert(`Offline complete. ${cancelled} trip(s) were removed from your queue. ${reassigned} reassigned to other drivers, ${pending} waiting for reassignment.`);
+                }
+                showToast("Offline successful. Active orders cleared.", "success");
             } catch(e) { 
                 console.error(e); 
-                showToast("Error going offline", "error"); 
+                document.getElementById('status-toggle').checked = true;
+                label.innerText = "Online";
+                label.className = "text-[10px] font-bold text-green-500 uppercase";
+                showToast("Cannot go offline: " + (e.message || 'Complete started rides first'), "error"); 
             }
         }
 

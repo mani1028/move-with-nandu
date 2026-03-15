@@ -15,6 +15,30 @@ ROUTE_MAP = {
     "Airport-RGI":   "RGI Airport",
 }
 
+HUB_KEYWORDS = {
+    "Karimnagar": ["karimnagar", "karim"],
+    "JBS": ["jbs", "secunderabad", "jubilee"],
+    "Hyderabad": ["hyderabad", "hyd", "ameerpet", "mehdipatnam"],
+    "RGI Airport": ["rgi", "airport", "shamshabad", "hyderabad airport"],
+}
+
+
+def _normalize_hub(value: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+
+    mapped = ROUTE_MAP.get(raw, raw)
+    lowered = mapped.lower()
+
+    for canonical, keywords in HUB_KEYWORDS.items():
+        if canonical.lower() in lowered:
+            return canonical
+        if any(k in lowered for k in keywords):
+            return canonical
+
+    return mapped
+
 
 def _driver_matches_ride(driver: Driver, ride: Ride) -> bool:
     """Check if driver preferences match the ride requirements."""
@@ -23,16 +47,13 @@ def _driver_matches_ride(driver: Driver, ride: Ride) -> bool:
     if ac_required and not bool(driver.ac_pref):
         return False
 
-    # Route matching (driver's hub should match ride's from_loc or to_loc)
-    driver_hub = str(driver.route_pref or "")  # e.g. "Karimnagar"
-    from_loc = str(ride.from_loc or "")
-    to_loc = str(ride.to_loc or "")
-    from_std = ROUTE_MAP.get(from_loc, from_loc)
-    to_std = ROUTE_MAP.get(to_loc, to_loc)
-
-    hub_matches = (driver_hub in from_std or driver_hub in to_std or
-                   from_std in driver_hub or to_std in driver_hub)
-    if not hub_matches:
+    # Strict route preference: driver's selected hub must match pickup or drop hub.
+    driver_hub = _normalize_hub(str(driver.route_pref or ""))
+    from_hub = _normalize_hub(str(ride.from_loc or ""))
+    to_hub = _normalize_hub(str(ride.to_loc or ""))
+    if not driver_hub:
+        return False
+    if driver_hub not in {from_hub, to_hub}:
         return False
 
     # Shared rides must respect vehicle seat capacity.
