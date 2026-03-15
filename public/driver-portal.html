@@ -1192,6 +1192,7 @@
         // ── API CONFIG ────────────────────────────────────────────────────────
         const API = (window.API_BASE && window.API_BASE.trim())
             || (location.origin && location.origin !== 'null' ? location.origin : 'http://localhost:8000');
+        const WS_BASE = API.replace(/^http:/i, 'ws:').replace(/^https:/i, 'wss:');
         
         console.log('[App Startup] Initializing...');
         console.log('[App Startup] API_BASE:', API);
@@ -1372,7 +1373,16 @@
             try {
                 const res = await fetch(fullUrl, { ...options, headers });
                 console.log('[API] Response:', { status: res.status, path });
-                if (res.status === 401 && !options.ignore401) { clearToken(); location.reload(); }
+                if (res.status === 401 && !options.ignore401) {
+                    clearToken();
+                    disconnectDriverSocket();
+                    const appScreen = document.getElementById('app-screen');
+                    if (appScreen && !appScreen.classList.contains('hidden')) {
+                        showToast('Session expired. Please log in again.', 'warning');
+                    }
+                    showLoginScreen();
+                    throw new Error('Session expired. Please log in again.');
+                }
                 if (!res.ok) {
                     let err = 'Request failed';
                     try { const d = await res.json(); err = d.detail || err; } catch(e) {}
@@ -1412,6 +1422,9 @@
         let googleSignInInProgress = false;
         let pendingDriverRegistration = null;
         let profileSyncInterval = null;
+        let driverSocket = null;
+        let wsReconnectTimer = null;
+        let wsConnected = false;
         const ANNOUNCEMENT_SEEN_KEY = 'nandu_driver_ann_seen_at';
         let _lastActiveJobsSignature = '';
         let _lastMarketJobsSignature = '';
@@ -2284,20 +2297,19 @@
                 } else {
                     if (token) {
                         // Try to fetch fresh profile from API
-                        apiFetch('/api/drivers/me')
-                            .then(profile => {
-                                driverProfile = profile;
-                                driverId = profile.id;
-                                storageSet('nandu_driver_profile', JSON.stringify(profile));
-                                // Also save to localStorage for synchronous access
-                                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
-                                if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
-                                else initDriverUI(profile);
-                            })
-                            .catch((err) => {
-                                console.warn('Driver profile refresh failed:', err?.message || err);
-                                showLoginScreen();
-                            });
+                        try {
+                            const profile = await apiFetch('/api/drivers/me');
+                            driverProfile = profile;
+                            driverId = profile.id;
+                            storageSet('nandu_driver_profile', JSON.stringify(profile));
+                            // Also save to localStorage for synchronous access
+                            try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
+                            if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
+                            else initDriverUI(profile);
+                        } catch (err) {
+                            console.warn('Driver profile refresh failed:', err?.message || err);
+                            showLoginScreen();
+                        }
                     } else {
                         if (!requestAndroidInitialSession()) {
                             showLoginScreen();
@@ -2376,10 +2388,77 @@
 
         function showLoginScreen() {
             if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
+            disconnectDriverSocket();
             finishInitialLoading();
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('hidden');
             lucide.createIcons();
+        }
+
+        function scheduleDriverSocketReconnect() {
+            if (wsReconnectTimer || !driverId || !getToken()) return;
+            wsReconnectTimer = setTimeout(() => {
+                wsReconnectTimer = null;
+                connectDriverSocket();
+            }, 3000);
+        }
+
+        function disconnectDriverSocket() {
+            if (wsReconnectTimer) {
+                clearTimeout(wsReconnectTimer);
+                wsReconnectTimer = null;
+            }
+            wsConnected = false;
+            if (driverSocket) {
+                try {
+                    driverSocket.onopen = null;
+                    driverSocket.onmessage = null;
+                    driverSocket.onerror = null;
+                    driverSocket.onclose = null;
+                    driverSocket.close();
+                } catch (e) { }
+                driverSocket = null;
+            }
+        }
+
+        function connectDriverSocket() {
+            if (!driverId || !getToken()) return;
+            if (driverSocket && (driverSocket.readyState === WebSocket.OPEN || driverSocket.readyState === WebSocket.CONNECTING)) return;
+
+            try {
+                const wsUrl = `${WS_BASE}/ws/driver/${encodeURIComponent(driverId)}`;
+                driverSocket = new WebSocket(wsUrl);
+            } catch (e) {
+                scheduleDriverSocketReconnect();
+                return;
+            }
+
+            driverSocket.onopen = () => {
+                wsConnected = true;
+                try { driverSocket.send(JSON.stringify({ token: getToken() || '' })); } catch (e) { }
+            };
+
+            driverSocket.onmessage = (event) => {
+                let msg = null;
+                try { msg = JSON.parse(event.data || '{}'); } catch (e) { return; }
+                const eventName = String(msg?.event || '').toLowerCase();
+                if (!eventName) return;
+
+                if (eventName === 'new_job' || eventName === 'ride_updated' || eventName === 'broadcast') {
+                    pollMarketJobs();
+                    pollActiveJobs();
+                    if (eventName === 'new_job' && driverProfile?.status === 'online') {
+                        showToast('New ride request received', 'info');
+                    }
+                }
+            };
+
+            driverSocket.onerror = () => { wsConnected = false; };
+            driverSocket.onclose = () => {
+                wsConnected = false;
+                driverSocket = null;
+                scheduleDriverSocketReconnect();
+            };
         }
 
         async function pollDriverProfileStatus() {
@@ -2529,11 +2608,13 @@
             pollHistory();
             pollWallet();
             pollDriverProfileStatus();
+            connectDriverSocket();
             
             // Poll every 10 seconds (reduced from 5 for better performance)
             // Stagger polls to avoid thundering herd
             if (window.pollInterval) clearInterval(window.pollInterval);
             window.pollInterval = setInterval(() => {
+                if (wsConnected) return;
                 // Only poll active tab to reduce server load
                 if (currentTab === 'new') pollMarketJobs();
                 if (currentTab === 'active') pollActiveJobs();
@@ -3419,6 +3500,7 @@ Are you absolutely sure you want to proceed?`);
                 }
 
                 clearToken();
+                disconnectDriverSocket();
                 driverProfile = null;
                 driverId = null;
 

@@ -178,8 +178,12 @@ async def ws_admin(websocket: WebSocket):
     try:
         await websocket.send_text(json.dumps({"event": "connected", "data": {}}))
         while True:
-            data = await websocket.receive_text()
+            await websocket.receive_text()
     except WebSocketDisconnect:
+        pass
+    except Exception:
+        logger.exception("Unexpected admin websocket error")
+    finally:
         await manager.disconnect_admin(websocket)
 
 
@@ -205,8 +209,12 @@ async def ws_driver(websocket: WebSocket, driver_id: str):
     try:
         await websocket.send_text(json.dumps({"event": "connected", "data": {}}))
         while True:
-            data = await websocket.receive_text()
+            await websocket.receive_text()
     except WebSocketDisconnect:
+        pass
+    except Exception:
+        logger.exception("Unexpected driver websocket error for driver_id=%s", driver_id)
+    finally:
         await manager.disconnect_driver(driver_id, websocket)
 
 

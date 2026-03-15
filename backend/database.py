@@ -40,8 +40,16 @@ Base = declarative_base()
 
 # ─── UTILS ─────────────────────────────────────────────────────────────────────
 
+_ID_ALPHABET = string.ascii_uppercase + string.digits
+
+
+def _rand_suffix(length: int) -> str:
+    # SystemRandom uses OS entropy and avoids predictable PRNG sequences.
+    rng = random.SystemRandom()
+    return "".join(rng.choice(_ID_ALPHABET) for _ in range(length))
+
 def generate_custom_id(prefix: str) -> str:
-    """Generates an ID in the format: PREFIXYYYYMMXXXX (year + month + 4-digit sequence)
+    """Generates an ID in the format: PREFIXYYYYMMXXXXXXXX.
     
     ID Format Explanation:
     - PREFIX: e.g., USR, RIDE, etc. (3-4 chars)
@@ -60,12 +68,12 @@ def generate_custom_id(prefix: str) -> str:
     """
     now = datetime.now(timezone.utc)
     date_str = now.strftime("%Y%m")  # YYYYMM format
-    seq = str(random.randint(0, 9999)).zfill(4)  # 4-digit zero-padded sequence
+    seq = _rand_suffix(8)
     return f"{prefix}{date_str}{seq}"
 
 
 def generate_driver_id() -> str:
-    """Generates driver ID in the format: DIVYYYYMMxxxx
+    """Generates driver ID in the format: DIVYYYYMMXXXXXXXX.
     
     Format: DIV + Year (4 digits) + Month (2 digits) + Sequence (4 digits from 0000-9999)
     Example: DIV202603ABCD, DIV202603EFGH
@@ -77,12 +85,12 @@ def generate_driver_id() -> str:
     """
     now = datetime.now(timezone.utc)
     year_month = now.strftime("%Y%m")
-    seq = str(random.randint(0, 9999)).zfill(4)  # 4-digit zero-padded number
+    seq = _rand_suffix(8)
     return f"DIV{year_month}{seq}"
 
 
 def generate_ride_id() -> str:
-    """Generates ride ID in the format: RIDEYYYYMMDDxxxx
+    """Generates ride ID in the format: RIDEYYYYMMDDXXXXXXXX.
     
     Format: RIDE + Year (4 digits) + Month (2 digits) + Day (2 digits) + Sequence (4 digits)
     Example: RIDE20260315ABCD, RIDE20260315EFGH
@@ -95,12 +103,12 @@ def generate_ride_id() -> str:
     """
     now = datetime.now(timezone.utc)
     full_date = now.strftime("%Y%m%d")  # YYYYMMDD format
-    seq = str(random.randint(0, 9999)).zfill(4)
+    seq = _rand_suffix(8)
     return f"RIDE{full_date}{seq}"
 
 
 def generate_payment_id() -> str:
-    """Generates payment ID in the format: PAYYYYMMDDxxxx
+    """Generates payment ID in the format: PAYYYYYMMDDXXXXXXXX.
     
     Format: PAY + Year (4 digits) + Month (2 digits) + Day (2 digits) + Sequence (4 digits)
     Example: PAY20260315ABCD, PAY20260315EFGH
@@ -113,12 +121,12 @@ def generate_payment_id() -> str:
     """
     now = datetime.now(timezone.utc)
     full_date = now.strftime("%Y%m%d")  # YYYYMMDD format
-    seq = str(random.randint(0, 9999)).zfill(4)
+    seq = _rand_suffix(8)
     return f"PAY{full_date}{seq}"
 
 
 def generate_coupon_code() -> str:
-    """Generates customer-friendly coupon code in the format: CPNYYYYMMxxxx
+    """Generates customer-friendly coupon code in the format: CPNYYYYMMXXXXXX.
     
     Format: CPN + Year (4 digits) + Month (2 digits) + Sequence (4 digits, uppercase letters/digits)
     Example: CPN202603TRAVEL, CPN202603SAVE50
@@ -131,9 +139,7 @@ def generate_coupon_code() -> str:
     """
     now = datetime.now(timezone.utc)
     year_month = now.strftime("%Y%m")
-    # Use uppercase alphanumeric for easier reading
-    chars = string.ascii_uppercase + string.digits
-    seq = "".join(random.choices(chars, k=4))  # 4 random alphanumeric characters
+    seq = _rand_suffix(6)
     return f"CPN{year_month}{seq}"
 
 

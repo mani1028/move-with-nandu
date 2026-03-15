@@ -16,7 +16,6 @@ class ConnectionManager:
     # ── Admin ──────────────────────────────────────────────────────────────────
 
     async def connect_admin(self, ws: WebSocket):
-        await ws.accept()
         self.admin_connections.append(ws)
 
     async def disconnect_admin(self, ws: WebSocket):
@@ -32,12 +31,11 @@ class ConnectionManager:
             except Exception:
                 dead.append(ws)
         for ws in dead:
-            self.disconnect_admin(ws)
+            await self.disconnect_admin(ws)
 
     # ── Driver ─────────────────────────────────────────────────────────────────
 
     async def connect_driver(self, driver_id: str, ws: WebSocket):
-        await ws.accept()
         if driver_id not in self.driver_connections:
             self.driver_connections[driver_id] = []
         self.driver_connections[driver_id].append(ws)
@@ -57,7 +55,7 @@ class ConnectionManager:
             except Exception:
                 dead.append(ws)
         for ws in dead:
-            self.disconnect_driver(driver_id, ws)
+            await self.disconnect_driver(driver_id, ws)
 
     async def broadcast_all_drivers(self, event: str, data: dict):
         for driver_id in list(self.driver_connections.keys()):
