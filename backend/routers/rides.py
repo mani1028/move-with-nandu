@@ -37,6 +37,9 @@ class CreateRideIn(BaseModel):
 class RateRideIn(BaseModel):
     rating: int
     comment: str = ""
+    
+class VerifyOtpIn(BaseModel):
+    otp: str
 
 class CancelRideIn(BaseModel):
     reason: str = ""
@@ -404,6 +407,18 @@ async def verify_otp(
     driver: Driver = Depends(get_current_driver),
     db: AsyncSession = Depends(get_db)
 ):
+    return await _verify_ride_otp(ride_id=ride_id, otp=otp, driver=driver, db=db)
+
+@router.post("/{ride_id}/verify")
+async def verify_otp_from_body(
+    ride_id: str,
+    body: VerifyOtpIn,
+    driver: Driver = Depends(get_current_driver),
+    db: AsyncSession = Depends(get_db)
+):
+    return await _verify_ride_otp(ride_id=ride_id, otp=body.otp, driver=driver, db=db)
+
+async def _verify_ride_otp(ride_id: str, otp: str, driver: Driver, db: AsyncSession):
     ride = await _get_ride(ride_id, db)
     if ride.driver_id != driver.id:
         raise HTTPException(403, "Not your ride.")
