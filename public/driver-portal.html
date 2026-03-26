@@ -1492,6 +1492,11 @@
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             if (!email || !password) { showToast('Please enter email and password', 'warning'); return; }
+            
+            // --- FIX: Show spinner on login button ---
+            const loginBtn = document.getElementById('btn-proceed-login');
+            btnLoad(loginBtn, true);
+            
             try {
                 const data = await apiFetch('/api/auth/drivers/login', { 
                     method: 'POST', 
@@ -1514,6 +1519,9 @@
                 initDriverUI(data.driver);
             } catch(error) {
                 showToast('Login failed: ' + error.message, 'error');
+            } finally {
+                // --- FIX: Re-enable the button once finished ---
+                btnLoad(loginBtn, false);
             }
         };
 
@@ -1984,7 +1992,10 @@
             if (!pendingDriverProfilePic) { showToast('❌ Please upload your driver photo', 'error'); return; }
             if (!allRequiredDriverDocsPresent()) { showToast('❌ Please upload all required documents', 'error'); return; }
 
-            showToast('⏳ Saving your profile...', 'info');
+            // --- FIX: Lock the button and show loading spinner immediately ---
+            const submitBtn = document.querySelector('button[onclick="driverRegSubmit()"]');
+            btnLoad(submitBtn, true);
+            showToast('⏳ Uploading documents & creating account (this may take a minute)...', 'info');
             try {
                 let freshProfile = null;
                 const token = getToken();
@@ -2138,6 +2149,7 @@
                     const pendingPassword = pendingDriverRegistration?.password || '';
                     if (!pendingEmail || !pendingPassword) {
                         showToast('❌ Please start registration from Step 1 again.', 'error');
+                        btnLoad(submitBtn, false); // Unlock if missing data
                         return;
                     }
 
@@ -2177,11 +2189,17 @@
                 try { localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile)); } catch(e) { }
                 pendingDriverProfilePic = freshProfile.profile_pic || pendingDriverProfilePic;
                 pendingDriverRegistration = null;
+                
                 showToast('✅ Welcome Partner! Account created successfully!', 'success');
                 setTimeout(() => location.reload(), 1500);
+                // Note: Do NOT unlock the button here, keep it spinning while the page reloads.
+
             } catch(e) { 
                 console.error("Reg Error", e); 
                 showToast('❌ Registration Failed: ' + e.message, 'error'); 
+                
+                // --- FIX: Unlock the button so the user can try again on failure ---
+                btnLoad(submitBtn, false);
             }
         };
 
