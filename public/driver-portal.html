@@ -1460,6 +1460,7 @@
         let wsConnected = false;
         let wsFailedAttempts = 0;
         let wsDisabled = false;
+        let dashboardInitialized = false;
         const ANNOUNCEMENT_SEEN_KEY = 'nandu_driver_ann_seen_at';
         let _lastActiveJobsSignature = '';
         let _lastMarketJobsSignature = '';
@@ -2399,7 +2400,7 @@
                                         driverProfile = { ...(driverProfile || {}), ...freshProfile };
                                         storageSet('nandu_driver_profile', JSON.stringify(driverProfile));
                                         try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
-                                        initDriverUI(driverProfile);
+                                        initDriverUI(driverProfile, { skipDashboardReload: true });
                                     }
                                 }
                             } catch(err) {
@@ -2503,6 +2504,8 @@
         }
 
         function showLoginScreen() {
+            dashboardInitialized = false;
+            if (window.pollInterval) { clearInterval(window.pollInterval); window.pollInterval = null; }
             if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
             disconnectDriverSocket();
             finishInitialLoading();
@@ -2620,6 +2623,13 @@
             const skipDashboardReload = !!options.skipDashboardReload;
             driverId = profile.id;
             driverProfile = profile;
+            
+            // Prevent duplicate dashboard initialization that causes polling loops
+            const shouldInitDashboard = !dashboardInitialized || skipDashboardReload === false;
+            if (!shouldInitDashboard && skipDashboardReload) {
+                // Just update the profile data in UI without reinitializing dashboard polling
+                console.log('[InitDriverUI] Updating profile data without dashboard reload');
+            }
             pendingDriverProfilePic = profile.profile_pic || '';
             pendingDriverDocUrls = {
                 license: profile.license_url || '',
@@ -2720,10 +2730,19 @@
             updateVerificationLockUI(profile);
             updateRegistrationDocStatusUI();
 
-            if (!skipDashboardReload) loadDashboard();
+            if (!skipDashboardReload && !dashboardInitialized) {
+                dashboardInitialized = true;
+                loadDashboard();
+            }
         }
 
         window.loadDashboard = function() {
+            // Guard against duplicate dashboard loads during init
+            if (dashboardInitialized && window.pollInterval && profileSyncInterval) {
+                console.log('[Dashboard] Already initialized, skipping duplicate load');
+                return;
+            }
+
             // Optimistic hydration: render latest cached lists instantly.
             myActiveJobs = loadDriverCache('active_jobs', []);
             availableMarketJobs = loadDriverCache('market_jobs', []);
@@ -2737,7 +2756,8 @@
             renderGroupedHistory(document.getElementById('history-list'));
             updateWalletView();
 
-            // Start polling for jobs and history
+            // Initial polls - only on first dashboard load to populate caches
+            console.log('[Dashboard] Starting initial polls...');
             pollActiveJobs();
             pollMarketJobs();
             pollHistory();
@@ -2762,6 +2782,8 @@
             profileSyncInterval = setInterval(() => {
                 pollDriverProfileStatus();
             }, 5000); // Reduced from 15s for faster approval status updates
+            
+            dashboardInitialized = true;
             
             updateSeatUI();
             updateWalletView();
