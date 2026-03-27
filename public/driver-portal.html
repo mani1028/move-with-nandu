@@ -2364,8 +2364,36 @@
                 
                 if (storedProfile && token) {
                     try {
+                        // Show cached profile immediately for fast UX
                         if (requiresDriverProfileCompletion(storedProfile)) showDriverProfileCompletion(storedProfile);
                         else initDriverUI(storedProfile);
+                        
+                        // CRITICAL FIX: Fetch fresh profile from API in background to catch approval status changes
+                        // This ensures users see updated doc_status/is_verified without page reload
+                        (async () => {
+                            try {
+                                const freshProfile = await apiFetch('/api/drivers/me');
+                                if (freshProfile && freshProfile.id) {
+                                    const needsUpdate = 
+                                        freshProfile.doc_status !== storedProfile.doc_status ||
+                                        freshProfile.is_verified !== storedProfile.is_verified ||
+                                        freshProfile.verification_status !== storedProfile.verification_status;
+                                    
+                                    if (needsUpdate) {
+                                        console.log('[Init] Profile status changed - updating UI', {
+                                            cached: { doc_status: storedProfile.doc_status, is_verified: storedProfile.is_verified },
+                                            fresh: { doc_status: freshProfile.doc_status, is_verified: freshProfile.is_verified }
+                                        });
+                                        driverProfile = { ...(driverProfile || {}), ...freshProfile };
+                                        storageSet('nandu_driver_profile', JSON.stringify(driverProfile));
+                                        try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
+                                        initDriverUI(driverProfile);
+                                    }
+                                }
+                            } catch(err) {
+                                console.log('[Init] Background profile refresh failed (non-critical):', err?.message || err);
+                            }
+                        })();
                     } catch(e) { 
                         console.log("Stored profile init error:", e);
                         showLoginScreen(); 
@@ -2700,9 +2728,10 @@
             }, 10000);
 
             if (profileSyncInterval) clearInterval(profileSyncInterval);
+            // FIX: Improved polling for approval status - poll more frequently for better UX
             profileSyncInterval = setInterval(() => {
                 pollDriverProfileStatus();
-            }, 15000); // Increased from 7s to reduce profile sync overhead
+            }, 5000); // Reduced from 15s for faster approval status updates
             
             updateSeatUI();
             updateWalletView();
@@ -3410,7 +3439,12 @@ Are you absolutely sure you want to proceed?`);
             if(selectedNav) { selectedNav.classList.add('text-brand-600', 'dark:text-brand-500'); selectedNav.classList.remove('text-slate-400'); }
             if(viewId === 'history') { pollHistory(); }
             if(viewId === 'wallet') pollWallet();
-            if(viewId === 'docs') { refreshDocsProgressUI(); }
+            if(viewId === 'docs') { 
+                refreshDocsProgressUI();
+                // FIX: Immediately poll for approval status when user views docs tab
+                // This gives faster feedback if their docs were just approved
+                pollDriverProfileStatus();
+            }
         };
 
         window.openSeatModal = () => {

@@ -1,10 +1,15 @@
 import json
 import asyncio
+import sys
 import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import cast
+
+# FIX: Windows asyncio event loop compatibility for psycopg
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # ⚠️  load_dotenv MUST come before any router imports so that module-level
 # os.getenv() calls inside the routers (e.g. GOOGLE_CLIENT_ID in google_auth.py)

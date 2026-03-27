@@ -1,5 +1,12 @@
 import os
+import sys
+import asyncio
 from dotenv import load_dotenv
+
+# FIX: Windows asyncio event loop compatibility for psycopg
+# ProactorEventLoop is incompatible with psycopg async mode on Windows
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 load_dotenv()
 
