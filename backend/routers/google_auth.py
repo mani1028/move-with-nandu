@@ -213,18 +213,39 @@ async def google_login(body: GoogleTokenIn, db: AsyncSession = Depends(get_db)):
     token = create_access_token({"sub": user_id_str, "role": user_role_str})
     logger.info(f"🎫 JWT token issued for user: {user_id_str}")
     
+    # ─── FIX: Provide the complete User/Driver profile to skip unnecessary verifications ───
+    user_dict = {
+        "id": user_id_str,
+        "name": str(user.name),
+        "email": str(user.email),
+        "phone": str(user.phone or ""),
+        "picture": str(getattr(user, "picture", "") or getattr(user, "profile_pic", "")),
+        "role": user_role_str,
+        "email_verified": bool(user.email_verified),
+    }
+
+    # Include all driver-specific data if a driver is logging in
+    if requested_role == "driver":
+        user_dict.update({
+            "plate": str(getattr(user, "plate", "")),
+            "vehicle_type": str(getattr(user, "vehicle_type", "7 Seater")),
+            "route_pref": str(getattr(user, "route_pref", "Karimnagar")),
+            "ac_pref": bool(getattr(user, "ac_pref", True)),
+            "is_verified": bool(getattr(user, "is_verified", False)),
+            "doc_status": str(getattr(user, "doc_status", "pending")),
+            "status": str(getattr(user, "status", "offline")),
+            "jobs_done": int(getattr(user, "jobs_done", 0)),
+            "rating": float(getattr(user, "rating", 5.0)),
+            "license_url": str(getattr(user, "license_url", "")),
+            "aadhar_url": str(getattr(user, "aadhar_url", "")),
+            "rc_url": str(getattr(user, "rc_url", "")),
+            "insurance_url": str(getattr(user, "insurance_url", "")),
+        })
+
     return GoogleAuthResponse(
         access_token=token,
         token_type="bearer",
-        user={
-            "id": user_id_str,
-            "name": str(user.name),
-            "email": str(user.email),
-            "phone": str(user.phone or ""),
-            "picture": str(getattr(user, "picture", "") or getattr(user, "profile_pic", "")),
-            "role": user_role_str,
-            "email_verified": bool(user.email_verified),
-        }
+        user=user_dict
     )
 
 
