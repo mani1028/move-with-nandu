@@ -1592,7 +1592,17 @@
             const label = document.getElementById('status-label');
             const card = document.getElementById('trip-status-card');
             const approved = isDriverVerificationApproved(profile);
-            if (lock) lock.classList.toggle('hidden', approved);
+            
+            // FIX: Never show lock for already-verified users - just keep them on splash screen
+            // Verified users see smooth loading experience instead of lock screen
+            if (lock) {
+                if (approved) {
+                    lock.classList.add('hidden');
+                } else {
+                    lock.classList.remove('hidden');
+                }
+            }
+            
             if (toggle) {
                 toggle.disabled = !approved;
                 if (!approved) toggle.checked = false;
@@ -2684,7 +2694,13 @@
             document.getElementById('home-pref-ac').innerText = profile.ac_pref ? "AC Only" : "Any Type";
             document.getElementById('prof-pref-ac').innerText = profile.ac_pref ? "AC Only" : "Any Type";
 
-            finishInitialLoading();
+            // FIX: For already-verified users, show smooth transition instead of verification lock
+            const isApproved = isDriverVerificationApproved(profile);
+            const splashText = document.getElementById('splash-text');
+            if (splashText && isApproved) {
+                splashText.innerText = 'Preparing Dashboard...';
+            }
+
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             updateVerificationLockUI(profile);
@@ -2737,7 +2753,19 @@
             updateWalletView();
             setHomeTab('new');
             checkAnnouncementsBadge();
-            showToast("Welcome back!", "success");
+            
+            // FIX: For verified users, hide splash screen with smooth fade after dashboard loads
+            // For unverified users, let the verification lock screen handle the UI
+            const isApproved = isDriverVerificationApproved(driverProfile);
+            if (isApproved) {
+                // Verified users get smooth loading experience
+                setTimeout(() => {
+                    finishInitialLoading();
+                    showToast("Welcome back!", "success");
+                }, 500); // Brief delay for smooth transition
+            } else {
+                showToast("Documents Under Verification", "info");
+            }
         };
 
         window.openAnnouncements = async () => {
