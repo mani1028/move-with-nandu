@@ -1,9 +1,12 @@
 {
-  "buildCommand": "pip install -r api/requirements.txt",
+  "buildCommand": "pip install -r requirements.txt -r api/requirements.txt",
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "200mb"
+      }
     },
     {
       "src": "public/**",
