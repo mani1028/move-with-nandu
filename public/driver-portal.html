@@ -860,7 +860,7 @@
             <!-- PROFILE TAB -->
             <div id="view-profile" class="hidden animate-slide-up pb-24 -mx-4 -mt-4">
                 <!-- Hero Banner -->
-                <div class="relative bg-gradient-to-br from-orange-500 via-brand-600 to-amber-600 px-5 pt-0 pb-20 overflow-hidden">
+                <div class="relative bg-gradient-to-br from-orange-500 via-brand-600 to-amber-600 px-5 pt-0 pb-10 overflow-hidden">
                     <!-- Background decoration -->
                     <div class="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full -translate-y-20 translate-x-20 pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full translate-y-16 -translate-x-12 pointer-events-none"></div>
@@ -1458,6 +1458,8 @@
         let driverSocket = null;
         let wsReconnectTimer = null;
         let wsConnected = false;
+        let wsFailedAttempts = 0;
+        let wsDisabled = false;
         const ANNOUNCEMENT_SEEN_KEY = 'nandu_driver_ann_seen_at';
         let _lastActiveJobsSignature = '';
         let _lastMarketJobsSignature = '';
@@ -2510,7 +2512,12 @@
         }
 
         function scheduleDriverSocketReconnect() {
-            if (wsReconnectTimer || !driverId || !getToken()) return;
+            if (wsDisabled || wsReconnectTimer || !driverId || !getToken()) return;
+            // Disable WebSocket after 3 failed attempts (indicates Vercel deployment without WebSocket support)
+            if (wsFailedAttempts >= 3) {
+                wsDisabled = true;
+                return;
+            }
             wsReconnectTimer = setTimeout(() => {
                 wsReconnectTimer = null;
                 connectDriverSocket();
@@ -2523,6 +2530,7 @@
                 wsReconnectTimer = null;
             }
             wsConnected = false;
+            wsDisabled = true;
             if (driverSocket) {
                 try {
                     driverSocket.onopen = null;
@@ -2536,19 +2544,21 @@
         }
 
         function connectDriverSocket() {
-            if (!driverId || !getToken()) return;
+            if (wsDisabled || !driverId || !getToken()) return;
             if (driverSocket && (driverSocket.readyState === WebSocket.OPEN || driverSocket.readyState === WebSocket.CONNECTING)) return;
 
             try {
                 const wsUrl = `${WS_BASE}/ws/driver/${encodeURIComponent(driverId)}`;
                 driverSocket = new WebSocket(wsUrl);
             } catch (e) {
+                wsFailedAttempts++;
                 scheduleDriverSocketReconnect();
                 return;
             }
 
             driverSocket.onopen = () => {
                 wsConnected = true;
+                wsFailedAttempts = 0;
                 try { driverSocket.send(JSON.stringify({ token: getToken() || '' })); } catch (e) { }
             };
 
@@ -2567,7 +2577,11 @@
                 }
             };
 
-            driverSocket.onerror = () => { wsConnected = false; };
+            driverSocket.onerror = () => {
+                wsConnected = false;
+                wsFailedAttempts++;
+            };
+
             driverSocket.onclose = () => {
                 wsConnected = false;
                 driverSocket = null;
