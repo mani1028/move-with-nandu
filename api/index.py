@@ -12,6 +12,9 @@ if sys.platform == 'win32':
 _import_error: Exception | None = None
 _import_traceback = ""
 
+# Initialize app at module level so Vercel can detect it
+app = None
+
 try:
 	from backend.main import app
 except Exception as exc:  # pragma: no cover - only used for deployment diagnostics
@@ -39,6 +42,3 @@ except Exception as exc:  # pragma: no cover - only used for deployment diagnost
 		await send({"type": "http.response.body", "body": body, "more_body": False})
 
 	app = _fallback_app
-
-# ✅ Ensure app is always exported for Vercel to detect
-__all__ = ['app']
