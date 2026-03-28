@@ -1687,6 +1687,71 @@
             return /android|webos|iphone|ipad|ipot|blackberry|iemobile|opera mini/i.test(ua.toLowerCase());
         }
 
+        function buildGoogleRedirectUrl() {
+            const redirectUri = `${window.location.origin}${window.location.pathname}`;
+            const state = `gstate_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+            const nonce = `gnonce_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+            try {
+                sessionStorage.setItem('nandu_google_state', state);
+                sessionStorage.setItem('nandu_google_nonce', nonce);
+            } catch (e) { }
+
+            const params = new URLSearchParams({
+                client_id: googleClientId,
+                redirect_uri: redirectUri,
+                response_type: 'id_token',
+                scope: 'openid email profile',
+                prompt: 'select_account',
+                state,
+                nonce,
+            });
+            return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+        }
+
+        function startGoogleRedirectFallback(reason = '') {
+            if (!googleClientId) {
+                showToast('Google sign-in is unavailable. Try email login.', 'warning');
+                return;
+            }
+            console.warn('[Google SignIn] One Tap unavailable, using redirect fallback. Reason:', reason || 'unknown');
+            showToast('Opening Google account chooser...', 'info');
+            window.location.assign(buildGoogleRedirectUrl());
+        }
+
+        function consumeGoogleRedirectCredential() {
+            if (!window.location.hash || window.location.hash.length < 2) return false;
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const idToken = hashParams.get('id_token');
+            const state = hashParams.get('state') || '';
+            const oauthError = hashParams.get('error') || '';
+
+            if (!idToken && !oauthError) return false;
+
+            const cleanUrl = `${window.location.pathname}${window.location.search}`;
+            window.history.replaceState({}, document.title, cleanUrl);
+
+            if (oauthError) {
+                showToast('Google sign-in cancelled or failed. Please try again.', 'warning');
+                return true;
+            }
+
+            let expectedState = '';
+            try {
+                expectedState = sessionStorage.getItem('nandu_google_state') || '';
+                sessionStorage.removeItem('nandu_google_state');
+                sessionStorage.removeItem('nandu_google_nonce');
+            } catch (e) { }
+
+            if (!state || (expectedState && state !== expectedState)) {
+                console.warn('[Google SignIn] Redirect state mismatch. Ignoring credential response.');
+                showToast('Google sign-in validation failed. Please try again.', 'error');
+                return true;
+            }
+
+            handleGoogleCredential({ credential: idToken });
+            return true;
+        }
+
         async function initGoogleAuth() {
             try {
                 // FIX: Remove 'drivers/' from path to match backend router at /api/auth/google/userinfo
@@ -1917,14 +1982,24 @@
                     console.log('[Google SignIn] Using One Tap prompt for mobile...');
                     window.google.accounts.id.prompt((notification) => {
                         console.log('[Google SignIn] Prompt notification:', notification);
+                        const notDisplayedReason = notification?.getNotDisplayedReason ? notification.getNotDisplayedReason() : '';
+                        const skippedReason = notification?.getSkippedReason ? notification.getSkippedReason() : '';
+                        const dismissedReason = notification?.getDismissedReason ? notification.getDismissedReason() : '';
+                        const promptReason = notDisplayedReason || skippedReason || dismissedReason;
                         // User dismissed without selecting
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             // Re-enable buttons since no login will happen
                             releaseGoogleButtons();
+                            if (promptReason === 'opt_out_or_no_session' || promptReason === 'browser_not_supported' || promptReason === 'suppressed_by_user') {
+                                startGoogleRedirectFallback(promptReason);
+                            }
                         } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             releaseGoogleButtons();
+                            if (promptReason && promptReason !== 'credential_returned') {
+                                startGoogleRedirectFallback(promptReason);
+                            }
                         }
                         // When credential_returned, handleGoogleCredential() will be called automatically
                     });
@@ -2436,6 +2511,10 @@
         function init() {
             // Initialize ITP-resistant storage first
             initStorage().then(async () => {
+                if (consumeGoogleRedirectCredential()) {
+                    return;
+                }
+
                 verificationStatusResolved = false;
                 // Theme loading
                 const savedTheme = localStorage.getItem('nandu_theme');

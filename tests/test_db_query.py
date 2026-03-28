@@ -5,15 +5,20 @@ Test the actual error being thrown by the backend when calling the rides endpoin
 import asyncio
 import sys
 from pathlib import Path
+import pytest
 sys.path.insert(0, str(Path(__file__).parent))
 
 from backend.routers.rides import my_rides
-from backend.database import User, AsyncSessionLocal
+from backend.database import User, AsyncSessionLocal, init_db
 from sqlalchemy import select
 
+@pytest.mark.asyncio
 async def test_rides_query():
     """Test querying rides from the database."""
     print("Testing database rides query...\n")
+
+    # Ensure tables exist in local test database before querying.
+    await init_db()
     
     async with AsyncSessionLocal() as db:
         try:
@@ -54,6 +59,7 @@ async def test_rides_query():
             print(f"[ERROR] {type(e).__name__}: {str(e)}\n")
             import traceback
             traceback.print_exc()
+            raise
 
 async def main():
     await test_rides_query()
