@@ -577,9 +577,11 @@
                 <button id="btn-google-login" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed">
                     <img src="assets/google.svg" class="w-5 h-5" alt="Google"> Sign in with Google
                 </button>
+                <div id="google-gsi-login-host" class="hidden"></div>
                 <button id="btn-google-register" onclick="signInWithGoogle()" class="w-full py-4 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hidden">
                     <img src="assets/google.svg" class="w-5 h-5" alt="Google"> Sign up with Google
                 </button>
+                <div id="google-gsi-register-host" class="hidden"></div>
                 <p class="text-xs text-slate-400 mt-4">Google or email login is required to access the driver portal.</p>
             </div>
 
@@ -1687,35 +1689,43 @@
             return /android|webos|iphone|ipad|ipot|blackberry|iemobile|opera mini/i.test(ua.toLowerCase());
         }
 
-        function buildGoogleRedirectUrl() {
-            const redirectUri = `${window.location.origin}${window.location.pathname}`;
-            const state = `gstate_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-            const nonce = `gnonce_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
-            try {
-                sessionStorage.setItem('nandu_google_state', state);
-                sessionStorage.setItem('nandu_google_nonce', nonce);
-            } catch (e) { }
+        function renderGoogleIdButton(hostId) {
+            const host = document.getElementById(hostId);
+            if (!host || !window.google?.accounts?.id || !googleClientId) return;
 
-            const params = new URLSearchParams({
-                client_id: googleClientId,
-                redirect_uri: redirectUri,
-                response_type: 'id_token',
-                scope: 'openid email profile',
-                prompt: 'select_account',
-                state,
-                nonce,
+            host.innerHTML = '';
+            window.google.accounts.id.renderButton(host, {
+                theme: 'outline',
+                size: 'large',
+                text: 'continue_with',
+                width: 320,
             });
-            return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
         }
 
-        function startGoogleRedirectFallback(reason = '') {
+        function startGoogleButtonFallback(reason = '', releaseGoogleButtons = null) {
             if (!googleClientId) {
                 showToast('Google sign-in is unavailable. Try email login.', 'warning');
                 return;
             }
-            console.warn('[Google SignIn] One Tap unavailable, using redirect fallback. Reason:', reason || 'unknown');
-            showToast('Opening Google account chooser...', 'info');
-            window.location.assign(buildGoogleRedirectUrl());
+            const targetHostId = isRegistering ? 'google-gsi-register-host' : 'google-gsi-login-host';
+            const otherHostId = isRegistering ? 'google-gsi-login-host' : 'google-gsi-register-host';
+            const targetHost = document.getElementById(targetHostId);
+            const otherHost = document.getElementById(otherHostId);
+
+            if (otherHost) otherHost.classList.add('hidden');
+            if (targetHost) {
+                renderGoogleIdButton(targetHostId);
+                targetHost.classList.remove('hidden');
+                targetHost.classList.add('mt-3');
+                targetHost.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            if (typeof releaseGoogleButtons === 'function') {
+                releaseGoogleButtons();
+            }
+
+            console.warn('[Google SignIn] One Tap unavailable, showing GIS fallback button. Reason:', reason || 'unknown');
+            showToast('Tap the Google button below to continue.', 'info');
         }
 
         function getGooglePromptReason(notification) {
@@ -1736,40 +1746,6 @@
                 || notification.dismissed_reason
                 || ''
             );
-        }
-
-        function consumeGoogleRedirectCredential() {
-            if (!window.location.hash || window.location.hash.length < 2) return false;
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const idToken = hashParams.get('id_token');
-            const state = hashParams.get('state') || '';
-            const oauthError = hashParams.get('error') || '';
-
-            if (!idToken && !oauthError) return false;
-
-            const cleanUrl = `${window.location.pathname}${window.location.search}`;
-            window.history.replaceState({}, document.title, cleanUrl);
-
-            if (oauthError) {
-                showToast('Google sign-in cancelled or failed. Please try again.', 'warning');
-                return true;
-            }
-
-            let expectedState = '';
-            try {
-                expectedState = sessionStorage.getItem('nandu_google_state') || '';
-                sessionStorage.removeItem('nandu_google_state');
-                sessionStorage.removeItem('nandu_google_nonce');
-            } catch (e) { }
-
-            if (!state || (expectedState && state !== expectedState)) {
-                console.warn('[Google SignIn] Redirect state mismatch. Ignoring credential response.');
-                showToast('Google sign-in validation failed. Please try again.', 'error');
-                return true;
-            }
-
-            handleGoogleCredential({ credential: idToken });
-            return true;
         }
 
         async function initGoogleAuth() {
@@ -1821,6 +1797,8 @@
                 });
                 
                 console.log('[Google Auth] Initialization complete with ux_mode:', uxMode, 'ITP support enabled');
+                renderGoogleIdButton('google-gsi-login-host');
+                renderGoogleIdButton('google-gsi-register-host');
                 googleReady = true;
                 
                 // For mobile, set up One Tap UI with mobile-friendly settings
@@ -1967,8 +1945,12 @@
             // Disable buttons while processing
             const btnGoogleLogin = document.getElementById('btn-google-login');
             const btnGoogleRegister = document.getElementById('btn-google-register');
+            const googleGsiLoginHost = document.getElementById('google-gsi-login-host');
+            const googleGsiRegisterHost = document.getElementById('google-gsi-register-host');
             if (btnGoogleLogin) btnGoogleLogin.disabled = true;
             if (btnGoogleRegister) btnGoogleRegister.disabled = true;
+            if (googleGsiLoginHost) googleGsiLoginHost.classList.add('hidden');
+            if (googleGsiRegisterHost) googleGsiRegisterHost.classList.add('hidden');
 
             const releaseGoogleButtons = () => {
                 if (btnGoogleLogin) btnGoogleLogin.disabled = false;
@@ -2012,13 +1994,13 @@
                             // Re-enable buttons since no login will happen
                             releaseGoogleButtons();
                             if (promptReason === 'opt_out_or_no_session' || promptReason === 'browser_not_supported' || promptReason === 'suppressed_by_user') {
-                                startGoogleRedirectFallback(promptReason);
+                                startGoogleButtonFallback(promptReason, releaseGoogleButtons);
                             }
                         } else if (isDismissed) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             releaseGoogleButtons();
                             if (promptReason && promptReason !== 'credential_returned') {
-                                startGoogleRedirectFallback(promptReason);
+                                startGoogleButtonFallback(promptReason, releaseGoogleButtons);
                             }
                         }
                         // When credential_returned, handleGoogleCredential() will be called automatically
@@ -2033,9 +2015,17 @@
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             // Re-enable buttons since no login will happen
                             releaseGoogleButtons();
+                            const promptReason = getGooglePromptReason(notification);
+                            if (promptReason === 'opt_out_or_no_session' || promptReason === 'browser_not_supported' || promptReason === 'suppressed_by_user') {
+                                startGoogleButtonFallback(promptReason, releaseGoogleButtons);
+                            }
                         } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             releaseGoogleButtons();
+                            const promptReason = getGooglePromptReason(notification);
+                            if (promptReason && promptReason !== 'credential_returned') {
+                                startGoogleButtonFallback(promptReason, releaseGoogleButtons);
+                            }
                         }
                         // When credential_returned, handleGoogleCredential() will be called automatically
                     });
@@ -2531,10 +2521,6 @@
         function init() {
             // Initialize ITP-resistant storage first
             initStorage().then(async () => {
-                if (consumeGoogleRedirectCredential()) {
-                    return;
-                }
-
                 verificationStatusResolved = false;
                 // Theme loading
                 const savedTheme = localStorage.getItem('nandu_theme');
@@ -2662,8 +2648,12 @@
                 const btnRegister = document.getElementById('tab-register');
                 const step1 = document.getElementById('auth-step-1');
                 const step3 = document.getElementById('auth-step-3-register');
+                const googleGsiLoginHost = document.getElementById('google-gsi-login-host');
+                const googleGsiRegisterHost = document.getElementById('google-gsi-register-host');
                 if (step1) step1.classList.remove('hidden');
                 if (step3) step3.classList.add('hidden');
+                if (googleGsiLoginHost) googleGsiLoginHost.classList.add('hidden');
+                if (googleGsiRegisterHost) googleGsiRegisterHost.classList.add('hidden');
                 if (isRegistering) {
                     btnLogin.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700";
                     btnRegister.className = "px-6 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-700 shadow-sm text-brand-600 dark:text-white";

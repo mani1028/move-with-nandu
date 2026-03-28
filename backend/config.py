@@ -83,7 +83,6 @@ def get_settings() -> dict[str, object]:
         "admin_password": admin_password,
         "google_client_id": _clean(os.getenv("GOOGLE_CLIENT_ID")),
         "google_client_secret": _clean(os.getenv("GOOGLE_CLIENT_SECRET")),
-        "google_redirect_uri": _clean(os.getenv("GOOGLE_REDIRECT_URI")),
         "supabase_url": _clean(os.getenv("SUPABASE_URL")),
         "supabase_service_role_key": _clean(os.getenv("SUPABASE_SERVICE_ROLE_KEY")),
         "profile_upload_bucket": _clean(os.getenv("SUPABASE_PROFILE_BUCKET"), "user-profiles"),

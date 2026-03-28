@@ -47,13 +47,11 @@ async def lifespan(app: FastAPI):
     # Validate Google OAuth Configuration
     google_client_id = str(settings["google_client_id"])
     google_client_secret = str(settings["google_client_secret"])
-    google_redirect_uri = str(settings["google_redirect_uri"])
     
     logger.info("\n🔐 Google OAuth Configuration Check:")
     if google_client_id and google_client_secret:
         logger.info(f"  ✅ GOOGLE_CLIENT_ID: {google_client_id[:30]}...")
         logger.info(f"  ✅ GOOGLE_CLIENT_SECRET: {'*' * 20}")
-        logger.info(f"  ✅ GOOGLE_REDIRECT_URI: {google_redirect_uri}")
     else:
         logger.warning("  ⚠️  Google OAuth not fully configured!")
         if not google_client_id:
