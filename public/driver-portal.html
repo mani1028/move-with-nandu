@@ -1718,6 +1718,26 @@
             window.location.assign(buildGoogleRedirectUrl());
         }
 
+        function getGooglePromptReason(notification) {
+            if (!notification) return '';
+            const byMethod = (
+                (notification.getNotDisplayedReason ? notification.getNotDisplayedReason() : '')
+                || (notification.getSkippedReason ? notification.getSkippedReason() : '')
+                || (notification.getDismissedReason ? notification.getDismissedReason() : '')
+            );
+            if (byMethod) return byMethod;
+
+            // Some mobile builds expose reason on minified keys (e.g. { j: 'opt_out_or_no_session' }).
+            return String(
+                notification.j
+                || notification.reason
+                || notification.not_displayed_reason
+                || notification.skipped_reason
+                || notification.dismissed_reason
+                || ''
+            );
+        }
+
         function consumeGoogleRedirectCredential() {
             if (!window.location.hash || window.location.hash.length < 2) return false;
             const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -1982,19 +2002,19 @@
                     console.log('[Google SignIn] Using One Tap prompt for mobile...');
                     window.google.accounts.id.prompt((notification) => {
                         console.log('[Google SignIn] Prompt notification:', notification);
-                        const notDisplayedReason = notification?.getNotDisplayedReason ? notification.getNotDisplayedReason() : '';
-                        const skippedReason = notification?.getSkippedReason ? notification.getSkippedReason() : '';
-                        const dismissedReason = notification?.getDismissedReason ? notification.getDismissedReason() : '';
-                        const promptReason = notDisplayedReason || skippedReason || dismissedReason;
+                        const promptReason = getGooglePromptReason(notification);
+                        const isNotDisplayed = notification?.isNotDisplayed ? notification.isNotDisplayed() : false;
+                        const isSkipped = notification?.isSkippedMoment ? notification.isSkippedMoment() : false;
+                        const isDismissed = notification?.isDismissedMoment ? notification.isDismissedMoment() : false;
                         // User dismissed without selecting
-                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        if (isNotDisplayed || isSkipped) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             // Re-enable buttons since no login will happen
                             releaseGoogleButtons();
                             if (promptReason === 'opt_out_or_no_session' || promptReason === 'browser_not_supported' || promptReason === 'suppressed_by_user') {
                                 startGoogleRedirectFallback(promptReason);
                             }
-                        } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+                        } else if (isDismissed) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             releaseGoogleButtons();
                             if (promptReason && promptReason !== 'credential_returned') {
