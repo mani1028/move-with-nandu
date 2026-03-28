@@ -1479,6 +1479,7 @@
         let googleClientId = null;
         let googleReady = false;
         let googleSignInInProgress = false;
+        let googlePromptTimeout = null;
         let pendingDriverRegistration = null;
         let profileSyncInterval = null;
         let driverSocket = null;
@@ -1722,8 +1723,8 @@
                 const isOnMobile = isMobileDevice();
                 console.log('[Google Auth] Device type: ' + (isOnMobile ? 'mobile' : 'desktop'));
                 
-                // Use different UX modes based on device type
-                const uxMode = isOnMobile ? 'redirect' : 'popup';
+                // Use popup for both mobile and desktop to avoid redirect-mode dead-ends.
+                const uxMode = 'popup';
                 
                 window.google.accounts.id.initialize({
                     client_id: googleClientId,
@@ -1752,6 +1753,11 @@
             if (googleSignInInProgress) {
                 console.log('[Google SignIn] Request already in progress, ignoring duplicate credential');
                 return;
+            }
+
+            if (googlePromptTimeout) {
+                clearTimeout(googlePromptTimeout);
+                googlePromptTimeout = null;
             }
             
             if (!response || !response.credential) {
@@ -1877,6 +1883,24 @@
             const btnGoogleRegister = document.getElementById('btn-google-register');
             if (btnGoogleLogin) btnGoogleLogin.disabled = true;
             if (btnGoogleRegister) btnGoogleRegister.disabled = true;
+
+            const releaseGoogleButtons = () => {
+                if (btnGoogleLogin) btnGoogleLogin.disabled = false;
+                if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+            };
+
+            if (googlePromptTimeout) {
+                clearTimeout(googlePromptTimeout);
+                googlePromptTimeout = null;
+            }
+            googlePromptTimeout = setTimeout(() => {
+                if (!googleSignInInProgress) {
+                    releaseGoogleButtons();
+                    console.warn('[Google SignIn] Prompt timeout without credential callback');
+                    showToast('Google prompt timed out. Please try again.', 'warning');
+                }
+                googlePromptTimeout = null;
+            }, 12000);
             
             // FIX: Do NOT set googleSignInInProgress = true here!
             // The flag should only be set when credential is ACTUALLY received in handleGoogleCredential()
@@ -1896,8 +1920,10 @@
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             // Re-enable buttons since no login will happen
-                            if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                            if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                            releaseGoogleButtons();
+                        } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+                            console.log('[Google SignIn] User dismissed One Tap prompt');
+                            releaseGoogleButtons();
                         }
                         // When credential_returned, handleGoogleCredential() will be called automatically
                     });
@@ -1910,8 +1936,10 @@
                         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
                             console.log('[Google SignIn] User dismissed One Tap prompt');
                             // Re-enable buttons since no login will happen
-                            if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                            if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                            releaseGoogleButtons();
+                        } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+                            console.log('[Google SignIn] User dismissed One Tap prompt');
+                            releaseGoogleButtons();
                         }
                         // When credential_returned, handleGoogleCredential() will be called automatically
                     });
@@ -1919,8 +1947,7 @@
             } catch (e) {
                 console.error('[Google SignIn] Prompt failed:', e);
                 showToast('Unable to show Google sign-in. Please check your internet connection.', 'error');
-                if (btnGoogleLogin) btnGoogleLogin.disabled = false;
-                if (btnGoogleRegister) btnGoogleRegister.disabled = false;
+                releaseGoogleButtons();
                 googleSignInInProgress = false;
             }
         };
@@ -2455,11 +2482,12 @@
                                         try { localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile)); } catch(e) { }
                                         initDriverUI(freshProfile, { verificationResolved: true });
                                     } else {
-                                        initDriverUI(storedProfile, { verificationResolved: true });
+                                        // Keep checking state until a confirmed verification payload is received.
+                                        initDriverUI(storedProfile, { verificationResolved: false });
                                     }
                                 } catch(err) {
                                     console.warn('[Init] Verification refresh failed, using cached profile:', err?.message || err);
-                                    initDriverUI(storedProfile, { verificationResolved: true });
+                                    initDriverUI(storedProfile, { verificationResolved: false });
                                 }
                             } else {
                                 initDriverUI(storedProfile, { verificationResolved: true });
@@ -3898,6 +3926,13 @@ Are you absolutely sure you want to proceed?`);
             const container = document.getElementById('job-list-container');
             container.innerHTML = '';
             let listToRender = currentTab === 'new' ? availableMarketJobs : activeList;
+
+            if (currentTab === 'new' && !verificationStatusResolved) {
+                container.innerHTML = `<div class="text-center py-10 opacity-80"><div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="loader-circle" class="w-8 h-8 text-blue-500 animate-spin"></i></div><p class="text-sm font-bold text-slate-600 dark:text-slate-300">Checking Verification Status</p><p class="text-xs text-slate-400 mt-1">Please wait while we fetch your latest approval status.</p></div>`;
+                renderIconsIn(bulkBar);
+                renderIconsIn(container);
+                return;
+            }
 
             if (currentTab === 'new' && !isDriverVerificationApproved(driverProfile)) {
                 container.innerHTML = `<div class="text-center py-10 opacity-80"><div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="shield-alert" class="w-8 h-8 text-amber-500"></i></div><p class="text-sm font-bold text-slate-600 dark:text-slate-300">Documents Under Verification</p><p class="text-xs text-slate-400 mt-1">Ride acceptance will unlock after admin approval.</p><button onclick="switchView('docs')" class="mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg">Open Documents</button></div>`;
