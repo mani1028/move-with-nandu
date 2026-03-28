@@ -69,6 +69,17 @@
         .origin-left { transform-origin: left; }
         @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
         .shake-error { animation: shake 0.5s ease-in-out; }
+        @keyframes verifyPop {
+            0% { transform: scale(0.85) translateY(10px); opacity: 0; }
+            60% { transform: scale(1.05) translateY(0); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes verifyRing {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+        .verify-success-panel { animation: verifyPop 0.45s ease-out forwards; }
+        .verify-success-ring { animation: verifyRing 0.8s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
@@ -105,6 +116,21 @@
 
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-4 left-4 right-4 z-[110] pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- Verification Approved Animation -->
+    <div id="verification-success-overlay" class="fixed inset-0 z-[160] hidden items-center justify-center p-6 pointer-events-none">
+        <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-[2px]"></div>
+        <div class="relative w-full max-w-xs bg-white dark:bg-slate-900 rounded-3xl border border-green-200 dark:border-green-800 shadow-2xl p-6 text-center verify-success-panel">
+            <div class="relative mx-auto w-20 h-20 mb-4 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-green-200/70 dark:bg-green-900/50 verify-success-ring"></div>
+                <div class="relative w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/40 text-green-600 flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-9 h-9"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 dark:text-white">Verification Complete</h3>
+            <p class="text-xs mt-2 text-slate-500 dark:text-slate-400">Your account is fully approved. Ride acceptance is now unlocked.</p>
+        </div>
+    </div>
 
     <!-- Announcements Modal -->
     <div id="announcements-modal" class="fixed inset-0 z-[105] bg-black/90 hidden flex items-end sm:items-center justify-center p-4 transition-opacity duration-300">
@@ -1461,6 +1487,8 @@
         let wsFailedAttempts = 0;
         let wsDisabled = false;
         let dashboardInitialized = false;
+        let verificationStatusResolved = false;
+        let verificationSuccessTimer = null;
         const ANNOUNCEMENT_SEEN_KEY = 'nandu_driver_ann_seen_at';
         let _lastActiveJobsSignature = '';
         let _lastMarketJobsSignature = '';
@@ -1595,11 +1623,10 @@
             const label = document.getElementById('status-label');
             const card = document.getElementById('trip-status-card');
             const approved = isDriverVerificationApproved(profile);
+            const checkingVerification = !verificationStatusResolved && !approved;
             
-            // FIX: Never show lock for already-verified users - just keep them on splash screen
-            // Verified users see smooth loading experience instead of lock screen
             if (lock) {
-                if (approved) {
+                if (approved || checkingVerification) {
                     lock.classList.add('hidden');
                 } else {
                     lock.classList.remove('hidden');
@@ -1607,15 +1634,23 @@
             }
             
             if (toggle) {
-                toggle.disabled = !approved;
+                toggle.disabled = !approved || checkingVerification;
                 if (!approved) toggle.checked = false;
             }
-            if (label && !approved) {
-                label.innerText = 'Verification';
-                label.className = 'text-[10px] font-bold text-amber-500 uppercase transition-colors';
+            if (label) {
+                if (checkingVerification) {
+                    label.innerText = 'Checking';
+                    label.className = 'text-[10px] font-bold text-blue-500 uppercase transition-colors';
+                } else if (!approved) {
+                    label.innerText = 'Verification';
+                    label.className = 'text-[10px] font-bold text-amber-500 uppercase transition-colors';
+                }
             }
-            if (card && !approved) card.classList.add('hidden');
-            if (!approved && driverProfile) driverProfile.status = 'offline';
+            if (card) {
+                if (approved) card.classList.remove('hidden');
+                else card.classList.add('hidden');
+            }
+            if ((!approved || checkingVerification) && driverProfile) driverProfile.status = 'offline';
         }
         
         // Debounce function to prevent excessive API calls
@@ -2282,6 +2317,31 @@
             hideNativeLoading();
         }
 
+        function setSplashStatus(text) {
+            const splashText = document.getElementById('splash-text');
+            if (splashText) splashText.innerText = text;
+        }
+
+        function showVerificationApprovedAnimation() {
+            const overlay = document.getElementById('verification-success-overlay');
+            if (!overlay) return;
+
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+            renderIconsIn(overlay);
+
+            if (verificationSuccessTimer) {
+                clearTimeout(verificationSuccessTimer);
+                verificationSuccessTimer = null;
+            }
+
+            verificationSuccessTimer = setTimeout(() => {
+                overlay.classList.remove('flex');
+                overlay.classList.add('hidden');
+                verificationSuccessTimer = null;
+            }, 1700);
+        }
+
         function requestAndroidInitialSession() {
             if (!(window.Android && typeof window.Android.checkInitialSession === 'function')) {
                 return false;
@@ -2342,6 +2402,7 @@
         function init() {
             // Initialize ITP-resistant storage first
             initStorage().then(async () => {
+                verificationStatusResolved = false;
                 // Theme loading
                 const savedTheme = localStorage.getItem('nandu_theme');
                 if(savedTheme === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('dark-toggle').checked = true; }
@@ -2377,36 +2438,59 @@
                 
                 if (storedProfile && token) {
                     try {
-                        // Show cached profile immediately for fast UX
-                        if (requiresDriverProfileCompletion(storedProfile)) showDriverProfileCompletion(storedProfile);
-                        else initDriverUI(storedProfile);
-                        
-                        // CRITICAL FIX: Fetch fresh profile from API in background to catch approval status changes
-                        // This ensures users see updated doc_status/is_verified without page reload
-                        (async () => {
-                            try {
-                                const freshProfile = await apiFetch('/api/drivers/me');
-                                if (freshProfile && freshProfile.id) {
-                                    const needsUpdate = 
-                                        freshProfile.doc_status !== storedProfile.doc_status ||
-                                        freshProfile.is_verified !== storedProfile.is_verified ||
-                                        freshProfile.verification_status !== storedProfile.verification_status;
-                                    
-                                    if (needsUpdate) {
-                                        console.log('[Init] Profile status changed - updating UI', {
-                                            cached: { doc_status: storedProfile.doc_status, is_verified: storedProfile.is_verified },
-                                            fresh: { doc_status: freshProfile.doc_status, is_verified: freshProfile.is_verified }
-                                        });
-                                        driverProfile = { ...(driverProfile || {}), ...freshProfile };
-                                        storageSet('nandu_driver_profile', JSON.stringify(driverProfile));
-                                        try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
-                                        initDriverUI(driverProfile, { skipDashboardReload: true });
+                        if (requiresDriverProfileCompletion(storedProfile)) {
+                            showDriverProfileCompletion(storedProfile);
+                        } else {
+                            const cachedApproved = isDriverVerificationApproved(storedProfile);
+
+                            // Prevent stale cached pending state from flashing lock for already-approved drivers.
+                            if (!cachedApproved) {
+                                setSplashStatus('Checking Verification...');
+                                try {
+                                    const freshProfile = await apiFetch('/api/drivers/me');
+                                    if (freshProfile && freshProfile.id) {
+                                        driverProfile = freshProfile;
+                                        driverId = freshProfile.id;
+                                        await storageSet('nandu_driver_profile', JSON.stringify(freshProfile));
+                                        try { localStorage.setItem('nandu_driver_profile', JSON.stringify(freshProfile)); } catch(e) { }
+                                        initDriverUI(freshProfile, { verificationResolved: true });
+                                    } else {
+                                        initDriverUI(storedProfile, { verificationResolved: true });
                                     }
+                                } catch(err) {
+                                    console.warn('[Init] Verification refresh failed, using cached profile:', err?.message || err);
+                                    initDriverUI(storedProfile, { verificationResolved: true });
                                 }
-                            } catch(err) {
-                                console.log('[Init] Background profile refresh failed (non-critical):', err?.message || err);
+                            } else {
+                                initDriverUI(storedProfile, { verificationResolved: true });
+
+                                // Keep verified sessions fast while still syncing backend verification changes.
+                                (async () => {
+                                    try {
+                                        const freshProfile = await apiFetch('/api/drivers/me');
+                                        if (freshProfile && freshProfile.id) {
+                                            const needsUpdate = 
+                                                freshProfile.doc_status !== storedProfile.doc_status ||
+                                                freshProfile.is_verified !== storedProfile.is_verified ||
+                                                freshProfile.verification_status !== storedProfile.verification_status;
+                                            
+                                            if (needsUpdate) {
+                                                console.log('[Init] Profile status changed - updating UI', {
+                                                    cached: { doc_status: storedProfile.doc_status, is_verified: storedProfile.is_verified },
+                                                    fresh: { doc_status: freshProfile.doc_status, is_verified: freshProfile.is_verified }
+                                                });
+                                                driverProfile = { ...(driverProfile || {}), ...freshProfile };
+                                                storageSet('nandu_driver_profile', JSON.stringify(driverProfile));
+                                                try { localStorage.setItem('nandu_driver_profile', JSON.stringify(driverProfile)); } catch(e) { }
+                                                initDriverUI(driverProfile, { skipDashboardReload: true, verificationResolved: true });
+                                            }
+                                        }
+                                    } catch(err) {
+                                        console.log('[Init] Background profile refresh failed (non-critical):', err?.message || err);
+                                    }
+                                })();
                             }
-                        })();
+                        }
                     } catch(e) { 
                         console.log("Stored profile init error:", e);
                         showLoginScreen(); 
@@ -2422,7 +2506,7 @@
                             // Also save to localStorage for synchronous access
                             try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
                             if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
-                            else initDriverUI(profile);
+                            else initDriverUI(profile, { verificationResolved: true });
                         } catch (err) {
                             console.warn('Driver profile refresh failed:', err?.message || err);
                             showLoginScreen();
@@ -2505,6 +2589,7 @@
 
         function showLoginScreen() {
             dashboardInitialized = false;
+            verificationStatusResolved = false;
             if (window.pollInterval) { clearInterval(window.pollInterval); window.pollInterval = null; }
             if (profileSyncInterval) { clearInterval(profileSyncInterval); profileSyncInterval = null; }
             disconnectDriverSocket();
@@ -2621,8 +2706,14 @@
 
         function initDriverUI(profile, options = {}) {
             const skipDashboardReload = !!options.skipDashboardReload;
+            const verificationResolved = options.verificationResolved !== false;
+            const previousProfile = driverProfile;
+            const hadPreviousProfile = !!(previousProfile && previousProfile.id);
+            const wasApproved = isDriverVerificationApproved(previousProfile);
+
             driverId = profile.id;
             driverProfile = profile;
+            if (verificationResolved) verificationStatusResolved = true;
             
             // Prevent duplicate dashboard initialization that causes polling loops
             const shouldInitDashboard = !dashboardInitialized || skipDashboardReload === false;
@@ -2723,6 +2814,13 @@
             const splashText = document.getElementById('splash-text');
             if (splashText && isApproved) {
                 splashText.innerText = 'Preparing Dashboard...';
+            } else if (splashText && !verificationStatusResolved) {
+                splashText.innerText = 'Checking Verification...';
+            }
+
+            if (hadPreviousProfile && !wasApproved && isApproved) {
+                showVerificationApprovedAnimation();
+                showToast('Documents verified. You can now accept rides.', 'success');
             }
 
             document.getElementById('login-screen').classList.add('hidden');
@@ -2800,6 +2898,7 @@
                     showToast("Welcome back!", "success");
                 }, 500); // Brief delay for smooth transition
             } else {
+                setTimeout(() => finishInitialLoading(), 250);
                 showToast("Documents Under Verification", "info");
             }
         };
