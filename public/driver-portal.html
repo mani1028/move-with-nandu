@@ -1624,7 +1624,7 @@
             const label = document.getElementById('status-label');
             const card = document.getElementById('trip-status-card');
             const approved = isDriverVerificationApproved(profile);
-            const needsProfileCompletion = requiresDriverProfileCompletion(profile || {});
+            const needsProfileCompletion = isDriverProfileCompletionRequired(profile || {});
             const checkingVerification = !verificationStatusResolved && !approved && !needsProfileCompletion;
             const showVerificationLock = verificationStatusResolved && !approved && !needsProfileCompletion;
             
@@ -2326,6 +2326,12 @@
                 || !((profile?.insurance_url || '').trim());
         }
 
+        function isDriverProfileCompletionRequired(profile = driverProfile) {
+            if (!profile) return false;
+            if (isDriverVerificationApproved(profile)) return false;
+            return requiresDriverProfileCompletion(profile);
+        }
+
         let initialSessionCheckPending = false;
 
         function hideNativeLoading() {
@@ -2466,7 +2472,7 @@
                 
                 if (storedProfile && token) {
                     try {
-                        if (requiresDriverProfileCompletion(storedProfile)) {
+                        if (isDriverProfileCompletionRequired(storedProfile)) {
                             showDriverProfileCompletion(storedProfile);
                         } else {
                             const cachedApproved = isDriverVerificationApproved(storedProfile);
@@ -2534,7 +2540,7 @@
                             storageSet('nandu_driver_profile', JSON.stringify(profile));
                             // Also save to localStorage for synchronous access
                             try { localStorage.setItem('nandu_driver_profile', JSON.stringify(profile)); } catch(e) { }
-                            if (requiresDriverProfileCompletion(profile)) showDriverProfileCompletion(profile);
+                            if (isDriverProfileCompletionRequired(profile)) showDriverProfileCompletion(profile);
                             else initDriverUI(profile, { verificationResolved: true });
                         } catch (err) {
                             console.warn('Driver profile refresh failed:', err?.message || err);
@@ -2920,7 +2926,7 @@
             // FIX: For verified users, hide splash screen with smooth fade after dashboard loads
             // For unverified users, let the verification lock screen handle the UI
             const isApproved = isDriverVerificationApproved(driverProfile);
-            const needsProfileCompletion = requiresDriverProfileCompletion(driverProfile || {});
+            const needsProfileCompletion = isDriverProfileCompletionRequired(driverProfile || {});
             if (isApproved || needsProfileCompletion) {
                 // Verified and profile-completion states should skip the verification lock splash.
                 setTimeout(() => {
@@ -3928,7 +3934,7 @@ Are you absolutely sure you want to proceed?`);
             const container = document.getElementById('job-list-container');
             container.innerHTML = '';
             let listToRender = currentTab === 'new' ? availableMarketJobs : activeList;
-            const needsProfileCompletion = requiresDriverProfileCompletion(driverProfile || {});
+            const needsProfileCompletion = isDriverProfileCompletionRequired(driverProfile || {});
 
             if (currentTab === 'new' && needsProfileCompletion) {
                 container.innerHTML = `<div class="text-center py-10 opacity-90"><div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="clipboard-list" class="w-8 h-8 text-slate-500"></i></div><p class="text-sm font-bold text-slate-600 dark:text-slate-300">Complete Profile & Documents</p><p class="text-xs text-slate-400 mt-1">Finish required details to unlock verification and trip acceptance.</p><button onclick="switchView('docs')" class="mt-4 px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-lg">Open Documents</button></div>`;
